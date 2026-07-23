@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Horario Interactivo - Gestor de Pruebas y Evaluaciones</title>
-    <meta name="robots" content="noindex, nofollow">
     <style>
         :root {
             --header-gray: #a5b1c2;
@@ -283,7 +282,7 @@
         .table-simbologia { width: 90%; margin: 0 auto; border-collapse: collapse; border: 2px solid #333; }
         .table-simbologia th, .table-simbologia td { border: 1px solid #555; padding: 6px; text-align: center; font-weight: bold; font-size: 12px; }
 
-        /* Estilos para el cómputo final en el reporte */
+        /* Estilos para el cómputo final unificado por asignatura */
         .print-eval-summary-container {
             margin-top: 25px;
             page-break-inside: avoid;
@@ -524,7 +523,7 @@
     
     <div class="instructions">
         <strong>ACTUALIZACIÓN APLICADA:</strong><br>
-        • Se añadió el <strong>Cómputo Final separado por prueba</strong> (con recuentos y listados de cursos asignados y faltantes) directamente en la sección de impresión y exportación a Word.
+        • En el calendario final y exportación a Word, el cómputo final ahora **agrupa las asignaturas iguales**, mostrando a todos los profesores involucrados juntos, combinando sus cursos asignados y calculando correctamente los faltantes globales.
     </div>
 
     <div class="editors-container" id="editorsContainer"></div>
@@ -694,8 +693,8 @@
             <tbody id="simbologiaBody"></tbody>
         </table>
 
-        <!-- NUEVA SECCIÓN DE CÓMPUTO FINAL SEPARADO POR PRUEBA PARA IMPRESIÓN/WORD -->
-        <div class="simbologia-title">CÓMPUTO FINAL DE CURSOS POR EVALUACIÓN</div>
+        <!-- CÓMPUTO FINAL UNIFICADO POR ASIGNATURA -->
+        <div class="simbologia-title">CÓMPUTO FINAL DE CURSOS POR ASIGNATURA</div>
         <div id="printEvalSummaryContainer" class="print-eval-summary-container"></div>
     </div>
 
@@ -1144,28 +1143,56 @@
             simbologiaBody.appendChild(tr);
         });
 
-        // Generar el cómputo final detallado por prueba en la sección de impresión/Word
+        // CÓMPUTO FINAL UNIFICADO POR ASIGNATURA
         let printEvalSummaryContainer = document.getElementById('printEvalSummaryContainer');
         printEvalSummaryContainer.innerHTML = '';
 
-        editorsData.forEach((editor) => {
-            let card = document.querySelector(`.editor-card[data-eval-id="${editor.id}"]`);
-            let assignedSet = new Set();
-            if (card) {
-                card.querySelectorAll('.slot-select').forEach(s => {
-                    if(s.value && s.value.trim() !== '') {
-                        assignedSet.add(s.value);
-                    }
-                });
+        // Agrupar editores por nombre de asignatura
+        let subjectsMap = {};
+        editorsData.forEach(editor => {
+            let subj = editor.subject || 'Sin Asignatura';
+            if(!subjectsMap[subj]) {
+                subjectsMap[subj] = {
+                    subject: subj,
+                    teachers: new Set(),
+                    colors: new Set(),
+                    editorsIds: []
+                };
             }
+            if(editor.teacher && editor.teacher.trim() !== '') {
+                subjectsMap[subj].teachers.add(editor.teacher.trim());
+            }
+            subjectsMap[subj].colors.add(editor.color);
+            subjectsMap[subj].editorsIds.push(editor.id);
+        });
+
+        // Generar tarjeta unificada por cada asignatura
+        for(let subj in subjectsMap) {
+            let group = subjectsMap[subj];
+            let assignedSet = new Set();
+
+            group.editorsIds.forEach(evalId => {
+                let card = document.querySelector(`.editor-card[data-eval-id="${evalId}"]`);
+                if(card) {
+                    card.querySelectorAll('.slot-select').forEach(s => {
+                        if(s.value && s.value.trim() !== '') {
+                            assignedSet.add(s.value);
+                        }
+                    });
+                }
+            });
+
             let assignedList = Array.from(assignedSet).sort();
             let missingList = todosLosCursos.filter(c => !assignedSet.has(c)).sort();
+            let teachersArr = Array.from(group.teachers);
+            let teachersStr = teachersArr.length > 0 ? teachersArr.join(', ') : 'Sin profesor asignado';
+            let mainColor = Array.from(group.colors)[0] || '#a5b1c2';
 
             let summaryBox = document.createElement('div');
             summaryBox.className = 'print-eval-summary-card';
             summaryBox.innerHTML = `
-                <div class="print-eval-summary-header" style="border-left: 6px solid ${editor.color};">
-                    <span>📊 Evaluación: ${editor.subject} <span style="font-weight:normal; font-size:11px;">(Prof: ${editor.teacher || 'Sin asignar'})</span></span>
+                <div class="print-eval-summary-header" style="border-left: 6px solid ${mainColor};">
+                    <span>📊 Asignatura: ${subj} <span style="font-weight:normal; font-size:11px;">(Prof(es): ${teachersStr})</span></span>
                 </div>
                 <div class="print-eval-summary-body">
                     <div class="print-eval-col-assigned">
@@ -1179,7 +1206,7 @@
                 </div>
             `;
             printEvalSummaryContainer.appendChild(summaryBox);
-        });
+        }
     }
 
     function getStateObject(customName = "", customDateRange = "") {
