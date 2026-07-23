@@ -206,8 +206,8 @@
     <h1>🗓️ Creador Avanzado de Calendario de Evaluaciones</h1>
     
     <div class="instructions">
-        <strong>ACTUALIZACIÓN DE DISEÑO:</strong><br>
-        • Se restauró la alineación centrada y compacta de las tablas, manteniendo activa la función de marcar pruebas como <strong>"Realizadas"</strong> sin desfigurar el diseño.
+        <strong>ACTUALIZACIÓN DE CORRECCIÓN:</strong><br>
+        • Se solucionó el problema visual de la tabla inferior. Ahora los bloques (1°, 2°, 3°, 4°) se alinean perfectamente sin alterar el resto de las funciones ni empujar los contenidos.
     </div>
 
     <div class="editors-container" id="editorsContainer"></div>
@@ -259,7 +259,7 @@
                 <tr><th class="bg-gray-light">L</th><th class="bg-gray-light">M</th><th class="bg-gray-light">M</th><th class="bg-gray-light">J</th><th class="bg-gray-light">V</th></tr>
             </thead>
             <tbody id="finalTableBody">
-                <!-- Se llenará vía JS -->
+                <!-- Se llenará vía JS de forma dinámica y alineada -->
             </tbody>
         </table>
 
@@ -309,6 +309,7 @@
     let currentSelections = {}; 
     let currentSchoolLogo = null;
 
+    // APLICAMOS LA CORRECCIÓN DEL CÓDIGO HTML PARA LA TABLA FINAL
     function buildFinalTableRows() {
         const tbody = document.getElementById('finalTableBody');
         tbody.innerHTML = '';
@@ -317,8 +318,16 @@
             if(hour.type === 'break') {
                 tr.innerHTML = `<td colspan="4" class="recreo-final"></td><td colspan="5" class="recreo-final">${hour.label.toUpperCase()}</td>`;
             } else {
+                // Se identifican exactamente las posiciones de inicio de bloque para aplicar el rowspan
+                let isBlockStart = [0, 3, 6, 9].includes(hourIndex);
+                let blockNum = hourIndex < 2 ? '1°' : (hourIndex < 5 ? '2°' : (hourIndex < 8 ? '3°' : '4°'));
+                
+                // Si es el inicio de un bloque (pares de clases), se inyecta la celda principal con rowspan=2.
+                // Si no lo es, se omite completamente para evitar descuadrar las siguientes columnas.
+                let firstColHTML = isBlockStart ? `<td rowspan="2" class="bg-gray-light">${blockNum}</td>` : '';
+                
                 tr.innerHTML = `
-                    <td ${hourIndex%2===0 ? 'rowspan="2"' : 'style="display:none;"'} class="bg-gray-light">${hourIndex < 2 ? '1°' : (hourIndex < 5 ? '2°' : (hourIndex < 8 ? '3°' : '4°'))}</td>
+                    ${firstColHTML}
                     <td class="bg-gray-light">${hour.num}</td>
                     <td class="bg-gray-light">${hour.time.split(' A ')[0]}</td>
                     <td class="bg-gray-light">${hour.time.split(' A ')[1]}</td>
