@@ -126,6 +126,7 @@
         .btn-load { background-color: #8e44ad; } .btn-load:hover { background-color: #732d91; }
         .btn-history { background-color: #e67e22; } .btn-history:hover { background-color: #d35400; }
         .btn-upload-logo { background-color: #34495e; } .btn-upload-logo:hover { background-color: #2c3e50; }
+        .btn-new { background-color: #16a085; } .btn-new:hover { background-color: #1abc9c; }
         .btn-add-row { background-color: #8e44ad; color: white; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto; }
         
         .print-section { background: white; padding: 20px; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; max-width: 1100px; }
@@ -177,11 +178,11 @@
 <div id="autoSaveToast"><span>💾</span> <span id="toastText">¡Avance guardado automáticamente!</span></div>
 <div id="infoToast"><span>⚠️</span> <span id="infoToastText">Aviso</span></div>
 
-<!-- MODAL DE GUARDADO -->
+<!-- MODAL DE GUARDADO INTELIGENTE -->
 <div class="modal-overlay" id="saveModal">
     <div class="modal-content" style="max-width: 500px;">
         <div class="modal-header">
-            <h3>💾 Guardar Horario Actual</h3>
+            <h3 id="modalTitleText">💾 Guardar Horario Actual</h3>
             <button class="btn-close-modal" onclick="toggleSaveModal(false)">✕ Cerrar</button>
         </div>
         <div class="form-group"><label>Nombre del Horario:</label><input type="text" id="inputScheduleName" placeholder="Ej. Calendario Diagnóstico Principal"></div>
@@ -206,8 +207,9 @@
     <h1>🗓️ Creador Avanzado de Calendario de Evaluaciones</h1>
     
     <div class="instructions">
-        <strong>ACTUALIZACIÓN DE CORRECCIÓN:</strong><br>
-        • Se solucionó el problema visual de la tabla inferior. Ahora los bloques (1°, 2°, 3°, 4°) se alinean perfectamente sin alterar el resto de las funciones ni empujar los contenidos.
+        <strong>ACTUALIZACIÓN - NUEVO HORARIO Y MEMORIA INTELIGENTE:</strong><br>
+        • El botón <strong>"➕ Nuevo Horario"</strong> te preguntará si deseas guardar tu trabajo actual antes de limpiar la pantalla.<br>
+        • El sistema recuerda automáticamente el nombre y las fechas que usaste por última vez, agilizando el guardado.
     </div>
 
     <div class="editors-container" id="editorsContainer"></div>
@@ -225,12 +227,13 @@
             <option value="8°A">8°A</option><option value="8°B">8°B</option><option value="8°C">8°C</option>
         </select>
         
+        <button class="btn-action btn-new" onclick="handleNewScheduleButton()">➕ Nuevo Horario</button>
         <button class="btn-action btn-upload-logo" onclick="document.getElementById('logoFileInput').click()">🖼️ Subir Insignia</button>
         <input type="file" id="logoFileInput" style="display: none;" accept="image/png, image/jpeg, image/jpg" onchange="loadLogoImage(event)">
 
         <button class="btn-action btn-save" onclick="openSaveModal()">💾 Guardar Horario Actual</button>
-        <button class="btn-action btn-history" onclick="openHistoryModal()">📋 Historial de Horarios</button>
-        <button class="btn-action btn-load" onclick="document.getElementById('backupFileInput').click()">📂 Cargar Archivo .json</button>
+        <button class="btn-action btn-history" onclick="openHistoryModal()">📋 Historial</button>
+        <button class="btn-action btn-load" onclick="document.getElementById('backupFileInput').click()">📂 Cargar .json</button>
         <input type="file" id="backupFileInput" style="display: none;" accept=".json" onchange="loadBackup(event)">
         <button class="btn-action btn-print" onclick="window.print()">🖨️ Imprimir PDF</button>
         <button class="btn-action btn-word" onclick="exportToWord()">📄 Exportar a Word</button>
@@ -258,9 +261,7 @@
                 </tr>
                 <tr><th class="bg-gray-light">L</th><th class="bg-gray-light">M</th><th class="bg-gray-light">M</th><th class="bg-gray-light">J</th><th class="bg-gray-light">V</th></tr>
             </thead>
-            <tbody id="finalTableBody">
-                <!-- Se llenará vía JS de forma dinámica y alineada -->
-            </tbody>
+            <tbody id="finalTableBody"></tbody>
         </table>
 
         <div class="simbologia-title">SIMBOLOGIA Y PROFESORES</div>
@@ -308,8 +309,15 @@
 
     let currentSelections = {}; 
     let currentSchoolLogo = null;
+    
+    // Variables para recordar la última configuración de nombre y fechas
+    let lastSavedMeta = {
+        name: "Calendario Diagnóstico Principal",
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: new Date().toISOString().split('T')[0],
+        isConfigured: false // Indica si ya se guardó al menos una vez
+    };
 
-    // APLICAMOS LA CORRECCIÓN DEL CÓDIGO HTML PARA LA TABLA FINAL
     function buildFinalTableRows() {
         const tbody = document.getElementById('finalTableBody');
         tbody.innerHTML = '';
@@ -318,12 +326,8 @@
             if(hour.type === 'break') {
                 tr.innerHTML = `<td colspan="4" class="recreo-final"></td><td colspan="5" class="recreo-final">${hour.label.toUpperCase()}</td>`;
             } else {
-                // Se identifican exactamente las posiciones de inicio de bloque para aplicar el rowspan
                 let isBlockStart = [0, 3, 6, 9].includes(hourIndex);
                 let blockNum = hourIndex < 2 ? '1°' : (hourIndex < 5 ? '2°' : (hourIndex < 8 ? '3°' : '4°'));
-                
-                // Si es el inicio de un bloque (pares de clases), se inyecta la celda principal con rowspan=2.
-                // Si no lo es, se omite completamente para evitar descuadrar las siguientes columnas.
                 let firstColHTML = isBlockStart ? `<td rowspan="2" class="bg-gray-light">${blockNum}</td>` : '';
                 
                 tr.innerHTML = `
@@ -720,9 +724,9 @@
             selectionsArr.push({ evalId: p[0], day: p[1], hour: p[2], value: currentSelections[k].course, done: currentSelections[k].done });
         });
         return {
-            id: 'version_' + Date.now(), name: customName || ('Horario ' + new Date().toLocaleDateString()),
+            id: 'version_' + Date.now(), name: customName || lastSavedMeta.name,
             createdDate: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
-            dateRange: customDateRange || 'Sin rango especificado',
+            dateRange: customDateRange || `${formatDate(lastSavedMeta.startDate)} al ${formatDate(lastSavedMeta.endDate)}`,
             editorsData: JSON.parse(JSON.stringify(editorsData)),
             selections: selectionsArr,
             selectedCourse: document.getElementById('courseSelector').value,
@@ -731,22 +735,89 @@
     }
 
     function openSaveModal() {
-        document.getElementById('inputScheduleName').value = "Calendario Diagnóstico Principal";
-        let today = new Date().toISOString().split('T')[0]; document.getElementById('inputStartDate').value = today; document.getElementById('inputEndDate').value = today;
+        // Rellenar automáticamente con lo último guardado o valores por defecto
+        document.getElementById('inputScheduleName').value = lastSavedMeta.name;
+        document.getElementById('inputStartDate').value = lastSavedMeta.startDate;
+        document.getElementById('inputEndDate').value = lastSavedMeta.endDate;
         toggleSaveModal(true);
     }
-    function toggleSaveModal(open) { const modal = document.getElementById('saveModal'); if(open) modal.classList.add('open'); else modal.classList.remove('open'); }
+
+    function toggleSaveModal(open) { 
+        const modal = document.getElementById('saveModal'); 
+        if(open) modal.classList.add('open'); 
+        else modal.classList.remove('open'); 
+    }
 
     function confirmSaveVersion() {
         let name = document.getElementById('inputScheduleName').value.trim() || "Calendario sin nombre";
-        let start = document.getElementById('inputStartDate').value; let end = document.getElementById('inputEndDate').value;
+        let start = document.getElementById('inputStartDate').value; 
+        let end = document.getElementById('inputEndDate').value;
+        
+        // Actualizar la memoria con los datos nuevos
+        lastSavedMeta.name = name;
+        if(start) lastSavedMeta.startDate = start;
+        if(end) lastSavedMeta.endDate = end;
+        lastSavedMeta.isConfigured = true;
+
         let rangeStr = (start && end) ? `${formatDate(start)} al ${formatDate(end)}` : 'Sin rango especificado';
         let newVersion = getStateObject(name, rangeStr);
-        let history = getHistory(); history.unshift(newVersion); localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
-        downloadJsonFile(newVersion); toggleSaveModal(false); alert(`¡Horario "${name}" guardado exitosamente!`);
+        
+        let history = getHistory(); 
+        history.unshift(newVersion); 
+        localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
+        
+        downloadJsonFile(newVersion); 
+        toggleSaveModal(false); 
+        alert(`¡Horario "${name}" guardado y descargado exitosamente!`);
     }
 
-    function formatDate(dateStr) { let p = dateStr.split('-'); if(p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`; return dateStr; }
+    // GESTIÓN DEL NUEVO BOTÓN NUEVO HORARIO
+    function handleNewScheduleButton() {
+        // Verificar si hay datos ingresados para preguntar si desea guardar
+        let hasData = Object.keys(currentSelections).length > 0;
+        
+        if (hasData) {
+            let deseaGuardar = confirm("Tienes evaluaciones asignadas en pantalla. ¿Deseas guardar tu horario actual antes de crear uno nuevo?");
+            if (deseaGuardar) {
+                if (lastSavedMeta.isConfigured) {
+                    // Si ya se había guardado previamente, guarda automáticamente usando la misma configuración
+                    let rangeStr = `${formatDate(lastSavedMeta.startDate)} al ${formatDate(lastSavedMeta.endDate)}`;
+                    let savedVersion = getStateObject(lastSavedMeta.name, rangeStr);
+                    let history = getHistory();
+                    history.unshift(savedVersion);
+                    localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
+                    downloadJsonFile(savedVersion);
+                    alert(`¡Horario "${lastSavedMeta.name}" guardado automáticamente con éxito!`);
+                    resetScreenToNew();
+                } else {
+                    // Si nunca se ha guardado, abrir el modal de guardado
+                    openSaveModal();
+                    return;
+                }
+            } else {
+                resetScreenToNew();
+            }
+        } else {
+            resetScreenToNew();
+        }
+    }
+
+    function resetScreenToNew() {
+        currentSelections = {};
+        editorsData = [
+            { id: 'eval_' + Date.now(), subject: 'Historia', teacher: '', color: '#00b894' }
+        ];
+        document.getElementById('courseSelector').value = '';
+        initApp(true);
+        alert("Pantalla limpia. ¡Listo para un nuevo horario!");
+    }
+
+    function formatDate(dateStr) { 
+        if(!dateStr) return '';
+        let p = dateStr.split('-'); 
+        if(p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`; 
+        return dateStr; 
+    }
 
     function downloadJsonFile(stateObj) {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stateObj, null, 2));
@@ -773,9 +844,26 @@
 
     function loadVersion(id) {
         let history = getHistory(); let version = history.find(v => v.id === id);
-        if(version) { if(confirm(`¿Cargar "${version.name}"? Sobrescribirá tu pantalla actual.`)) { restoreState(version); toggleHistoryModal(false); alert(`Horario cargado con éxito.`); } }
+        if(version) { 
+            if(confirm(`¿Cargar "${version.name}"? Sobrescribirá tu pantalla actual.`)) { 
+                restoreState(version); 
+                toggleHistoryModal(false); 
+                // Actualizar la memoria con los datos del archivo cargado
+                lastSavedMeta.name = version.name;
+                lastSavedMeta.isConfigured = true;
+                alert(`Horario cargado con éxito.`); 
+            } 
+        }
     }
-    function deleteVersion(id) { if(confirm("¿Eliminar del historial?")) { let history = getHistory(); history = history.filter(v => v.id !== id); localStorage.setItem('calendario_historial_versiones', JSON.stringify(history)); renderHistoryList(); } }
+    
+    function deleteVersion(id) { 
+        if(confirm("¿Eliminar del historial?")) { 
+            let history = getHistory(); 
+            history = history.filter(v => v.id !== id); 
+            localStorage.setItem('calendario_historial_versiones', JSON.stringify(history)); 
+            renderHistoryList(); 
+        } 
+    }
 
     function autoSaveState() { try { const state = getStateObject(); localStorage.setItem('calendario_evaluaciones_autosave_vfinal', JSON.stringify(state)); } catch(e) {} }
     setInterval(() => { autoSaveState(); const toast = document.getElementById('autoSaveToast'); toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3000); }, 120000);
@@ -783,7 +871,17 @@
     function loadBackup(event) {
         const file = event.target.files[0]; if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(e) { try { const state = JSON.parse(e.target.result); restoreState(state); alert("¡Avance cargado desde JSON!"); } catch(err) { alert("Archivo JSON no válido."); } };
+        reader.onload = function(e) { 
+            try { 
+                const state = JSON.parse(e.target.result); 
+                restoreState(state); 
+                if(state.name) {
+                    lastSavedMeta.name = state.name;
+                    lastSavedMeta.isConfigured = true;
+                }
+                alert("¡Avance cargado desde JSON!"); 
+            } catch(err) { alert("Archivo JSON no válido."); } 
+        };
         reader.readAsText(file);
     }
 
