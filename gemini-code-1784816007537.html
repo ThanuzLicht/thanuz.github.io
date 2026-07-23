@@ -1,0 +1,1521 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horario Interactivo - Gestor de Pruebas y Evaluaciones</title>
+    <style>
+        :root {
+            --header-gray: #a5b1c2;
+            --bg-gray: #d1d8e0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .instructions {
+            background: #e8f4f8;
+            padding: 15px 20px;
+            border-left: 5px solid #3498db;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        #autoSaveToast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background-color: #27ae60;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 6px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 9999;
+            opacity: 0;
+            transition: opacity 0.4s ease-in-out;
+            pointer-events: none;
+        }
+        #autoSaveToast.show {
+            opacity: 1;
+        }
+
+        /* Modales */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 10000;
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open {
+            opacity: 1; pointer-events: auto;
+        }
+        .modal-content {
+            background: white; width: 95%; max-width: 1150px;
+            border-radius: 8px; padding: 25px;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
+            max-height: 90vh; overflow-y: auto;
+        }
+        .modal-header {
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; margin-bottom: 15px;
+        }
+        .modal-header h3 { margin: 0; color: #2c3e50; }
+        .btn-close-modal {
+            background: #e74c3c; color: white; border: none; padding: 6px 12px;
+            border-radius: 4px; font-weight: bold; cursor: pointer;
+        }
+        .history-list {
+            display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;
+        }
+        .history-item {
+            background: #f8f9fa; border: 1px solid #d1d8e0; border-radius: 6px;
+            padding: 12px; display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 10px;
+        }
+        .history-item-info h4 { margin: 0 0 5px 0; color: #2c3e50; font-size: 16px; }
+        .history-item-info p { margin: 0; font-size: 13px; color: #718093; }
+        .history-item-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        /* Formulario Guardado con Calendario */
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #2c3e50;
+        }
+        .form-group input {
+            width: 100%; padding: 8px 12px; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 4px; box-sizing: border-box;
+        }
+
+        /* Contenedor de Editores */
+        .editors-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .editor-card {
+            background: #fdfdfd;
+            border: 1px solid #d1d8e0;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .editor-header-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            background: #ecf0f1;
+            padding: 8px 12px;
+            border-radius: 4px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .editor-header-bar select, .editor-header-bar input[type="text"] {
+            padding: 6px 10px;
+            font-size: 14px;
+            font-weight: bold;
+            border-radius: 4px;
+            border: 1px solid #bdc3c7;
+            background-color: #fff;
+        }
+        .editor-header-bar input[type="text"] {
+            width: 220px;
+        }
+        .editor-header-bar input[type="color"] {
+            border: none;
+            width: 35px;
+            height: 30px;
+            cursor: pointer;
+            background: none;
+        }
+        
+        .editor-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        .editor-table th, .editor-table td {
+            border: 1px solid #d1d8e0;
+            padding: 4px;
+            text-align: center;
+        }
+        .editor-table th { color: white; padding: 6px; font-size: 13px; background-color: #34495e; }
+        .day-header { background-color: #ecf0f1 !important; color: #2c3e50 !important; }
+        .hour-col { width: 3%; font-weight: bold; background-color: #ecf0f1; font-size: 13px; }
+        .time-col { width: 9%; font-size: 12px; background-color: #ecf0f1; }
+        .day-col { width: 17.6%; }
+        .recreo-row td { background-color: #e67e22; color: white; font-weight: bold; letter-spacing: 2px; padding: 6px; font-size: 12px; }
+        
+        select.slot-select {
+            width: 100%; padding: 6px 0; border: 1px solid #ced6e0; border-radius: 4px;
+            text-align-last: center; font-weight: bold; font-size: 13px; cursor: pointer;
+            appearance: none; -webkit-appearance: none; -moz-appearance: none;
+            background-color: #fff;
+            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+        }
+        select.slot-select:hover { border-color: #3498db; background-color: #f4f9ff; }
+        select.slot-select:focus { outline: none; border-color: #3498db; box-shadow: inset 0 0 0 2px #3498db; }
+        
+        select.slot-select.conflict {
+            background-color: #ff4757 !important; 
+            color: white !important; 
+            border-color: #ff4757 !important; 
+            animation: pulse 1s infinite;
+        }
+
+        .occupied-badge {
+            background-color: #f1f2f6;
+            color: #718093;
+            border: 1px dashed #a4b0be;
+            border-radius: 4px;
+            padding: 6px 4px;
+            font-size: 11px;
+            font-weight: bold;
+            text-align: center;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            cursor: not-allowed;
+        }
+        .occupied-badge span {
+            display: block;
+            font-size: 9px;
+            font-weight: normal;
+            color: #ff4757;
+        }
+
+        .summary-card {
+            background: #fff;
+            border: 1px solid #d1d8e0;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .tag-assigned { color: #27ae60; font-weight: bold; font-size: 12px; }
+        .tag-missing { color: #e74c3c; font-weight: bold; font-size: 12px; }
+        
+        .generator-controls {
+            background: #fff; border: 2px dashed #bdc3c7; padding: 20px;
+            border-radius: 8px; text-align: center; margin-bottom: 30px;
+            display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap;
+        }
+        .generator-controls select {
+            padding: 10px 15px; font-size: 16px; font-weight: bold; border-radius: 5px; border: 2px solid #3498db;
+        }
+        .btn-action {
+            color: white; border: none; padding: 12px 18px;
+            font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer;
+            transition: background 0.2s; display: flex; align-items: center; gap: 6px;
+        }
+        .btn-print { background-color: #27ae60; }
+        .btn-print:hover { background-color: #219653; }
+        .btn-word { background-color: #2980b9; }
+        .btn-word:hover { background-color: #2471a3; }
+        .btn-save { background-color: #d35400; }
+        .btn-save:hover { background-color: #b94200; }
+        .btn-load { background-color: #8e44ad; }
+        .btn-load:hover { background-color: #732d91; }
+        .btn-history { background-color: #e67e22; }
+        .btn-history:hover { background-color: #d35400; }
+
+        .btn-add-row {
+            background-color: #8e44ad; color: white; border: none; padding: 10px 15px;
+            font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer;
+            margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;
+        }
+        .btn-add-row:hover { background-color: #732d91; }
+        
+        .print-section {
+            background: white; padding: 20px; border: 1px solid #ddd;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; max-width: 1100px;
+        }
+        .header-final {
+            display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #222; padding-bottom: 15px;
+        }
+        .logo-placeholder {
+            width: 80px; height: 90px; background-color: #3498db; color: white;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            font-weight: bold; font-size: 12px; border: 2px solid #2980b9; border-radius: 0 0 40px 40px;
+            text-align: center; padding: 5px;
+        }
+        .title-final { flex-grow: 1; text-align: center; }
+        .title-final h2 { margin: 0 0 10px 0; font-size: 18px; text-decoration: underline; text-transform: uppercase; }
+        .title-final h3 { margin: 0; font-size: 16px; text-decoration: underline; }
+        .subtitle-course { color: #e74c3c; margin-top: 10px; font-size: 20px; font-weight: 900; }
+        
+        .final-table { width: 100%; border-collapse: collapse; border: 2px solid #333; margin-bottom: 20px; font-family: Arial, sans-serif; }
+        .final-table th, .final-table td { border: 1px solid #555; padding: 6px; text-align: center; font-size: 12px; height: 40px; vertical-align: middle; }
+        .final-table th { background-color: var(--header-gray); font-weight: bold; }
+        .final-table .bg-gray-light { background-color: var(--bg-gray); font-weight: bold; }
+        .final-table .recreo-final { background-color: var(--bg-gray); font-weight: bold; letter-spacing: 1px; color: #333; }
+        
+        .final-cell { font-weight: bold; font-size: 11px; text-transform: uppercase; }
+        
+        .simbologia-title { text-align: center; text-decoration: underline; font-weight: bold; margin-bottom: 10px; margin-top: 25px; }
+        .table-simbologia { width: 90%; margin: 0 auto; border-collapse: collapse; border: 2px solid #333; }
+        .table-simbologia th, .table-simbologia td { border: 1px solid #555; padding: 6px; text-align: center; font-weight: bold; font-size: 12px; }
+
+        /* Estilos para el cómputo final en el reporte */
+        .print-eval-summary-container {
+            margin-top: 25px;
+            page-break-inside: avoid;
+        }
+        .print-eval-summary-card {
+            border: 1px solid #333;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        .print-eval-summary-header {
+            background-color: var(--header-gray);
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 13px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .print-eval-summary-body {
+            display: flex;
+            background: #fff;
+            font-size: 12px;
+        }
+        .print-eval-col-assigned {
+            flex: 1;
+            padding: 8px 12px;
+            border-right: 1px solid #ccc;
+            background-color: #f0fdf4;
+        }
+        .print-eval-col-missing {
+            flex: 1;
+            padding: 8px 12px;
+            background-color: #fef2f2;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); }
+            70% { box-shadow: 0 0 0 5px rgba(255, 71, 87, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); }
+        }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; max-width: 100%; padding: 0; }
+            .editors-container, h1, .instructions, .generator-controls, .btn-add-row, .summary-card, .modal-overlay { display: none !important; }
+            .print-section { border: none; box-shadow: none; width: 100%; max-width: 100%; padding: 0; }
+            @page { size: landscape; margin: 10mm; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="autoSaveToast">
+    <span>💾</span> <span id="toastText">¡Avance guardado automáticamente!</span>
+</div>
+
+<!-- MODAL DE GUARDADO CON CALENDARIO Y NOMBRE -->
+<div class="modal-overlay" id="saveModal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3>💾 Guardar Horario Actual</h3>
+            <button class="btn-close-modal" onclick="toggleSaveModal(false)">✕ Cerrar</button>
+        </div>
+        <div class="form-group">
+            <label for="inputScheduleName">Nombre del Horario:</label>
+            <input type="text" id="inputScheduleName" placeholder="Ej. Calendario Diagnóstico Principal">
+        </div>
+        <div class="form-group">
+            <label for="inputStartDate">Fecha de Inicio:</label>
+            <input type="date" id="inputStartDate">
+        </div>
+        <div class="form-group">
+            <label for="inputEndDate">Fecha de Término:</label>
+            <input type="date" id="inputEndDate">
+        </div>
+        <div style="text-align: right; margin-top: 20px;">
+            <button class="btn-action btn-save" onclick="confirmSaveVersion()" style="display: inline-flex;">💾 Guardar y Descargar .json</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE HISTORIAL Y VERSIONES -->
+<div class="modal-overlay" id="historyModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📋 Historial de Horarios Guardados</h3>
+            <button class="btn-close-modal" onclick="toggleHistoryModal(false)">✕ Cerrar</button>
+        </div>
+        <div id="historyListContainer" class="history-list"></div>
+    </div>
+</div>
+
+<!-- MODAL DE VISTA PREVIA CON LA TABLA COMPLETA DE HORARIO -->
+<div class="modal-overlay" id="previewModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="previewModalTitle">👁️ Vista Previa del Horario</h3>
+            <button class="btn-close-modal" onclick="togglePreviewModal(false)">✕ Cerrar</button>
+        </div>
+        
+        <div id="previewMetaInfo" style="background:#f8f9fa; padding:10px 15px; border-radius:6px; margin-bottom:15px; font-size:13px; color:#2c3e50;"></div>
+
+        <div class="print-section" style="box-shadow:none; border:1px solid #ccc; padding:10px; margin-bottom:20px;">
+            <table class="final-table" style="margin-bottom: 0;">
+                <thead>
+                    <tr>
+                        <th rowspan="2" colspan="2" class="bg-gray-light">BLOQUES</th>
+                        <th rowspan="2" colspan="2" class="bg-gray-light">AÑO 2026</th>
+                        <th colspan="5" class="bg-gray-light">HORARIO DE CLASES</th>
+                    </tr>
+                    <tr>
+                        <th class="bg-gray-light">L</th>
+                        <th class="bg-gray-light">M</th>
+                        <th class="bg-gray-light">M</th>
+                        <th class="bg-gray-light">J</th>
+                        <th class="bg-gray-light">V</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td rowspan="2" class="bg-gray-light">1°</td>
+                        <td class="bg-gray-light">1°</td>
+                        <td class="bg-gray-light">8:00</td>
+                        <td class="bg-gray-light">8:45</td>
+                        <td id="prev-final-0-0" class="final-cell"></td>
+                        <td id="prev-final-1-0" class="final-cell"></td>
+                        <td id="prev-final-2-0" class="final-cell"></td>
+                        <td id="prev-final-3-0" class="final-cell"></td>
+                        <td id="prev-final-4-0" class="final-cell"></td>
+                    </tr>
+                    <tr>
+                        <td class="bg-gray-light">2°</td>
+                        <td class="bg-gray-light">8:45</td>
+                        <td class="bg-gray-light">9:30</td>
+                        <td id="prev-final-0-1" class="final-cell"></td>
+                        <td id="prev-final-1-1" class="final-cell"></td>
+                        <td id="prev-final-2-1" class="final-cell"></td>
+                        <td id="prev-final-3-1" class="final-cell"></td>
+                        <td id="prev-final-4-1" class="final-cell"></td>
+                    </tr>
+                    
+                    <tr>
+                        <td colspan="4" class="recreo-final"></td>
+                        <td colspan="5" class="recreo-final">RECREO (9:30 A 9:50)</td>
+                    </tr>
+
+                    <tr>
+                        <td rowspan="2" class="bg-gray-light">2°</td>
+                        <td class="bg-gray-light">3°</td>
+                        <td class="bg-gray-light">9:50</td>
+                        <td class="bg-gray-light">10:35</td>
+                        <td id="prev-final-0-3" class="final-cell"></td>
+                        <td id="prev-final-1-3" class="final-cell"></td>
+                        <td id="prev-final-2-3" class="final-cell"></td>
+                        <td id="prev-final-3-3" class="final-cell"></td>
+                        <td id="prev-final-4-3" class="final-cell"></td>
+                    </tr>
+                    <tr>
+                        <td class="bg-gray-light">4°</td>
+                        <td class="bg-gray-light">10:35</td>
+                        <td class="bg-gray-light">11:20</td>
+                        <td id="prev-final-0-4" class="final-cell"></td>
+                        <td id="prev-final-1-4" class="final-cell"></td>
+                        <td id="prev-final-2-4" class="final-cell"></td>
+                        <td id="prev-final-3-4" class="final-cell"></td>
+                        <td id="prev-final-4-4" class="final-cell"></td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="4" class="recreo-final"></td>
+                        <td colspan="5" class="recreo-final">RECREO (11:20 A 11:40)</td>
+                    </tr>
+
+                    <tr>
+                        <td rowspan="2" class="bg-gray-light">3°</td>
+                        <td class="bg-gray-light">5°</td>
+                        <td class="bg-gray-light">11:40</td>
+                        <td class="bg-gray-light">12:25</td>
+                        <td id="prev-final-0-6" class="final-cell"></td>
+                        <td id="prev-final-1-6" class="final-cell"></td>
+                        <td id="prev-final-2-6" class="final-cell"></td>
+                        <td id="prev-final-3-6" class="final-cell"></td>
+                        <td id="prev-final-4-6" class="final-cell"></td>
+                    </tr>
+                    <tr>
+                        <td class="bg-gray-light">6°</td>
+                        <td class="bg-gray-light">12:25</td>
+                        <td class="bg-gray-light">13:10</td>
+                        <td id="prev-final-0-7" class="final-cell"></td>
+                        <td id="prev-final-1-7" class="final-cell"></td>
+                        <td id="prev-final-2-7" class="final-cell"></td>
+                        <td id="prev-final-3-7" class="final-cell"></td>
+                        <td id="prev-final-4-7" class="final-cell"></td>
+                    </tr>
+
+                    <tr>
+                        <td colspan="4" class="recreo-final"></td>
+                        <td colspan="5" class="recreo-final">ALMUERZO (13:10 A 13:55)</td>
+                    </tr>
+
+                    <tr>
+                        <td rowspan="2" class="bg-gray-light">4°</td>
+                        <td class="bg-gray-light">7°</td>
+                        <td class="bg-gray-light">13:55</td>
+                        <td class="bg-gray-light">14:40</td>
+                        <td id="prev-final-0-9" class="final-cell"></td>
+                        <td id="prev-final-1-9" class="final-cell"></td>
+                        <td id="prev-final-2-9" class="final-cell"></td>
+                        <td id="prev-final-3-9" class="final-cell"></td>
+                        <td id="prev-final-4-9" class="final-cell"></td>
+                    </tr>
+                    <tr>
+                        <td class="bg-gray-light">8°</td>
+                        <td class="bg-gray-light">14:40</td>
+                        <td class="bg-gray-light">15:25</td>
+                        <td id="prev-final-0-10" class="final-cell"></td>
+                        <td id="prev-final-1-10" class="final-cell"></td>
+                        <td id="prev-final-2-10" class="final-cell"></td>
+                        <td id="prev-final-3-10" class="final-cell"></td>
+                        <td id="prev-final-4-10" class="final-cell"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="text-align: right; display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 13px; color: #718093;">Mostrando vista general (Todos los cursos combinados)</span>
+            <button class="btn-action btn-print" id="btnPreviewLoad" style="display: inline-flex;">📂 Cargar este Horario</button>
+        </div>
+    </div>
+</div>
+
+<div class="container">
+    <h1>🗓️ Creador Avanzado de Calendario de Evaluaciones</h1>
+    
+    <div class="instructions">
+        <strong>ACTUALIZACIÓN APLICADA:</strong><br>
+        • Se añadió el <strong>Cómputo Final separado por prueba</strong> (con recuentos y listados de cursos asignados y faltantes) directamente en la sección de impresión y exportación a Word.
+    </div>
+
+    <div class="editors-container" id="editorsContainer"></div>
+    
+    <button class="btn-add-row" onclick="addTableEditor()">➕ Agregar Nueva Fila / Tabla de Evaluación</button>
+
+    <div class="generator-controls">
+        <label for="courseSelector" style="font-size: 16px; font-weight: bold;">Curso:</label>
+        <select id="courseSelector">
+            <option value="">-- Selecciona --</option>
+            <option value="TODOS">-- TODOS --</option>
+            <option value="5°A">5°A</option><option value="5°B">5°B</option><option value="5°C">5°C</option>
+            <option value="6°A">6°A</option><option value="6°B">6°B</option><option value="6°C">6°C</option>
+            <option value="7°A">7°A</option><option value="7°B">7°B</option><option value="7°C">7°C</option>
+            <option value="8°A">8°A</option><option value="8°B">8°B</option><option value="8°C">8°C</option>
+        </select>
+        <button class="btn-action btn-save" onclick="openSaveModal()">💾 Guardar Horario Actual</button>
+        <button class="btn-action btn-history" onclick="openHistoryModal()">📋 Historial de Horarios</button>
+        <button class="btn-action btn-load" onclick="document.getElementById('backupFileInput').click()">📂 Cargar Archivo .json</button>
+        <input type="file" id="backupFileInput" style="display: none;" accept=".json" onchange="loadBackup(event)">
+        <button class="btn-action btn-print" onclick="window.print()">🖨️ Imprimir PDF</button>
+        <button class="btn-action btn-word" onclick="exportToWord()">📄 Exportar a Word</button>
+    </div>
+
+    <div class="print-section">
+        <div class="header-final">
+            <div class="logo-placeholder">
+                ESCUELA<br>E-87<br>LAS ROCAS
+            </div>
+            <div class="title-final">
+                <h2>CALENDARIO DIAGNOSTICO INTEGRAL DE APRENDIZAJE</h2>
+                <h3>AÑO 2026</h3>
+                <div class="subtitle-course" id="print-course-title">CURSO: (SELECCIONE ARRIBA)</div>
+            </div>
+        </div>
+
+        <table class="final-table">
+            <thead>
+                <tr>
+                    <th rowspan="2" colspan="2" class="bg-gray-light">BLOQUES</th>
+                    <th rowspan="2" colspan="2" class="bg-gray-light">AÑO 2026</th>
+                    <th colspan="5" class="bg-gray-light">HORARIO DE CLASES</th>
+                </tr>
+                <tr>
+                    <th class="bg-gray-light">L</th>
+                    <th class="bg-gray-light">M</th>
+                    <th class="bg-gray-light">M</th>
+                    <th class="bg-gray-light">J</th>
+                    <th class="bg-gray-light">V</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td rowspan="2" class="bg-gray-light">1°</td>
+                    <td class="bg-gray-light">1°</td>
+                    <td class="bg-gray-light">8:00</td>
+                    <td class="bg-gray-light">8:45</td>
+                    <td id="final-0-0" class="final-cell"></td>
+                    <td id="final-1-0" class="final-cell"></td>
+                    <td id="final-2-0" class="final-cell"></td>
+                    <td id="final-3-0" class="final-cell"></td>
+                    <td id="final-4-0" class="final-cell"></td>
+                </tr>
+                <tr>
+                    <td class="bg-gray-light">2°</td>
+                    <td class="bg-gray-light">8:45</td>
+                    <td class="bg-gray-light">9:30</td>
+                    <td id="final-0-1" class="final-cell"></td>
+                    <td id="final-1-1" class="final-cell"></td>
+                    <td id="final-2-1" class="final-cell"></td>
+                    <td id="final-3-1" class="final-cell"></td>
+                    <td id="final-4-1" class="final-cell"></td>
+                </tr>
+                
+                <tr>
+                    <td colspan="4" class="recreo-final"></td>
+                    <td colspan="5" class="recreo-final">RECREO (9:30 A 9:50)</td>
+                </tr>
+
+                <tr>
+                    <td rowspan="2" class="bg-gray-light">2°</td>
+                    <td class="bg-gray-light">3°</td>
+                    <td class="bg-gray-light">9:50</td>
+                    <td class="bg-gray-light">10:35</td>
+                    <td id="final-0-3" class="final-cell"></td>
+                    <td id="final-1-3" class="final-cell"></td>
+                    <td id="final-2-3" class="final-cell"></td>
+                    <td id="final-3-3" class="final-cell"></td>
+                    <td id="final-4-3" class="final-cell"></td>
+                </tr>
+                <tr>
+                    <td class="bg-gray-light">4°</td>
+                    <td class="bg-gray-light">10:35</td>
+                    <td class="bg-gray-light">11:20</td>
+                    <td id="final-0-4" class="final-cell"></td>
+                    <td id="final-1-4" class="final-cell"></td>
+                    <td id="final-2-4" class="final-cell"></td>
+                    <td id="final-3-4" class="final-cell"></td>
+                    <td id="final-4-4" class="final-cell"></td>
+                </tr>
+
+                <tr>
+                    <td colspan="4" class="recreo-final"></td>
+                    <td colspan="5" class="recreo-final">RECREO (11:20 A 11:40)</td>
+                </tr>
+
+                <tr>
+                    <td rowspan="2" class="bg-gray-light">3°</td>
+                    <td class="bg-gray-light">5°</td>
+                    <td class="bg-gray-light">11:40</td>
+                    <td class="bg-gray-light">12:25</td>
+                    <td id="final-0-6" class="final-cell"></td>
+                    <td id="final-1-6" class="final-cell"></td>
+                    <td id="final-2-6" class="final-cell"></td>
+                    <td id="final-3-6" class="final-cell"></td>
+                    <td id="final-4-6" class="final-cell"></td>
+                </tr>
+                <tr>
+                    <td class="bg-gray-light">6°</td>
+                    <td class="bg-gray-light">12:25</td>
+                    <td class="bg-gray-light">13:10</td>
+                    <td id="final-0-7" class="final-cell"></td>
+                    <td id="final-1-7" class="final-cell"></td>
+                    <td id="final-2-7" class="final-cell"></td>
+                    <td id="final-3-7" class="final-cell"></td>
+                    <td id="final-4-7" class="final-cell"></td>
+                </tr>
+
+                <tr>
+                    <td colspan="4" class="recreo-final"></td>
+                    <td colspan="5" class="recreo-final">ALMUERZO (13:10 A 13:55)</td>
+                </tr>
+
+                <tr>
+                    <td rowspan="2" class="bg-gray-light">4°</td>
+                    <td class="bg-gray-light">7°</td>
+                    <td class="bg-gray-light">13:55</td>
+                    <td class="bg-gray-light">14:40</td>
+                    <td id="final-0-9" class="final-cell"></td>
+                    <td id="final-1-9" class="final-cell"></td>
+                    <td id="final-2-9" class="final-cell"></td>
+                    <td id="final-3-9" class="final-cell"></td>
+                    <td id="final-4-9" class="final-cell"></td>
+                </tr>
+                <tr>
+                    <td class="bg-gray-light">8°</td>
+                    <td class="bg-gray-light">14:40</td>
+                    <td class="bg-gray-light">15:25</td>
+                    <td id="final-0-10" class="final-cell"></td>
+                    <td id="final-1-10" class="final-cell"></td>
+                    <td id="final-2-10" class="final-cell"></td>
+                    <td id="final-3-10" class="final-cell"></td>
+                    <td id="final-4-10" class="final-cell"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="simbologia-title">SIMBOLOGIA Y PROFESORES</div>
+        <table class="table-simbologia">
+            <thead>
+                <tr>
+                    <th style="width: 20%;">COLOR</th>
+                    <th style="width: 45%;">EVALUACIÓN / ASIGNATURA</th>
+                    <th style="width: 35%;">PROFESOR(A)</th>
+                </tr>
+            </thead>
+            <tbody id="simbologiaBody"></tbody>
+        </table>
+
+        <!-- NUEVA SECCIÓN DE CÓMPUTO FINAL SEPARADO POR PRUEBA PARA IMPRESIÓN/WORD -->
+        <div class="simbologia-title">CÓMPUTO FINAL DE CURSOS POR EVALUACIÓN</div>
+        <div id="printEvalSummaryContainer" class="print-eval-summary-container"></div>
+    </div>
+
+</div>
+
+<script>
+    const days = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'];
+    const hours = [
+        { type: 'class', num: '1°', time: '8:00 A 8:45' },   
+        { type: 'class', num: '2°', time: '8:45 A 9:30' },   
+        { type: 'break', label: 'Recreo (9:30 A 9:50)' },    
+        { type: 'class', num: '3°', time: '9:50 A 10:35' },  
+        { type: 'class', num: '4°', time: '10:35 A 11:20' }, 
+        { type: 'break', label: 'Recreo (11:20 A 11:40)' },  
+        { type: 'class', num: '5°', time: '11:40 A 12:25' }, 
+        { type: 'class', num: '6°', time: '12:25 A 13:10' }, 
+        { type: 'break', label: 'Almuerzo (13:10 A 13:55)' },
+        { type: 'class', num: '7°', time: '13:55 A 14:40' }, 
+        { type: 'class', num: '8°', time: '14:40 A 15:25' }  
+    ];
+    
+    const todosLosCursos = ['5°A', '5°B', '5°C', '6°A', '6°B', '6°C', '7°A', '7°B', '7°C', '8°A', '8°B', '8°C'];
+    const cursosDisponibles = ['', ...todosLosCursos];
+    
+    const opcionesAsignaturas = [
+        "LECTURA",
+        "Evaluación para la Reactivación de la Lectura",
+        "Matemática",
+        "Historia",
+        "Ciencias Naturales",
+        "Actividad Socioemocional Evaluativa",
+        "Cuestionario Condiciones para la formación integral"
+    ];
+
+    let editorsData = [
+        { id: 'eval_1', subject: 'Historia', teacher: 'Yocelin Fernandez', color: '#00b894' },
+        { id: 'eval_2', subject: 'Matemática', teacher: 'Prof. María Gómez', color: '#fce762' }
+    ];
+
+    let currentSelections = {};
+
+    function captureSelections() {
+        currentSelections = {};
+        document.querySelectorAll('.editor-card').forEach(card => {
+            card.querySelectorAll('.slot-select').forEach(s => {
+                if(s.value) {
+                    let key = `${s.dataset.evalId}-${s.dataset.day}-${s.dataset.hour}`;
+                    currentSelections[key] = s.value;
+                }
+            });
+        });
+    }
+
+    function initApp(preserveSelections = false) {
+        if(!preserveSelections) {
+            captureSelections();
+        }
+        const container = document.getElementById('editorsContainer');
+        container.innerHTML = '';
+
+        editorsData.forEach((editor, index) => {
+            let card = document.createElement('div');
+            card.className = 'editor-card';
+            card.dataset.editorIndex = index;
+            card.dataset.evalId = editor.id;
+            
+            let headerBar = document.createElement('div');
+            headerBar.className = 'editor-header-bar';
+
+            let selectSubj = document.createElement('select');
+            selectSubj.className = 'editor-subject-select';
+            selectSubj.onchange = (e) => {
+                editorsData[index].subject = e.target.value;
+                updateRealtimeData();
+            };
+            opcionesAsignaturas.forEach(opt => {
+                let option = document.createElement('option');
+                option.value = opt;
+                option.textContent = opt;
+                if (opt === editor.subject) option.selected = true;
+                selectSubj.appendChild(option);
+            });
+
+            let inputTeacher = document.createElement('input');
+            inputTeacher.type = 'text';
+            inputTeacher.className = 'editor-teacher-input';
+            inputTeacher.placeholder = 'Nombre del Profesor(a)';
+            inputTeacher.value = editor.teacher || '';
+            inputTeacher.oninput = (e) => {
+                editorsData[index].teacher = e.target.value;
+                updateRealtimeData();
+            };
+
+            let colorPickerContainer = document.createElement('div');
+            colorPickerContainer.style.display = 'flex';
+            colorPickerContainer.style.alignItems = 'center';
+            colorPickerContainer.style.gap = '8px';
+            colorPickerContainer.innerHTML = `<span style="font-size:13px; font-weight:bold;">Color:</span>`;
+            
+            let colorInput = document.createElement('input');
+            colorInput.type = 'color';
+            colorInput.className = 'editor-color-input';
+            colorInput.value = editor.color;
+            colorInput.oninput = (e) => {
+                editorsData[index].color = e.target.value;
+                updateRealtimeData();
+            };
+            colorPickerContainer.appendChild(colorInput);
+
+            let btnDelete = document.createElement('button');
+            btnDelete.textContent = '❌ Eliminar Tabla';
+            btnDelete.style.cssText = 'background:#e74c3c; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:12px;';
+            btnDelete.onclick = () => {
+                if (editorsData.length > 1) {
+                    if (confirm(`¿Estás seguro de eliminar la tabla de evaluación de "${editor.subject}"?`)) {
+                        captureSelections();
+                        editorsData = editorsData.filter(item => item.id !== editor.id);
+                        initApp();
+                    }
+                } else {
+                    alert("Debe haber al menos una tabla de evaluación.");
+                }
+            };
+
+            headerBar.appendChild(selectSubj);
+            
+            let teacherWrapper = document.createElement('div');
+            teacherWrapper.style.display = 'flex';
+            teacherWrapper.style.alignItems = 'center';
+            teacherWrapper.style.gap = '6px';
+            teacherWrapper.innerHTML = `<span style="font-size:13px; font-weight:bold;">Profesor(a):</span>`;
+            teacherWrapper.appendChild(inputTeacher);
+            headerBar.appendChild(teacherWrapper);
+
+            headerBar.appendChild(colorPickerContainer);
+            headerBar.appendChild(btnDelete);
+            card.appendChild(headerBar);
+
+            let table = document.createElement('table');
+            table.className = 'editor-table';
+            
+            let headTr = document.createElement('tr');
+            headTr.innerHTML = `<th class="day-header" colspan="2">HORARIO</th>` + days.map(d => `<th class="day-header day-col">${d}</th>`).join('');
+            table.appendChild(headTr);
+
+            hours.forEach((hour, hourIndex) => {
+                if (hour.type === 'break') {
+                    let trBreak = document.createElement('tr');
+                    trBreak.className = 'recreo-row';
+                    trBreak.innerHTML = `<td colspan="7">${hour.label}</td>`;
+                    table.appendChild(trBreak);
+                } else {
+                    let trHour = document.createElement('tr');
+                    trHour.innerHTML = `<td class="hour-col">${hour.num}</td><td class="time-col">${hour.time}</td>`;
+                    
+                    days.forEach((day, dayIndex) => {
+                        let td = document.createElement('td');
+                        td.className = 'slot-cell-container';
+                        td.dataset.day = dayIndex;
+                        td.dataset.hour = hourIndex;
+                        
+                        let select = document.createElement('select');
+                        select.className = 'slot-select';
+                        select.dataset.evalId = editor.id;
+                        select.dataset.day = dayIndex;
+                        select.dataset.hour = hourIndex;
+                        
+                        cursosDisponibles.forEach(c => {
+                            let opt = document.createElement('option');
+                            opt.value = c;
+                            opt.textContent = c;
+                            select.appendChild(opt);
+                        });
+                        
+                        let selKey = `${editor.id}-${dayIndex}-${hourIndex}`;
+                        if(currentSelections[selKey]) {
+                            select.value = currentSelections[selKey];
+                        }
+
+                        select.addEventListener('change', () => {
+                            updateRealtimeData();
+                        });
+
+                        td.appendChild(select);
+                        trHour.appendChild(td);
+                    });
+                    table.appendChild(trHour);
+                }
+            });
+
+            card.appendChild(table);
+
+            let summaryCard = document.createElement('div');
+            summaryCard.className = 'summary-card';
+            summaryCard.id = `summary-card-${index}`;
+            card.appendChild(summaryCard);
+
+            container.appendChild(card);
+        });
+
+        updateRealtimeData();
+    }
+
+    function addTableEditor() {
+        captureSelections();
+        editorsData.push({
+            id: 'eval_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+            subject: 'Ciencias Naturales',
+            teacher: 'Prof. Nuevo',
+            color: '#74b9ff'
+        });
+        initApp();
+    }
+
+    function updateRealtimeData() {
+        let currentValues = {};
+        document.querySelectorAll('.slot-select').forEach(s => {
+            if(s.value) {
+                let keyId = `${s.dataset.evalId}-${s.dataset.day}-${s.dataset.hour}`;
+                currentValues[keyId] = s.value;
+            }
+        });
+
+        let globalOccupied = {}; 
+        document.querySelectorAll('.slot-select').forEach(s => {
+            let keyId = `${s.dataset.evalId}-${s.dataset.day}-${s.dataset.hour}`;
+            let val = currentValues[keyId] !== undefined ? currentValues[keyId] : s.value;
+            if(val) {
+                let evalId = s.dataset.evalId;
+                let day = s.dataset.day;
+                let hour = s.dataset.hour;
+                let key = `${day}-${hour}`;
+                let ed = editorsData.find(e => e.id === evalId);
+                if(!globalOccupied[key]) globalOccupied[key] = [];
+                globalOccupied[key].push({
+                    evalId: evalId,
+                    course: val,
+                    subject: ed ? ed.subject : '',
+                    teacher: ed ? (ed.teacher || 'Sin profesor') : ''
+                });
+            }
+        });
+
+        editorsData.forEach((editor, index) => {
+            let card = document.querySelector(`.editor-card[data-editor-index="${index}"]`);
+            if(!card) return;
+
+            card.querySelectorAll('.slot-cell-container').forEach(td => {
+                let dayIndex = td.dataset.day;
+                let hourIndex = td.dataset.hour;
+                let key = `${dayIndex}-${hourIndex}`;
+                let cellOccupied = globalOccupied[key] || [];
+                let otherOccupations = cellOccupied.filter(o => o.evalId !== editor.id);
+
+                let existingSelect = td.querySelector('select.slot-select');
+                let existingBadge = td.querySelector('.occupied-badge');
+
+                if (otherOccupations.length > 0) {
+                    let occ = otherOccupations[0];
+                    if (existingSelect) existingSelect.style.display = 'none';
+                    if (!existingBadge) {
+                        let badge = document.createElement('div');
+                        badge.className = 'occupied-badge';
+                        td.appendChild(badge);
+                    }
+                    td.querySelector('.occupied-badge').innerHTML = `${occ.course}<span>Ocupado (${occ.subject})</span>`;
+                } else {
+                    if (existingBadge) existingBadge.remove();
+                    if (!existingSelect) {
+                        let select = document.createElement('select');
+                        select.className = 'slot-select';
+                        select.dataset.evalId = editor.id;
+                        select.dataset.day = dayIndex;
+                        select.dataset.hour = hourIndex;
+                        cursosDisponibles.forEach(c => {
+                            let opt = document.createElement('option');
+                            opt.value = c;
+                            opt.textContent = c;
+                            select.appendChild(opt);
+                        });
+                        
+                        let k = `${editor.id}-${dayIndex}-${hourIndex}`;
+                        if(currentValues[k]) {
+                            select.value = currentValues[k];
+                        }
+
+                        select.addEventListener('change', () => { updateRealtimeData(); });
+                        td.appendChild(select);
+                    } else {
+                        existingSelect.style.display = 'block';
+                        let k = `${editor.id}-${dayIndex}-${hourIndex}`;
+                        if(currentValues[k] !== undefined) {
+                            existingSelect.value = currentValues[k];
+                        }
+                    }
+                }
+            });
+
+            let assignedCoursesSet = new Set();
+            card.querySelectorAll('.slot-select').forEach(s => {
+                if(s.value && s.value.trim() !== '') {
+                    assignedCoursesSet.add(s.value);
+                }
+            });
+            
+            let assignedList = Array.from(assignedCoursesSet).sort();
+            let missingList = todosLosCursos.filter(c => !assignedCoursesSet.has(c)).sort();
+
+            let summaryCard = document.getElementById(`summary-card-${index}`);
+            if(summaryCard) {
+                summaryCard.innerHTML = `
+                    <h3 style="margin: 0 0 10px 0; font-size: 15px; color: #2c3e50; text-align: left; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px;">
+                        📊 Estado de Cursos para esta Evaluación (${editor.subject})
+                    </h3>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 250px; background: #e8f8f5; padding: 10px; border-radius: 4px; border-left: 4px solid #27ae60;">
+                            <span class="tag-assigned">✅ Cursos Asignados (${assignedList.length}):</span>
+                            <div style="margin-top: 5px; font-weight: bold; color: #2c3e50;">${assignedList.length > 0 ? assignedList.join(', ') : 'Ninguno asignado aún'}</div>
+                        </div>
+                        <div style="flex: 1; min-width: 250px; background: #fdebd0; padding: 10px; border-radius: 4px; border-left: 4px solid #e74c3c;">
+                            <span class="tag-missing">❌ Cursos Faltantes (${missingList.length}):</span>
+                            <div style="margin-top: 5px; font-weight: bold; color: #c0392b;">${missingList.length > 0 ? missingList.join(', ') : '¡Todos los cursos asignados!'}</div>
+                        </div>
+                    </div>
+                `;
+            }
+        });
+
+        checkConflictsAndGenerate();
+        autoSaveState();
+    }
+
+    function checkConflictsAndGenerate() {
+        const allSelects = document.querySelectorAll('.slot-select');
+        allSelects.forEach(s => {
+            s.classList.remove('conflict');
+            s.title = '';
+        });
+
+        let slotMap = {};
+        allSelects.forEach(s => {
+            if(!s.value) return;
+            let key = `${s.dataset.day}-${s.dataset.hour}`;
+            if(!slotMap[key]) slotMap[key] = [];
+            slotMap[key].push(s);
+        });
+
+        for(let key in slotMap) {
+            let selects = slotMap[key];
+            let evalIds = new Set(selects.map(s => s.dataset.evalId));
+
+            if(evalIds.size > 1) {
+                selects.forEach(s => {
+                    s.classList.add('conflict');
+                    s.title = `⚠️ Choque de Bloque: Este espacio (día y bloque) ya está ocupado por otra evaluación en simultáneo.`;
+                });
+            }
+        }
+
+        editorsData.forEach((editor) => {
+            let editorSelects = document.querySelectorAll(`.slot-select[data-eval-id="${editor.id}"]`);
+            let subMap = {};
+            editorSelects.forEach(s => {
+                let val = s.value;
+                if(!val) return;
+                if(!subMap[val]) subMap[val] = [];
+                subMap[val].push(s);
+            });
+
+            for(let course in subMap) {
+                let selects = subMap[course];
+                let uniqueDays = new Set(selects.map(s => s.dataset.day));
+                if(selects.length > 2 || uniqueDays.size > 1) {
+                    selects.forEach(s => {
+                        s.classList.add('conflict');
+                        s.title = '⚠️ Límite excedido o días distintos: La evaluación no puede superar 2 bloques y debe ser el mismo día.';
+                    });
+                }
+            }
+        });
+
+        updateFinalScheduleAndSimbologia();
+    }
+
+    function updateFinalScheduleAndSimbologia() {
+        const course = document.getElementById('courseSelector').value;
+        document.getElementById('print-course-title').textContent = course === 'TODOS' ? "CALENDARIO GENERAL - TODOS LOS CURSOS" : (course ? `CURSO: ${course}` : "CURSO: (SELECCIONE ARRIBA)");
+        
+        document.querySelectorAll('.final-cell').forEach(cell => {
+            cell.innerHTML = '';
+            cell.className = 'final-cell';
+            cell.style.backgroundColor = '';
+            cell.style.color = '';
+        });
+
+        if (!course) return;
+
+        for (let day = 0; day < 5; day++) {
+            for (let hour = 0; hour < 11; hour++) {
+                if (hours[hour].type === 'break') continue;
+                
+                let cellId = `final-${day}-${hour}`;
+                let cell = document.getElementById(cellId);
+                if (!cell) continue;
+
+                let matchedItems = [];
+                editorsData.forEach((editor) => {
+                    let sel = document.querySelector(`.slot-select[data-eval-id="${editor.id}"][data-day="${day}"][data-hour="${hour}"]`);
+                    if(sel && sel.value) {
+                        matchedItems.push({ 
+                            course: sel.value, 
+                            subject: editor.subject, 
+                            teacher: editor.teacher || '', 
+                            color: editor.color 
+                        });
+                    }
+                });
+
+                if (course === 'TODOS') {
+                    let htmlContent = '';
+                    matchedItems.forEach(item => {
+                        let teacherLine = item.teacher ? `<br><span style="font-size: 9px; font-weight: normal; opacity: 0.95;">(${item.teacher})</span>` : '';
+                        htmlContent += `<div style="background-color: ${item.color}; color: #000; padding: 4px 6px; margin-bottom: 2px; border-radius: 4px; font-weight: bold; font-size: 11px; line-height: 1.2; display: block; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">${item.course} - ${item.subject}${teacherLine}</div>`;
+                    });
+                    cell.innerHTML = htmlContent;
+                } else {
+                    let filtered = matchedItems.filter(i => i.course === course);
+                    if (filtered.length > 0) {
+                        let item = filtered[0];
+                        let teacherLine = item.teacher ? `<br><span style="font-size: 10px; font-weight: normal; opacity: 0.95;">(${item.teacher})</span>` : '';
+                        cell.innerHTML = `<div style="background-color: ${item.color}; color: #000; padding: 5px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; line-height: 1.3; display: block; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">${item.course} - ${item.subject}${teacherLine}</div>`;
+                    }
+                }
+            }
+        }
+
+        let simbologiaBody = document.getElementById('simbologiaBody');
+        simbologiaBody.innerHTML = '';
+        editorsData.forEach(editor => {
+            let tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td style="background-color: ${editor.color}; color: #000; font-weight: bold;">COLOR</td>
+                <td style="text-align: left; padding-left: 10px;">${editor.subject}</td>
+                <td style="text-align: left; padding-left: 10px; font-weight: bold;">${editor.teacher || 'Sin asignar'}</td>
+            `;
+            simbologiaBody.appendChild(tr);
+        });
+
+        // Generar el cómputo final detallado por prueba en la sección de impresión/Word
+        let printEvalSummaryContainer = document.getElementById('printEvalSummaryContainer');
+        printEvalSummaryContainer.innerHTML = '';
+
+        editorsData.forEach((editor) => {
+            let card = document.querySelector(`.editor-card[data-eval-id="${editor.id}"]`);
+            let assignedSet = new Set();
+            if (card) {
+                card.querySelectorAll('.slot-select').forEach(s => {
+                    if(s.value && s.value.trim() !== '') {
+                        assignedSet.add(s.value);
+                    }
+                });
+            }
+            let assignedList = Array.from(assignedSet).sort();
+            let missingList = todosLosCursos.filter(c => !assignedSet.has(c)).sort();
+
+            let summaryBox = document.createElement('div');
+            summaryBox.className = 'print-eval-summary-card';
+            summaryBox.innerHTML = `
+                <div class="print-eval-summary-header" style="border-left: 6px solid ${editor.color};">
+                    <span>📊 Evaluación: ${editor.subject} <span style="font-weight:normal; font-size:11px;">(Prof: ${editor.teacher || 'Sin asignar'})</span></span>
+                </div>
+                <div class="print-eval-summary-body">
+                    <div class="print-eval-col-assigned">
+                        <strong style="color: #27ae60;">✅ Cursos Asignados (${assignedList.length}):</strong>
+                        <div style="margin-top: 4px; font-weight: bold; color: #2c3e50;">${assignedList.length > 0 ? assignedList.join(', ') : 'Ninguno asignado aún'}</div>
+                    </div>
+                    <div class="print-eval-col-missing">
+                        <strong style="color: #e74c3c;">❌ Cursos Faltantes (${missingList.length}):</strong>
+                        <div style="margin-top: 4px; font-weight: bold; color: #c0392b;">${missingList.length > 0 ? missingList.join(', ') : '¡Todos los cursos asignados!'}</div>
+                    </div>
+                </div>
+            `;
+            printEvalSummaryContainer.appendChild(summaryBox);
+        });
+    }
+
+    function getStateObject(customName = "", customDateRange = "") {
+        let selections = [];
+        document.querySelectorAll('.slot-select').forEach(s => {
+            if (s.value) {
+                selections.push({
+                    evalId: s.dataset.evalId,
+                    day: s.dataset.day,
+                    hour: s.dataset.hour,
+                    value: s.value
+                });
+            }
+        });
+        return {
+            id: 'version_' + Date.now(),
+            name: customName || ('Horario ' + new Date().toLocaleDateString()),
+            createdDate: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            dateRange: customDateRange || 'Sin rango especificado',
+            editorsData: JSON.parse(JSON.stringify(editorsData)),
+            selections: selections,
+            selectedCourse: document.getElementById('courseSelector').value
+        };
+    }
+
+    function openSaveModal() {
+        document.getElementById('inputScheduleName').value = "Calendario Diagnóstico Principal";
+        let today = new Date().toISOString().split('T')[0];
+        document.getElementById('inputStartDate').value = today;
+        document.getElementById('inputEndDate').value = today;
+        toggleSaveModal(true);
+    }
+
+    function toggleSaveModal(open) {
+        const modal = document.getElementById('saveModal');
+        if(open) modal.classList.add('open');
+        else modal.classList.remove('open');
+    }
+
+    function confirmSaveVersion() {
+        let name = document.getElementById('inputScheduleName').value.trim() || "Calendario sin nombre";
+        let start = document.getElementById('inputStartDate').value;
+        let end = document.getElementById('inputEndDate').value;
+        
+        let rangeStr = (start && end) ? `${formatDate(start)} al ${formatDate(end)}` : 'Sin rango especificado';
+
+        let newVersion = getStateObject(name, rangeStr);
+        
+        let history = getHistory();
+        history.unshift(newVersion);
+        localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
+
+        downloadJsonFile(newVersion);
+
+        toggleSaveModal(false);
+        alert(`¡Horario "${name}" guardado en el historial y descargado como .json exitosamente!`);
+    }
+
+    function formatDate(dateStr) {
+        let p = dateStr.split('-');
+        if(p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`;
+        return dateStr;
+    }
+
+    function downloadJsonFile(stateObj) {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stateObj, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", `${stateObj.name.replace(/[^a-zA-Z0-9]/g, '_')}.json`);
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
+
+    function getHistory() {
+        try {
+            let h = localStorage.getItem('calendario_historial_versiones');
+            return h ? JSON.parse(h) : [];
+        } catch(e) { return []; }
+    }
+
+    function openHistoryModal() {
+        renderHistoryList();
+        toggleHistoryModal(true);
+    }
+
+    function toggleHistoryModal(open) {
+        const modal = document.getElementById('historyModal');
+        if(open) modal.classList.add('open');
+        else modal.classList.remove('open');
+    }
+
+    function renderHistoryList() {
+        const container = document.getElementById('historyListContainer');
+        let history = getHistory();
+
+        if(history.length === 0) {
+            container.innerHTML = `<p style="text-align:center; color:#718093; padding:20px;">No hay horarios guardados en el historial todavía. Haz clic en "Guardar Horario Actual" para crear uno.</p>`;
+            return;
+        }
+
+        container.innerHTML = '';
+        history.forEach((version) => {
+            let item = document.createElement('div');
+            item.className = 'history-item';
+            item.innerHTML = `
+                <div class="history-item-info">
+                    <h4>📌 <span id="title-${version.id}">${version.name}</span></h4>
+                    <p><strong>Creado:</strong> ${version.createdDate} | <strong>Rango:</strong> 📅 ${version.dateRange}</p>
+                </div>
+                <div class="history-item-actions">
+                    <button class="btn-action" style="background:#16a085; padding:6px 10px; font-size:12px;" onclick="previewVersion('${version.id}')">👁️ Visualizar</button>
+                    <button class="btn-action" style="background:#f39c12; padding:6px 10px; font-size:12px;" onclick="editVersionMeta('${version.id}')">✏️ Editar Nombre/Fechas</button>
+                    <button class="btn-action" style="background:#27ae60; padding:6px 10px; font-size:12px;" onclick="loadVersion('${version.id}')">📂 Cargar</button>
+                    <button class="btn-action" style="background:#2980b9; padding:6px 10px; font-size:12px;" onclick="duplicateVersion('${version.id}')">📑 Duplicar</button>
+                    <button class="btn-action" style="background:#e74c3c; padding:6px 10px; font-size:12px;" onclick="deleteVersion('${version.id}')">🗑️ Borrar</button>
+                </div>
+            `;
+            container.appendChild(item);
+        });
+    }
+
+    function editVersionMeta(id) {
+        let history = getHistory();
+        let version = history.find(v => v.id === id);
+        if(!version) return;
+
+        let newName = prompt("Nuevo nombre para el horario:", version.name);
+        if(newName === null) return;
+        let newRange = prompt("Nuevo rango de fechas (ej. 01/08/2026 al 15/08/2026):", version.dateRange);
+        if(newRange === null) return;
+
+        version.name = newName.trim() || version.name;
+        version.dateRange = newRange.trim() || version.dateRange;
+
+        localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
+        renderHistoryList();
+        alert("¡Información actualizada con éxito!");
+    }
+
+    function previewVersion(id) {
+        let history = getHistory();
+        let version = history.find(v => v.id === id);
+        if(!version) return;
+
+        document.getElementById('previewModalTitle').textContent = `👁️ Vista Previa: ${version.name}`;
+        document.getElementById('previewMetaInfo').innerHTML = `<strong>Creado:</strong> ${version.createdDate} | <strong>Rango de Fechas:</strong> 📅 ${version.dateRange}`;
+
+        for (let day = 0; day < 5; day++) {
+            for (let hour = 0; hour < 11; hour++) {
+                let cell = document.getElementById(`prev-final-${day}-${hour}`);
+                if(cell) {
+                    cell.innerHTML = '';
+                    cell.style.backgroundColor = '';
+                }
+            }
+        }
+
+        if (version.selections && version.editorsData) {
+            version.selections.forEach(sel => {
+                if(!sel.value) return;
+                let cell = document.getElementById(`prev-final-${sel.day}-${sel.hour}`);
+                if(cell) {
+                    let ed = version.editorsData.find(e => e.id === sel.evalId);
+                    if(ed) {
+                        let teacherLine = ed.teacher ? `<br><span style="font-size: 9px; font-weight: normal; opacity: 0.95;">(${ed.teacher})</span>` : '';
+                        cell.innerHTML += `<div style="background-color: ${ed.color}; color: #000; padding: 4px 6px; margin-bottom: 2px; border-radius: 4px; font-weight: bold; font-size: 11px; line-height: 1.2; display: block; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">${sel.value} - ${ed.subject}${teacherLine}</div>`;
+                    }
+                }
+            });
+        }
+
+        document.getElementById('btnPreviewLoad').onclick = () => {
+            loadVersion(id);
+            togglePreviewModal(false);
+            toggleHistoryModal(false);
+        };
+
+        togglePreviewModal(true);
+    }
+
+    function togglePreviewModal(open) {
+        const modal = document.getElementById('previewModal');
+        if(open) modal.classList.add('open');
+        else modal.classList.remove('open');
+    }
+
+    function loadVersion(id) {
+        let history = getHistory();
+        let version = history.find(v => v.id === id);
+        if(version) {
+            if(confirm(`¿Deseas cargar el horario "${version.name}"? Se sobrescribirá tu pantalla actual.`)) {
+                restoreState(version);
+                toggleHistoryModal(false);
+                alert(`¡Horario "${version.name}" cargado con éxito!`);
+            }
+        }
+    }
+
+    function duplicateVersion(id) {
+        let history = getHistory();
+        let version = history.find(v => v.id === id);
+        if(version) {
+            let newName = prompt("Nombre para la copia duplicada:", version.name + " (Copia)");
+            if(!newName) return;
+
+            let duplicate = JSON.parse(JSON.stringify(version));
+            duplicate.id = 'version_' + Date.now();
+            duplicate.name = newName;
+            duplicate.createdDate = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            history.unshift(duplicate);
+            localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
+            renderHistoryList();
+            alert(`¡Horario duplicado como "${newName}" con éxito!`);
+        }
+    }
+
+    function deleteVersion(id) {
+        if(confirm("¿Estás seguro de eliminar este horario del historial?")) {
+            let history = getHistory();
+            history = history.filter(v => v.id !== id);
+            localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
+            renderHistoryList();
+        }
+    }
+
+    function showAutoSaveNotification() {
+        const toast = document.getElementById('autoSaveToast');
+        toast.classList.add('show');
+        setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+
+    function autoSaveState() {
+        try {
+            const state = getStateObject();
+            localStorage.setItem('calendario_evaluaciones_autosave_vfinal', JSON.stringify(state));
+        } catch(e) {}
+    }
+
+    setInterval(() => {
+        autoSaveState();
+        showAutoSaveNotification();
+    }, 120000);
+
+    function downloadBackup() {
+        const state = getStateObject();
+        downloadJsonFile(state);
+    }
+
+    function loadBackup(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const state = JSON.parse(e.target.result);
+                restoreState(state);
+                alert("¡Avance cargado exitosamente desde archivo JSON!");
+            } catch(err) {
+                alert("El archivo JSON no es válido.");
+            }
+        };
+        reader.readAsText(file);
+    }
+
+    function restoreState(state) {
+        if (!state) return;
+        if (state.editorsData) {
+            editorsData = JSON.parse(JSON.stringify(state.editorsData));
+        }
+        
+        currentSelections = {};
+        if (state.selections) {
+            state.selections.forEach(sel => {
+                currentSelections[`${sel.evalId}-${sel.day}-${sel.hour}`] = sel.value;
+            });
+        }
+
+        initApp(true);
+
+        if (state.selectedCourse) {
+            document.getElementById('courseSelector').value = state.selectedCourse;
+        }
+        updateRealtimeData();
+    }
+
+    function checkAutoSave() {
+        try {
+            const saved = localStorage.getItem('calendario_evaluaciones_autosave_vfinal');
+            if (saved) {
+                const state = JSON.parse(saved);
+                if (confirm("Se encontró un avance guardado automáticamente en tu navegador. ¿Deseas recuperarlo para continuar donde lo dejaste?")) {
+                    restoreState(state);
+                    return;
+                }
+            }
+        } catch(e) {}
+        initApp();
+    }
+
+    function exportToWord() {
+        const course = document.getElementById('courseSelector').value;
+        if (!course) {
+            alert("Por favor, selecciona un curso o 'TODOS' antes de descargar el archivo Word.");
+            return;
+        }
+
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>";
+        header += "<head><meta charset='utf-8'><title>Calendario Escolar</title>";
+        header += "<style>table{border-collapse:collapse;width:100%;} th, td{border:1px solid black;padding:6px;text-align:center;font-family:Arial,sans-serif;font-size:12px;}</style>";
+        header += "</head><body>";
+        
+        const footer = "</body></html>";
+        const printSection = document.querySelector('.print-section').innerHTML;
+        const html = header + printSection + footer;
+
+        const blob = new Blob(['﻿' + html], {
+            type: 'application/msword'
+        });
+        
+        const URL_OBJ = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = URL_OBJ;
+        a.download = `Calendario_Evaluaciones_${course}.doc`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(URL_OBJ);
+    }
+
+    document.getElementById('courseSelector').addEventListener('change', updateRealtimeData);
+
+    checkAutoSave();
+
+</script>
+</body>
+</html>
