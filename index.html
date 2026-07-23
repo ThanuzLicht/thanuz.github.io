@@ -39,250 +39,97 @@
         }
         
         #autoSaveToast {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background-color: #27ae60;
-            color: white;
-            padding: 10px 20px;
-            border-radius: 6px;
-            font-weight: bold;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            z-index: 9999;
-            opacity: 0;
-            transition: opacity 0.4s ease-in-out;
-            pointer-events: none;
+            position: fixed; bottom: 20px; right: 20px; background-color: #27ae60; color: white;
+            padding: 10px 20px; border-radius: 6px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex; align-items: center; gap: 8px; z-index: 9999; opacity: 0; transition: opacity 0.4s ease-in-out; pointer-events: none;
         }
-        #autoSaveToast.show {
-            opacity: 1;
+        #autoSaveToast.show { opacity: 1; }
+
+        #infoToast {
+            position: fixed; bottom: 70px; right: 20px; background-color: #f39c12; color: white;
+            padding: 10px 20px; border-radius: 6px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex; align-items: center; gap: 8px; z-index: 9999; opacity: 0; transition: opacity 0.4s ease-in-out; pointer-events: none; max-width: 350px; font-size: 13px;
         }
+        #infoToast.show { opacity: 1; }
 
         /* Modales */
         .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 10000;
-            opacity: 0; pointer-events: none;
-            transition: opacity 0.3s ease;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center; z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
         }
-        .modal-overlay.open {
-            opacity: 1; pointer-events: auto;
-        }
-        .modal-content {
-            background: white; width: 95%; max-width: 1150px;
-            border-radius: 8px; padding: 25px;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.2);
-            max-height: 90vh; overflow-y: auto;
-        }
-        .modal-header {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; margin-bottom: 15px;
-        }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .modal-content { background: white; width: 95%; max-width: 1150px; border-radius: 8px; padding: 25px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; margin-bottom: 15px; }
         .modal-header h3 { margin: 0; color: #2c3e50; }
-        .btn-close-modal {
-            background: #e74c3c; color: white; border: none; padding: 6px 12px;
-            border-radius: 4px; font-weight: bold; cursor: pointer;
-        }
-        .history-list {
-            display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;
-        }
-        .history-item {
-            background: #f8f9fa; border: 1px solid #d1d8e0; border-radius: 6px;
-            padding: 12px; display: flex; justify-content: space-between; align-items: center;
-            flex-wrap: wrap; gap: 10px;
-        }
+        .btn-close-modal { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        .history-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .history-item { background: #f8f9fa; border: 1px solid #d1d8e0; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .history-item-info h4 { margin: 0 0 5px 0; color: #2c3e50; font-size: 16px; }
         .history-item-info p { margin: 0; font-size: 13px; color: #718093; }
         .history-item-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
-        /* Formulario Guardado con Calendario */
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-group label {
-            display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #2c3e50;
-        }
-        .form-group input {
-            width: 100%; padding: 8px 12px; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 4px; box-sizing: border-box;
-        }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #2c3e50; }
+        .form-group input { width: 100%; padding: 8px 12px; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 4px; box-sizing: border-box; }
 
-        /* Contenedor de Editores */
-        .editors-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-        .editor-card {
-            background: #fdfdfd;
-            border: 1px solid #d1d8e0;
-            border-radius: 6px;
-            padding: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-        }
-        .editor-header-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            background: #ecf0f1;
-            padding: 8px 12px;
-            border-radius: 4px;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .editor-header-bar select, .editor-header-bar input[type="text"] {
-            padding: 6px 10px;
-            font-size: 14px;
-            font-weight: bold;
-            border-radius: 4px;
-            border: 1px solid #bdc3c7;
-            background-color: #fff;
-        }
-        .editor-header-bar input[type="text"] {
-            width: 220px;
-        }
-        .editor-header-bar input[type="color"] {
-            border: none;
-            width: 35px;
-            height: 30px;
-            cursor: pointer;
-            background: none;
-        }
+        .editors-container { display: flex; flex-direction: column; gap: 20px; margin-bottom: 30px; }
+        .editor-card { background: #fdfdfd; border: 1px solid #d1d8e0; border-radius: 6px; padding: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
+        .editor-header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; background: #ecf0f1; padding: 8px 12px; border-radius: 4px; flex-wrap: wrap; gap: 10px; }
+        .editor-header-bar select, .editor-header-bar input[type="text"] { padding: 6px 10px; font-size: 14px; font-weight: bold; border-radius: 4px; border: 1px solid #bdc3c7; background-color: #fff; }
+        .editor-header-bar input[type="text"] { width: 220px; }
+        .editor-header-bar input[type="color"] { border: none; width: 35px; height: 30px; cursor: pointer; background: none; }
         
-        .editor-table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
-        .editor-table th, .editor-table td {
-            border: 1px solid #d1d8e0;
-            padding: 4px;
-            text-align: center;
-        }
+        .editor-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .editor-table th, .editor-table td { border: 1px solid #d1d8e0; padding: 4px; text-align: center; vertical-align: top;}
         .editor-table th { color: white; padding: 6px; font-size: 13px; background-color: #34495e; }
         .day-header { background-color: #ecf0f1 !important; color: #2c3e50 !important; }
-        .hour-col { width: 3%; font-weight: bold; background-color: #ecf0f1; font-size: 13px; }
-        .time-col { width: 9%; font-size: 12px; background-color: #ecf0f1; }
+        .hour-col { width: 3%; font-weight: bold; background-color: #ecf0f1; font-size: 13px; vertical-align: middle;}
+        .time-col { width: 9%; font-size: 12px; background-color: #ecf0f1; vertical-align: middle;}
         .day-col { width: 17.6%; }
-        .recreo-row td { background-color: #e67e22; color: white; font-weight: bold; letter-spacing: 2px; padding: 6px; font-size: 12px; }
+        .recreo-row td { background-color: #e67e22; color: white; font-weight: bold; letter-spacing: 2px; padding: 6px; font-size: 12px; vertical-align: middle;}
+        
+        .slot-cell-container { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 45px;}
         
         select.slot-select {
             width: 100%; padding: 6px 0; border: 1px solid #ced6e0; border-radius: 4px;
             text-align-last: center; font-weight: bold; font-size: 13px; cursor: pointer;
             appearance: none; -webkit-appearance: none; -moz-appearance: none;
-            background-color: #fff;
-            transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+            background-color: #fff; transition: background-color 0.3s, color 0.3s, border-color 0.3s;
         }
         select.slot-select:hover { border-color: #3498db; background-color: #f4f9ff; }
         select.slot-select:focus { outline: none; border-color: #3498db; box-shadow: inset 0 0 0 2px #3498db; }
-        
-        select.slot-select.conflict {
-            background-color: #ff4757 !important; 
-            color: white !important; 
-            border-color: #ff4757 !important; 
-            animation: pulse 1s infinite;
-        }
+        select.slot-select.conflict { background-color: #ff4757 !important; color: white !important; border-color: #ff4757 !important; animation: pulse 1s infinite; }
 
-        .occupied-badge {
-            background-color: #f1f2f6;
-            color: #718093;
-            border: 1px dashed #a4b0be;
-            border-radius: 4px;
-            padding: 6px 4px;
-            font-size: 11px;
-            font-weight: bold;
-            text-align: center;
-            display: block;
-            width: 100%;
-            box-sizing: border-box;
-            cursor: not-allowed;
+        .status-container {
+            display: none; background: #e8f8f5; border: 1px solid #27ae60; border-radius: 4px; padding: 2px 5px; width: 90%; font-size: 10px; color: #27ae60; font-weight: bold; box-sizing: border-box; cursor: pointer;
         }
-        .occupied-badge span {
-            display: block;
-            font-size: 9px;
-            font-weight: normal;
-            color: #ff4757;
-        }
+        .status-container input { cursor: pointer; margin-right: 3px; }
 
-        .summary-card {
-            background: #fff;
-            border: 1px solid #d1d8e0;
-            border-radius: 6px;
-            padding: 15px;
-            margin-top: 15px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
-        }
+        .occupied-badge { background-color: #f1f2f6; color: #718093; border: 1px dashed #a4b0be; border-radius: 4px; padding: 6px 4px; font-size: 11px; font-weight: bold; text-align: center; display: block; width: 100%; box-sizing: border-box; cursor: not-allowed; }
+        .occupied-badge span { display: block; font-size: 9px; font-weight: normal; color: #ff4757; }
+
+        .summary-card { background: #fff; border: 1px solid #d1d8e0; border-radius: 6px; padding: 15px; margin-top: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.02); }
         .tag-assigned { color: #27ae60; font-weight: bold; font-size: 12px; }
         .tag-missing { color: #e74c3c; font-weight: bold; font-size: 12px; }
         
-        .generator-controls {
-            background: #fff; border: 2px dashed #bdc3c7; padding: 20px;
-            border-radius: 8px; text-align: center; margin-bottom: 30px;
-            display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap;
-        }
-        .generator-controls select {
-            padding: 10px 15px; font-size: 16px; font-weight: bold; border-radius: 5px; border: 2px solid #3498db;
-        }
-        .btn-action {
-            color: white; border: none; padding: 12px 18px;
-            font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer;
-            transition: background 0.2s; display: flex; align-items: center; gap: 6px;
-        }
-        .btn-print { background-color: #27ae60; }
-        .btn-print:hover { background-color: #219653; }
-        .btn-word { background-color: #2980b9; }
-        .btn-word:hover { background-color: #2471a3; }
-        .btn-save { background-color: #d35400; }
-        .btn-save:hover { background-color: #b94200; }
-        .btn-load { background-color: #8e44ad; }
-        .btn-load:hover { background-color: #732d91; }
-        .btn-history { background-color: #e67e22; }
-        .btn-history:hover { background-color: #d35400; }
-        .btn-upload-logo { background-color: #34495e; }
-        .btn-upload-logo:hover { background-color: #2c3e50; }
-
-        .btn-add-row {
-            background-color: #8e44ad; color: white; border: none; padding: 10px 15px;
-            font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer;
-            margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto;
-        }
-        .btn-add-row:hover { background-color: #732d91; }
+        .generator-controls { background: #fff; border: 2px dashed #bdc3c7; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 30px; display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .generator-controls select { padding: 10px 15px; font-size: 16px; font-weight: bold; border-radius: 5px; border: 2px solid #3498db; }
+        .btn-action { color: white; border: none; padding: 12px 18px; font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
+        .btn-print { background-color: #27ae60; } .btn-print:hover { background-color: #219653; }
+        .btn-word { background-color: #2980b9; } .btn-word:hover { background-color: #2471a3; }
+        .btn-save { background-color: #d35400; } .btn-save:hover { background-color: #b94200; }
+        .btn-load { background-color: #8e44ad; } .btn-load:hover { background-color: #732d91; }
+        .btn-history { background-color: #e67e22; } .btn-history:hover { background-color: #d35400; }
+        .btn-upload-logo { background-color: #34495e; } .btn-upload-logo:hover { background-color: #2c3e50; }
+        .btn-add-row { background-color: #8e44ad; color: white; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto; }
         
-        .print-section {
-            background: white; padding: 20px; border: 1px solid #ddd;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; max-width: 1100px;
-        }
-        .header-final {
-            display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #222; padding-bottom: 15px;
-        }
+        .print-section { background: white; padding: 20px; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; max-width: 1100px; }
+        .header-final { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #222; padding-bottom: 15px; }
         
-        .logo-wrapper {
-            width: 90px;
-            display: flex; justify-content: center; align-items: center;
-            cursor: pointer;
-            position: relative;
-        }
-        .logo-wrapper:hover::after {
-            content: "Cambiar insignia";
-            position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%);
-            background: #333; color: white; font-size: 10px; padding: 2px 5px; border-radius: 3px;
-            white-space: nowrap;
-        }
-        .logo-placeholder {
-            width: 80px; height: 90px; background-color: #3498db; color: white;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            font-weight: bold; font-size: 12px; border: 2px solid #2980b9; border-radius: 0 0 40px 40px;
-            text-align: center; padding: 5px;
-        }
-        #logoImage {
-            max-width: 90px; max-height: 100px; object-fit: contain;
-        }
+        .logo-wrapper { width: 90px; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; }
+        .logo-wrapper:hover::after { content: "Cambiar insignia"; position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); background: #333; color: white; font-size: 10px; padding: 2px 5px; border-radius: 3px; white-space: nowrap; }
+        .logo-placeholder { width: 80px; height: 90px; background-color: #3498db; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: bold; font-size: 12px; border: 2px solid #2980b9; border-radius: 0 0 40px 40px; text-align: center; padding: 5px; }
+        #logoImage { max-width: 90px; max-height: 100px; object-fit: contain; }
 
         .title-final { flex-grow: 1; text-align: center; }
         .title-final h2 { margin: 0 0 10px 0; font-size: 18px; text-decoration: underline; text-transform: uppercase; }
@@ -308,11 +155,7 @@
         .print-eval-col-assigned { flex: 1; padding: 8px 12px; border-right: 1px solid #ccc; background-color: #f0fdf4; }
         .print-eval-col-missing { flex: 1; padding: 8px 12px; background-color: #fef2f2; }
 
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); }
-            70% { box-shadow: 0 0 0 5px rgba(255, 71, 87, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); }
-        }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); } 70% { box-shadow: 0 0 0 5px rgba(255, 71, 87, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); } }
 
         @media print {
             body { background: white; padding: 0; }
@@ -326,36 +169,24 @@
 </head>
 <body>
 
-<div id="autoSaveToast">
-    <span>💾</span> <span id="toastText">¡Avance guardado automáticamente!</span>
-</div>
+<div id="autoSaveToast"><span>💾</span> <span id="toastText">¡Avance guardado automáticamente!</span></div>
+<div id="infoToast"><span>⚠️</span> <span id="infoToastText">Aviso</span></div>
 
-<!-- MODAL DE GUARDADO CON CALENDARIO Y NOMBRE -->
+<!-- MODAL DE GUARDADO -->
 <div class="modal-overlay" id="saveModal">
     <div class="modal-content" style="max-width: 500px;">
         <div class="modal-header">
             <h3>💾 Guardar Horario Actual</h3>
             <button class="btn-close-modal" onclick="toggleSaveModal(false)">✕ Cerrar</button>
         </div>
-        <div class="form-group">
-            <label for="inputScheduleName">Nombre del Horario:</label>
-            <input type="text" id="inputScheduleName" placeholder="Ej. Calendario Diagnóstico Principal">
-        </div>
-        <div class="form-group">
-            <label for="inputStartDate">Fecha de Inicio:</label>
-            <input type="date" id="inputStartDate">
-        </div>
-        <div class="form-group">
-            <label for="inputEndDate">Fecha de Término:</label>
-            <input type="date" id="inputEndDate">
-        </div>
-        <div style="text-align: right; margin-top: 20px;">
-            <button class="btn-action btn-save" onclick="confirmSaveVersion()" style="display: inline-flex;">💾 Guardar y Descargar .json</button>
-        </div>
+        <div class="form-group"><label>Nombre del Horario:</label><input type="text" id="inputScheduleName" placeholder="Ej. Calendario Diagnóstico Principal"></div>
+        <div class="form-group"><label>Fecha de Inicio:</label><input type="date" id="inputStartDate"></div>
+        <div class="form-group"><label>Fecha de Término:</label><input type="date" id="inputEndDate"></div>
+        <div style="text-align: right; margin-top: 20px;"><button class="btn-action btn-save" onclick="confirmSaveVersion()" style="display: inline-flex;">💾 Guardar y Descargar .json</button></div>
     </div>
 </div>
 
-<!-- MODAL DE HISTORIAL Y VERSIONES -->
+<!-- MODAL DE HISTORIAL -->
 <div class="modal-overlay" id="historyModal">
     <div class="modal-content">
         <div class="modal-header">
@@ -370,8 +201,9 @@
     <h1>🗓️ Creador Avanzado de Calendario de Evaluaciones</h1>
     
     <div class="instructions">
-        <strong>ACTUALIZACIÓN APLICADA:</strong><br>
-        • Puedes subir la <strong>insignia o escudo</strong> de la escuela utilizando el botón oscuro abajo, o haciendo clic directamente sobre el escudo azul en la sección del calendario.
+        <strong>NUEVA FUNCIÓN - GESTIÓN DE REALIZACIÓN:</strong><br>
+        • Al seleccionar un curso, aparecerá una casilla <strong>"Realizada"</strong>. Márcala cuando la prueba haya concluido.<br>
+        • <strong>Protección:</strong> Si intentas asignar un curso a una prueba que ya figura como "Realizada" en otro horario guardado, el sistema te bloqueará. Si figura en otro horario pero NO se ha realizado, te permitirá reasignarlo con un aviso.
     </div>
 
     <div class="editors-container" id="editorsContainer"></div>
@@ -389,7 +221,6 @@
             <option value="8°A">8°A</option><option value="8°B">8°B</option><option value="8°C">8°C</option>
         </select>
         
-        <!-- BOTÓN PARA SUBIR INSIGNIA -->
         <button class="btn-action btn-upload-logo" onclick="document.getElementById('logoFileInput').click()">🖼️ Subir Insignia</button>
         <input type="file" id="logoFileInput" style="display: none;" accept="image/png, image/jpeg, image/jpg" onchange="loadLogoImage(event)">
 
@@ -403,14 +234,10 @@
 
     <div class="print-section">
         <div class="header-final">
-            <!-- CONTENEDOR DE LA INSIGNIA -->
             <div class="logo-wrapper" onclick="document.getElementById('logoFileInput').click()" title="Haz clic para cambiar la insignia de la escuela">
-                <div class="logo-placeholder" id="logoPlaceholder">
-                    ESCUELA<br>E-87<br>LAS ROCAS
-                </div>
+                <div class="logo-placeholder" id="logoPlaceholder">ESCUELA<br>E-87<br>LAS ROCAS</div>
                 <img id="logoImage" src="" style="display:none;" alt="Insignia Escuela">
             </div>
-
             <div class="title-final">
                 <h2>CALENDARIO DIAGNOSTICO INTEGRAL DE APRENDIZAJE</h2>
                 <h3>AÑO 2026</h3>
@@ -418,144 +245,31 @@
             </div>
         </div>
 
-        <table class="final-table">
+        <table class="final-table" id="finalPrintTable">
             <thead>
                 <tr>
                     <th rowspan="2" colspan="2" class="bg-gray-light">BLOQUES</th>
                     <th rowspan="2" colspan="2" class="bg-gray-light">AÑO 2026</th>
                     <th colspan="5" class="bg-gray-light">HORARIO DE CLASES</th>
                 </tr>
-                <tr>
-                    <th class="bg-gray-light">L</th>
-                    <th class="bg-gray-light">M</th>
-                    <th class="bg-gray-light">M</th>
-                    <th class="bg-gray-light">J</th>
-                    <th class="bg-gray-light">V</th>
-                </tr>
+                <tr><th class="bg-gray-light">L</th><th class="bg-gray-light">M</th><th class="bg-gray-light">M</th><th class="bg-gray-light">J</th><th class="bg-gray-light">V</th></tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td rowspan="2" class="bg-gray-light">1°</td>
-                    <td class="bg-gray-light">1°</td>
-                    <td class="bg-gray-light">8:00</td>
-                    <td class="bg-gray-light">8:45</td>
-                    <td id="final-0-0" class="final-cell"></td>
-                    <td id="final-1-0" class="final-cell"></td>
-                    <td id="final-2-0" class="final-cell"></td>
-                    <td id="final-3-0" class="final-cell"></td>
-                    <td id="final-4-0" class="final-cell"></td>
-                </tr>
-                <tr>
-                    <td class="bg-gray-light">2°</td>
-                    <td class="bg-gray-light">8:45</td>
-                    <td class="bg-gray-light">9:30</td>
-                    <td id="final-0-1" class="final-cell"></td>
-                    <td id="final-1-1" class="final-cell"></td>
-                    <td id="final-2-1" class="final-cell"></td>
-                    <td id="final-3-1" class="final-cell"></td>
-                    <td id="final-4-1" class="final-cell"></td>
-                </tr>
-                
-                <tr>
-                    <td colspan="4" class="recreo-final"></td>
-                    <td colspan="5" class="recreo-final">RECREO (9:30 A 9:50)</td>
-                </tr>
-
-                <tr>
-                    <td rowspan="2" class="bg-gray-light">2°</td>
-                    <td class="bg-gray-light">3°</td>
-                    <td class="bg-gray-light">9:50</td>
-                    <td class="bg-gray-light">10:35</td>
-                    <td id="final-0-3" class="final-cell"></td>
-                    <td id="final-1-3" class="final-cell"></td>
-                    <td id="final-2-3" class="final-cell"></td>
-                    <td id="final-3-3" class="final-cell"></td>
-                    <td id="final-4-3" class="final-cell"></td>
-                </tr>
-                <tr>
-                    <td class="bg-gray-light">4°</td>
-                    <td class="bg-gray-light">10:35</td>
-                    <td class="bg-gray-light">11:20</td>
-                    <td id="final-0-4" class="final-cell"></td>
-                    <td id="final-1-4" class="final-cell"></td>
-                    <td id="final-2-4" class="final-cell"></td>
-                    <td id="final-3-4" class="final-cell"></td>
-                    <td id="final-4-4" class="final-cell"></td>
-                </tr>
-
-                <tr>
-                    <td colspan="4" class="recreo-final"></td>
-                    <td colspan="5" class="recreo-final">RECREO (11:20 A 11:40)</td>
-                </tr>
-
-                <tr>
-                    <td rowspan="2" class="bg-gray-light">3°</td>
-                    <td class="bg-gray-light">5°</td>
-                    <td class="bg-gray-light">11:40</td>
-                    <td class="bg-gray-light">12:25</td>
-                    <td id="final-0-6" class="final-cell"></td>
-                    <td id="final-1-6" class="final-cell"></td>
-                    <td id="final-2-6" class="final-cell"></td>
-                    <td id="final-3-6" class="final-cell"></td>
-                    <td id="final-4-6" class="final-cell"></td>
-                </tr>
-                <tr>
-                    <td class="bg-gray-light">6°</td>
-                    <td class="bg-gray-light">12:25</td>
-                    <td class="bg-gray-light">13:10</td>
-                    <td id="final-0-7" class="final-cell"></td>
-                    <td id="final-1-7" class="final-cell"></td>
-                    <td id="final-2-7" class="final-cell"></td>
-                    <td id="final-3-7" class="final-cell"></td>
-                    <td id="final-4-7" class="final-cell"></td>
-                </tr>
-
-                <tr>
-                    <td colspan="4" class="recreo-final"></td>
-                    <td colspan="5" class="recreo-final">ALMUERZO (13:10 A 13:55)</td>
-                </tr>
-
-                <tr>
-                    <td rowspan="2" class="bg-gray-light">4°</td>
-                    <td class="bg-gray-light">7°</td>
-                    <td class="bg-gray-light">13:55</td>
-                    <td class="bg-gray-light">14:40</td>
-                    <td id="final-0-9" class="final-cell"></td>
-                    <td id="final-1-9" class="final-cell"></td>
-                    <td id="final-2-9" class="final-cell"></td>
-                    <td id="final-3-9" class="final-cell"></td>
-                    <td id="final-4-9" class="final-cell"></td>
-                </tr>
-                <tr>
-                    <td class="bg-gray-light">8°</td>
-                    <td class="bg-gray-light">14:40</td>
-                    <td class="bg-gray-light">15:25</td>
-                    <td id="final-0-10" class="final-cell"></td>
-                    <td id="final-1-10" class="final-cell"></td>
-                    <td id="final-2-10" class="final-cell"></td>
-                    <td id="final-3-10" class="final-cell"></td>
-                    <td id="final-4-10" class="final-cell"></td>
-                </tr>
+            <tbody id="finalTableBody">
+                <!-- Se llenará vía JS -->
             </tbody>
         </table>
 
         <div class="simbologia-title">SIMBOLOGIA Y PROFESORES</div>
         <table class="table-simbologia">
             <thead>
-                <tr>
-                    <th style="width: 20%;">COLOR</th>
-                    <th style="width: 45%;">EVALUACIÓN / ASIGNATURA</th>
-                    <th style="width: 35%;">PROFESOR(A)</th>
-                </tr>
+                <tr><th style="width: 20%;">COLOR</th><th style="width: 45%;">EVALUACIÓN / ASIGNATURA</th><th style="width: 35%;">PROFESOR(A)</th></tr>
             </thead>
             <tbody id="simbologiaBody"></tbody>
         </table>
 
-        <!-- CÓMPUTO FINAL UNIFICADO POR ASIGNATURA -->
         <div class="simbologia-title">CÓMPUTO FINAL DE CURSOS POR ASIGNATURA</div>
         <div id="printEvalSummaryContainer" class="print-eval-summary-container"></div>
     </div>
-
 </div>
 
 <script>
@@ -578,12 +292,8 @@
     const cursosDisponibles = ['', ...todosLosCursos];
     
     const opcionesAsignaturas = [
-        "LECTURA",
-        "Evaluación para la Reactivación de la Lectura",
-        "Matemática",
-        "Historia",
-        "Ciencias Naturales",
-        "Actividad Socioemocional Evaluativa",
+        "LECTURA", "Evaluación para la Reactivación de la Lectura", "Matemática", 
+        "Historia", "Ciencias Naturales", "Actividad Socioemocional Evaluativa", 
         "Cuestionario Condiciones para la formación integral"
     ];
 
@@ -592,10 +302,41 @@
         { id: 'eval_2', subject: 'Matemática', teacher: 'Prof. María Gómez', color: '#fce762' }
     ];
 
-    let currentSelections = {};
-    let currentSchoolLogo = null; // Variable para almacenar la imagen del logo en Base64
+    // Ahora currentSelections guardará objetos: { course: '5°A', done: false }
+    let currentSelections = {}; 
+    let currentSchoolLogo = null;
 
-    // FUNCIÓN PARA CARGAR LA IMAGEN DEL LOGO
+    function buildFinalTableRows() {
+        const tbody = document.getElementById('finalTableBody');
+        tbody.innerHTML = '';
+        hours.forEach((hour, hourIndex) => {
+            let tr = document.createElement('tr');
+            if(hour.type === 'break') {
+                tr.innerHTML = `<td colspan="4" class="recreo-final"></td><td colspan="5" class="recreo-final">${hour.label.toUpperCase()}</td>`;
+            } else {
+                tr.innerHTML = `
+                    <td ${hourIndex%2===0 ? 'rowspan="2"' : 'style="display:none;"'} class="bg-gray-light">${hourIndex < 2 ? '1°' : (hourIndex < 5 ? '2°' : (hourIndex < 8 ? '3°' : '4°'))}</td>
+                    <td class="bg-gray-light">${hour.num}</td>
+                    <td class="bg-gray-light">${hour.time.split(' A ')[0]}</td>
+                    <td class="bg-gray-light">${hour.time.split(' A ')[1]}</td>
+                    <td id="final-0-${hourIndex}" class="final-cell"></td>
+                    <td id="final-1-${hourIndex}" class="final-cell"></td>
+                    <td id="final-2-${hourIndex}" class="final-cell"></td>
+                    <td id="final-3-${hourIndex}" class="final-cell"></td>
+                    <td id="final-4-${hourIndex}" class="final-cell"></td>
+                `;
+            }
+            tbody.appendChild(tr);
+        });
+    }
+
+    function showInfoToast(msg) {
+        const toast = document.getElementById('infoToast');
+        document.getElementById('infoToastText').textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => { toast.classList.remove('show'); }, 5000);
+    }
+
     function loadLogoImage(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -603,44 +344,68 @@
         reader.onload = function(e) {
             currentSchoolLogo = e.target.result;
             displayLogo();
-            autoSaveState(); // Guarda la imagen en el autoguardado local
+            autoSaveState();
         };
         reader.readAsDataURL(file);
     }
 
-    // FUNCIÓN PARA MOSTRAR EL LOGO O EL MARCADOR DE POSICIÓN
     function displayLogo() {
         const placeholder = document.getElementById('logoPlaceholder');
         const img = document.getElementById('logoImage');
         if (currentSchoolLogo) {
             placeholder.style.display = 'none';
-            img.src = currentSchoolLogo;
-            img.style.display = 'block';
+            img.src = currentSchoolLogo; img.style.display = 'block';
         } else {
             placeholder.style.display = 'flex';
-            img.style.display = 'none';
-            img.src = '';
+            img.style.display = 'none'; img.src = '';
         }
     }
 
     function captureSelections() {
-        currentSelections = {};
-        document.querySelectorAll('.editor-card').forEach(card => {
-            card.querySelectorAll('.slot-select').forEach(s => {
-                if(s.value) {
-                    let key = `${s.dataset.evalId}-${s.dataset.day}-${s.dataset.hour}`;
-                    currentSelections[key] = s.value;
-                }
-            });
+        // Se actualiza en tiempo real, esta función es de respaldo antes de recrear DOM
+        let newSel = {};
+        document.querySelectorAll('.slot-cell-container').forEach(td => {
+            let sel = td.querySelector('.slot-select');
+            let chk = td.querySelector('.status-checkbox');
+            if(sel && sel.value) {
+                let key = `${sel.dataset.evalId}-${sel.dataset.day}-${sel.dataset.hour}`;
+                newSel[key] = { course: sel.value, done: chk ? chk.checked : false };
+            }
         });
+        // Mezclar con currentSelections por si hay ocultos
+        Object.keys(newSel).forEach(k => currentSelections[k] = newSel[k]);
+    }
+
+    function validateAgainstHistory(evalId, courseValue) {
+        if(!courseValue) return true;
+        let ed = editorsData.find(e => e.id === evalId);
+        let subject = ed ? ed.subject : '';
+        let history = getHistory();
+        
+        for (let v of history) {
+            let foundSelection = v.selections.find(s => 
+                s.value === courseValue && 
+                v.editorsData.find(e => e.id === s.evalId)?.subject === subject
+            );
+            
+            if (foundSelection) {
+                if (foundSelection.done) {
+                    alert(`❌ BLOQUEO: El curso ${courseValue} ya realizó la evaluación de "${subject}" en el horario guardado como "${v.name}". No puedes volver a asignarlo.`);
+                    return false; // Bloquea
+                } else {
+                    showInfoToast(`⚠️ ${courseValue} estaba asignado a "${subject}" en el horario "${v.name}" pero NO se realizó. Reasignado exitosamente.`);
+                    return true; // Permite con aviso
+                }
+            }
+        }
+        return true;
     }
 
     function initApp(preserveSelections = false) {
-        if(!preserveSelections) {
-            captureSelections();
-        }
+        if(!preserveSelections) captureSelections();
         const container = document.getElementById('editorsContainer');
         container.innerHTML = '';
+        buildFinalTableRows();
 
         editorsData.forEach((editor, index) => {
             let card = document.createElement('div');
@@ -653,177 +418,118 @@
 
             let selectSubj = document.createElement('select');
             selectSubj.className = 'editor-subject-select';
-            selectSubj.onchange = (e) => {
-                editorsData[index].subject = e.target.value;
-                updateRealtimeData();
-            };
+            selectSubj.onchange = (e) => { editorsData[index].subject = e.target.value; updateRealtimeData(); };
             opcionesAsignaturas.forEach(opt => {
-                let option = document.createElement('option');
-                option.value = opt;
-                option.textContent = opt;
+                let option = document.createElement('option'); option.value = opt; option.textContent = opt;
                 if (opt === editor.subject) option.selected = true;
                 selectSubj.appendChild(option);
             });
 
             let inputTeacher = document.createElement('input');
-            inputTeacher.type = 'text';
-            inputTeacher.className = 'editor-teacher-input';
-            inputTeacher.placeholder = 'Nombre del Profesor(a)';
+            inputTeacher.type = 'text'; inputTeacher.className = 'editor-teacher-input'; inputTeacher.placeholder = 'Profesor(a)';
             inputTeacher.value = editor.teacher || '';
-            inputTeacher.oninput = (e) => {
-                editorsData[index].teacher = e.target.value;
-                updateRealtimeData();
-            };
+            inputTeacher.oninput = (e) => { editorsData[index].teacher = e.target.value; updateRealtimeData(); };
 
             let colorPickerContainer = document.createElement('div');
-            colorPickerContainer.style.display = 'flex';
-            colorPickerContainer.style.alignItems = 'center';
-            colorPickerContainer.style.gap = '8px';
+            colorPickerContainer.style.display = 'flex'; colorPickerContainer.style.alignItems = 'center'; colorPickerContainer.style.gap = '8px';
             colorPickerContainer.innerHTML = `<span style="font-size:13px; font-weight:bold;">Color:</span>`;
-            
-            let colorInput = document.createElement('input');
-            colorInput.type = 'color';
-            colorInput.className = 'editor-color-input';
-            colorInput.value = editor.color;
-            colorInput.oninput = (e) => {
-                editorsData[index].color = e.target.value;
-                updateRealtimeData();
-            };
+            let colorInput = document.createElement('input'); colorInput.type = 'color'; colorInput.className = 'editor-color-input'; colorInput.value = editor.color;
+            colorInput.oninput = (e) => { editorsData[index].color = e.target.value; updateRealtimeData(); };
             colorPickerContainer.appendChild(colorInput);
 
-            let btnDelete = document.createElement('button');
-            btnDelete.textContent = '❌ Eliminar Tabla';
-            btnDelete.style.cssText = 'background:#e74c3c; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:12px;';
+            let btnDelete = document.createElement('button'); btnDelete.textContent = '❌ Eliminar'; btnDelete.style.cssText = 'background:#e74c3c; color:white; border:none; padding:6px 10px; border-radius:4px; cursor:pointer; font-size:12px;';
             btnDelete.onclick = () => {
                 if (editorsData.length > 1) {
-                    if (confirm(`¿Estás seguro de eliminar la tabla de evaluación de "${editor.subject}"?`)) {
-                        captureSelections();
-                        editorsData = editorsData.filter(item => item.id !== editor.id);
-                        initApp();
-                    }
-                } else {
-                    alert("Debe haber al menos una tabla de evaluación.");
-                }
+                    if (confirm(`¿Eliminar la tabla de "${editor.subject}"?`)) { captureSelections(); editorsData = editorsData.filter(item => item.id !== editor.id); initApp(); }
+                } else alert("Debe haber al menos una tabla.");
             };
 
             headerBar.appendChild(selectSubj);
-            
-            let teacherWrapper = document.createElement('div');
-            teacherWrapper.style.display = 'flex';
-            teacherWrapper.style.alignItems = 'center';
-            teacherWrapper.style.gap = '6px';
-            teacherWrapper.innerHTML = `<span style="font-size:13px; font-weight:bold;">Profesor(a):</span>`;
-            teacherWrapper.appendChild(inputTeacher);
+            let teacherWrapper = document.createElement('div'); teacherWrapper.style.display = 'flex'; teacherWrapper.style.alignItems = 'center'; teacherWrapper.style.gap = '6px';
+            teacherWrapper.innerHTML = `<span style="font-size:13px; font-weight:bold;">Profesor:</span>`; teacherWrapper.appendChild(inputTeacher);
             headerBar.appendChild(teacherWrapper);
+            headerBar.appendChild(colorPickerContainer); headerBar.appendChild(btnDelete); card.appendChild(headerBar);
 
-            headerBar.appendChild(colorPickerContainer);
-            headerBar.appendChild(btnDelete);
-            card.appendChild(headerBar);
-
-            let table = document.createElement('table');
-            table.className = 'editor-table';
-            
-            let headTr = document.createElement('tr');
-            headTr.innerHTML = `<th class="day-header" colspan="2">HORARIO</th>` + days.map(d => `<th class="day-header day-col">${d}</th>`).join('');
-            table.appendChild(headTr);
+            let table = document.createElement('table'); table.className = 'editor-table';
+            let headTr = document.createElement('tr'); headTr.innerHTML = `<th class="day-header" colspan="2">HORARIO</th>` + days.map(d => `<th class="day-header day-col">${d}</th>`).join(''); table.appendChild(headTr);
 
             hours.forEach((hour, hourIndex) => {
                 if (hour.type === 'break') {
-                    let trBreak = document.createElement('tr');
-                    trBreak.className = 'recreo-row';
-                    trBreak.innerHTML = `<td colspan="7">${hour.label}</td>`;
-                    table.appendChild(trBreak);
+                    let trBreak = document.createElement('tr'); trBreak.className = 'recreo-row'; trBreak.innerHTML = `<td colspan="7">${hour.label}</td>`; table.appendChild(trBreak);
                 } else {
-                    let trHour = document.createElement('tr');
-                    trHour.innerHTML = `<td class="hour-col">${hour.num}</td><td class="time-col">${hour.time}</td>`;
-                    
+                    let trHour = document.createElement('tr'); trHour.innerHTML = `<td class="hour-col">${hour.num}</td><td class="time-col">${hour.time}</td>`;
                     days.forEach((day, dayIndex) => {
-                        let td = document.createElement('td');
-                        td.className = 'slot-cell-container';
-                        td.dataset.day = dayIndex;
-                        td.dataset.hour = hourIndex;
+                        let td = document.createElement('td'); td.className = 'slot-cell-container'; td.dataset.day = dayIndex; td.dataset.hour = hourIndex;
                         
-                        let select = document.createElement('select');
-                        select.className = 'slot-select';
-                        select.dataset.evalId = editor.id;
-                        select.dataset.day = dayIndex;
-                        select.dataset.hour = hourIndex;
+                        let select = document.createElement('select'); select.className = 'slot-select'; select.dataset.evalId = editor.id; select.dataset.day = dayIndex; select.dataset.hour = hourIndex;
+                        cursosDisponibles.forEach(c => { let opt = document.createElement('option'); opt.value = c; opt.textContent = c; select.appendChild(opt); });
                         
-                        cursosDisponibles.forEach(c => {
-                            let opt = document.createElement('option');
-                            opt.value = c;
-                            opt.textContent = c;
-                            select.appendChild(opt);
-                        });
+                        let statusDiv = document.createElement('div'); statusDiv.className = 'status-container';
+                        statusDiv.innerHTML = `<label><input type="checkbox" class="status-checkbox"> Realizada</label>`;
                         
                         let selKey = `${editor.id}-${dayIndex}-${hourIndex}`;
-                        if(currentSelections[selKey]) {
-                            select.value = currentSelections[selKey];
+                        if(currentSelections[selKey] && currentSelections[selKey].course) {
+                            select.value = currentSelections[selKey].course;
+                            statusDiv.querySelector('.status-checkbox').checked = currentSelections[selKey].done;
+                            statusDiv.style.display = 'block';
                         }
 
-                        select.addEventListener('change', () => {
-                            updateRealtimeData();
+                        select.addEventListener('change', (e) => {
+                            if(e.target.value) {
+                                let isValid = validateAgainstHistory(editor.id, e.target.value);
+                                if(!isValid) { e.target.value = ''; } // Revertir si está bloqueado
+                            }
+                            updateRealtimeData(); 
                         });
+                        
+                        statusDiv.querySelector('.status-checkbox').addEventListener('change', () => { updateRealtimeData(); });
 
-                        td.appendChild(select);
-                        trHour.appendChild(td);
+                        td.appendChild(select); td.appendChild(statusDiv); trHour.appendChild(td);
                     });
                     table.appendChild(trHour);
                 }
             });
-
             card.appendChild(table);
 
-            let summaryCard = document.createElement('div');
-            summaryCard.className = 'summary-card';
-            summaryCard.id = `summary-card-${index}`;
-            card.appendChild(summaryCard);
-
+            let summaryCard = document.createElement('div'); summaryCard.className = 'summary-card'; summaryCard.id = `summary-card-${index}`; card.appendChild(summaryCard);
             container.appendChild(card);
         });
-
-        updateRealtimeData();
-        displayLogo();
+        updateRealtimeData(); displayLogo();
     }
 
     function addTableEditor() {
         captureSelections();
-        editorsData.push({
-            id: 'eval_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-            subject: 'Ciencias Naturales',
-            teacher: 'Prof. Nuevo',
-            color: '#74b9ff'
-        });
+        editorsData.push({ id: 'eval_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7), subject: 'Ciencias Naturales', teacher: 'Prof. Nuevo', color: '#74b9ff' });
         initApp();
     }
 
     function updateRealtimeData() {
-        let currentValues = {};
-        document.querySelectorAll('.slot-select').forEach(s => {
-            if(s.value) {
-                let keyId = `${s.dataset.evalId}-${s.dataset.day}-${s.dataset.hour}`;
-                currentValues[keyId] = s.value;
+        // Leer UI a la variable de estado
+        document.querySelectorAll('.slot-cell-container').forEach(td => {
+            let sel = td.querySelector('.slot-select');
+            let chk = td.querySelector('.status-checkbox');
+            let statusDiv = td.querySelector('.status-container');
+            
+            if(sel && sel.value) {
+                let key = `${sel.dataset.evalId}-${sel.dataset.day}-${sel.dataset.hour}`;
+                currentSelections[key] = { course: sel.value, done: chk.checked };
+                statusDiv.style.display = 'block';
+                if(chk.checked) statusDiv.style.backgroundColor = '#27ae60'; else statusDiv.style.backgroundColor = '#e8f8f5';
+                if(chk.checked) statusDiv.style.color = '#fff'; else statusDiv.style.color = '#27ae60';
+            } else if (sel && !sel.value) {
+                let key = `${sel.dataset.evalId}-${sel.dataset.day}-${sel.dataset.hour}`;
+                delete currentSelections[key];
+                if(statusDiv) { statusDiv.style.display = 'none'; chk.checked = false; }
             }
         });
 
         let globalOccupied = {}; 
-        document.querySelectorAll('.slot-select').forEach(s => {
-            let keyId = `${s.dataset.evalId}-${s.dataset.day}-${s.dataset.hour}`;
-            let val = currentValues[keyId] !== undefined ? currentValues[keyId] : s.value;
-            if(val) {
-                let evalId = s.dataset.evalId;
-                let day = s.dataset.day;
-                let hour = s.dataset.hour;
-                let key = `${day}-${hour}`;
-                let ed = editorsData.find(e => e.id === evalId);
-                if(!globalOccupied[key]) globalOccupied[key] = [];
-                globalOccupied[key].push({
-                    evalId: evalId,
-                    course: val,
-                    subject: ed ? ed.subject : '',
-                    teacher: ed ? (ed.teacher || 'Sin profesor') : ''
-                });
-            }
+        Object.keys(currentSelections).forEach(key => {
+            let parts = key.split('-'); let evalId = parts[0]; let day = parts[1]; let hour = parts[2];
+            let posKey = `${day}-${hour}`;
+            let ed = editorsData.find(e => e.id === evalId);
+            if(!globalOccupied[posKey]) globalOccupied[posKey] = [];
+            globalOccupied[posKey].push({ evalId: evalId, course: currentSelections[key].course, subject: ed ? ed.subject : '', done: currentSelections[key].done });
         });
 
         editorsData.forEach((editor, index) => {
@@ -831,83 +537,46 @@
             if(!card) return;
 
             card.querySelectorAll('.slot-cell-container').forEach(td => {
-                let dayIndex = td.dataset.day;
-                let hourIndex = td.dataset.hour;
-                let key = `${dayIndex}-${hourIndex}`;
+                let dayIndex = td.dataset.day; let hourIndex = td.dataset.hour; let key = `${dayIndex}-${hourIndex}`;
                 let cellOccupied = globalOccupied[key] || [];
                 let otherOccupations = cellOccupied.filter(o => o.evalId !== editor.id);
 
                 let existingSelect = td.querySelector('select.slot-select');
+                let statusDiv = td.querySelector('.status-container');
                 let existingBadge = td.querySelector('.occupied-badge');
 
                 if (otherOccupations.length > 0) {
                     let occ = otherOccupations[0];
                     if (existingSelect) existingSelect.style.display = 'none';
+                    if (statusDiv) statusDiv.style.display = 'none';
                     if (!existingBadge) {
-                        let badge = document.createElement('div');
-                        badge.className = 'occupied-badge';
-                        td.appendChild(badge);
+                        let badge = document.createElement('div'); badge.className = 'occupied-badge'; td.appendChild(badge);
                     }
                     td.querySelector('.occupied-badge').innerHTML = `${occ.course}<span>Ocupado (${occ.subject})</span>`;
                 } else {
                     if (existingBadge) existingBadge.remove();
-                    if (!existingSelect) {
-                        let select = document.createElement('select');
-                        select.className = 'slot-select';
-                        select.dataset.evalId = editor.id;
-                        select.dataset.day = dayIndex;
-                        select.dataset.hour = hourIndex;
-                        cursosDisponibles.forEach(c => {
-                            let opt = document.createElement('option');
-                            opt.value = c;
-                            opt.textContent = c;
-                            select.appendChild(opt);
-                        });
-                        
-                        let k = `${editor.id}-${dayIndex}-${hourIndex}`;
-                        if(currentValues[k]) {
-                            select.value = currentValues[k];
-                        }
-
-                        select.addEventListener('change', () => { updateRealtimeData(); });
-                        td.appendChild(select);
-                    } else {
-                        existingSelect.style.display = 'block';
-                        let k = `${editor.id}-${dayIndex}-${hourIndex}`;
-                        if(currentValues[k] !== undefined) {
-                            existingSelect.value = currentValues[k];
-                        }
-                    }
+                    if (existingSelect) existingSelect.style.display = 'block';
+                    if (existingSelect && existingSelect.value && statusDiv) statusDiv.style.display = 'block';
                 }
             });
 
             let assignedCoursesSet = new Set();
-            card.querySelectorAll('.slot-select').forEach(s => {
-                if(s.value && s.value.trim() !== '') {
-                    assignedCoursesSet.add(s.value);
-                }
-            });
+            card.querySelectorAll('.slot-select').forEach(s => { if(s.value && s.value.trim() !== '') assignedCoursesSet.add(s.value); });
             
             let assignedList = Array.from(assignedCoursesSet).sort();
             let missingList = todosLosCursos.filter(c => !assignedCoursesSet.has(c)).sort();
-
             let summaryCard = document.getElementById(`summary-card-${index}`);
             if(summaryCard) {
                 summaryCard.innerHTML = `
-                    <h3 style="margin: 0 0 10px 0; font-size: 15px; color: #2c3e50; text-align: left; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px;">
-                        📊 Estado de Cursos para esta Evaluación (${editor.subject})
-                    </h3>
+                    <h3 style="margin: 0 0 10px 0; font-size: 15px; color: #2c3e50; text-align: left; border-bottom: 2px solid #ecf0f1; padding-bottom: 5px;">📊 Estado de Cursos para esta Evaluación (${editor.subject})</h3>
                     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                         <div style="flex: 1; min-width: 250px; background: #e8f8f5; padding: 10px; border-radius: 4px; border-left: 4px solid #27ae60;">
-                            <span class="tag-assigned">✅ Cursos Asignados (${assignedList.length}):</span>
-                            <div style="margin-top: 5px; font-weight: bold; color: #2c3e50;">${assignedList.length > 0 ? assignedList.join(', ') : 'Ninguno asignado aún'}</div>
+                            <span class="tag-assigned">✅ Cursos Asignados (${assignedList.length}):</span><div style="margin-top: 5px; font-weight: bold; color: #2c3e50;">${assignedList.length > 0 ? assignedList.join(', ') : 'Ninguno asignado aún'}</div>
                         </div>
                         <div style="flex: 1; min-width: 250px; background: #fdebd0; padding: 10px; border-radius: 4px; border-left: 4px solid #e74c3c;">
-                            <span class="tag-missing">❌ Cursos Faltantes (${missingList.length}):</span>
-                            <div style="margin-top: 5px; font-weight: bold; color: #c0392b;">${missingList.length > 0 ? missingList.join(', ') : '¡Todos los cursos asignados!'}</div>
+                            <span class="tag-missing">❌ Cursos Faltantes (${missingList.length}):</span><div style="margin-top: 5px; font-weight: bold; color: #c0392b;">${missingList.length > 0 ? missingList.join(', ') : '¡Todos los cursos asignados!'}</div>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
         });
 
@@ -917,87 +586,51 @@
 
     function checkConflictsAndGenerate() {
         const allSelects = document.querySelectorAll('.slot-select');
-        allSelects.forEach(s => {
-            s.classList.remove('conflict');
-            s.title = '';
-        });
-
+        allSelects.forEach(s => { s.classList.remove('conflict'); s.title = ''; });
         let slotMap = {};
         allSelects.forEach(s => {
             if(!s.value) return;
             let key = `${s.dataset.day}-${s.dataset.hour}`;
-            if(!slotMap[key]) slotMap[key] = [];
-            slotMap[key].push(s);
+            if(!slotMap[key]) slotMap[key] = []; slotMap[key].push(s);
         });
 
         for(let key in slotMap) {
-            let selects = slotMap[key];
-            let evalIds = new Set(selects.map(s => s.dataset.evalId));
-
-            if(evalIds.size > 1) {
-                selects.forEach(s => {
-                    s.classList.add('conflict');
-                    s.title = `⚠️ Choque de Bloque: Este espacio (día y bloque) ya está ocupado por otra evaluación en simultáneo.`;
-                });
-            }
+            let selects = slotMap[key]; let evalIds = new Set(selects.map(s => s.dataset.evalId));
+            if(evalIds.size > 1) { selects.forEach(s => { s.classList.add('conflict'); s.title = `⚠️ Choque en bloque.`; }); }
         }
 
         editorsData.forEach((editor) => {
             let editorSelects = document.querySelectorAll(`.slot-select[data-eval-id="${editor.id}"]`);
             let subMap = {};
-            editorSelects.forEach(s => {
-                let val = s.value;
-                if(!val) return;
-                if(!subMap[val]) subMap[val] = [];
-                subMap[val].push(s);
-            });
-
+            editorSelects.forEach(s => { let val = s.value; if(!val) return; if(!subMap[val]) subMap[val] = []; subMap[val].push(s); });
             for(let course in subMap) {
-                let selects = subMap[course];
-                let uniqueDays = new Set(selects.map(s => s.dataset.day));
+                let selects = subMap[course]; let uniqueDays = new Set(selects.map(s => s.dataset.day));
                 if(selects.length > 2 || uniqueDays.size > 1) {
-                    selects.forEach(s => {
-                        s.classList.add('conflict');
-                        s.title = '⚠️ Límite excedido o días distintos: La evaluación no puede superar 2 bloques y debe ser el mismo día.';
-                    });
+                    selects.forEach(s => { s.classList.add('conflict'); s.title = '⚠️ Límite excedido de bloques por día.'; });
                 }
             }
         });
-
         updateFinalScheduleAndSimbologia();
     }
 
     function updateFinalScheduleAndSimbologia() {
         const course = document.getElementById('courseSelector').value;
         document.getElementById('print-course-title').textContent = course === 'TODOS' ? "CALENDARIO GENERAL - TODOS LOS CURSOS" : (course ? `CURSO: ${course}` : "CURSO: (SELECCIONE ARRIBA)");
-        
-        document.querySelectorAll('.final-cell').forEach(cell => {
-            cell.innerHTML = '';
-            cell.className = 'final-cell';
-            cell.style.backgroundColor = '';
-            cell.style.color = '';
-        });
-
+        document.querySelectorAll('.final-cell').forEach(cell => { cell.innerHTML = ''; });
         if (!course) return;
 
         for (let day = 0; day < 5; day++) {
             for (let hour = 0; hour < 11; hour++) {
                 if (hours[hour].type === 'break') continue;
-                
-                let cellId = `final-${day}-${hour}`;
-                let cell = document.getElementById(cellId);
+                let cellId = `final-${day}-${hour}`; let cell = document.getElementById(cellId);
                 if (!cell) continue;
 
                 let matchedItems = [];
                 editorsData.forEach((editor) => {
-                    let sel = document.querySelector(`.slot-select[data-eval-id="${editor.id}"][data-day="${day}"][data-hour="${hour}"]`);
-                    if(sel && sel.value) {
-                        matchedItems.push({ 
-                            course: sel.value, 
-                            subject: editor.subject, 
-                            teacher: editor.teacher || '', 
-                            color: editor.color 
-                        });
+                    let selKey = `${editor.id}-${day}-${hour}`;
+                    let item = currentSelections[selKey];
+                    if(item && item.course) {
+                        matchedItems.push({ course: item.course, subject: editor.subject, teacher: editor.teacher || '', color: editor.color, done: item.done });
                     }
                 });
 
@@ -1005,7 +638,8 @@
                     let htmlContent = '';
                     matchedItems.forEach(item => {
                         let teacherLine = item.teacher ? `<br><span style="font-size: 9px; font-weight: normal; opacity: 0.95;">(${item.teacher})</span>` : '';
-                        htmlContent += `<div style="background-color: ${item.color}; color: #000; padding: 4px 6px; margin-bottom: 2px; border-radius: 4px; font-weight: bold; font-size: 11px; line-height: 1.2; display: block; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">${item.course} - ${item.subject}${teacherLine}</div>`;
+                        let doneMark = item.done ? ' <span style="color:#000; font-size:12px;" title="Realizada">✅</span>' : '';
+                        htmlContent += `<div style="background-color: ${item.color}; color: #000; padding: 4px 6px; margin-bottom: 2px; border-radius: 4px; font-weight: bold; font-size: 11px; line-height: 1.2; display: block; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">${item.course}${doneMark} - ${item.subject}${teacherLine}</div>`;
                     });
                     cell.innerHTML = htmlContent;
                 } else {
@@ -1013,336 +647,157 @@
                     if (filtered.length > 0) {
                         let item = filtered[0];
                         let teacherLine = item.teacher ? `<br><span style="font-size: 10px; font-weight: normal; opacity: 0.95;">(${item.teacher})</span>` : '';
-                        cell.innerHTML = `<div style="background-color: ${item.color}; color: #000; padding: 5px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; line-height: 1.3; display: block; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">${item.course} - ${item.subject}${teacherLine}</div>`;
+                        let doneMark = item.done ? ' <span style="color:#000; font-size:14px;" title="Realizada">✅</span>' : '';
+                        cell.innerHTML = `<div style="background-color: ${item.color}; color: #000; padding: 5px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; line-height: 1.3; display: block; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">${item.course}${doneMark} - ${item.subject}${teacherLine}</div>`;
                     }
                 }
             }
         }
 
-        let simbologiaBody = document.getElementById('simbologiaBody');
-        simbologiaBody.innerHTML = '';
+        let simbologiaBody = document.getElementById('simbologiaBody'); simbologiaBody.innerHTML = '';
         editorsData.forEach(editor => {
             let tr = document.createElement('tr');
-            tr.innerHTML = `
-                <td style="background-color: ${editor.color}; color: #000; font-weight: bold;">COLOR</td>
-                <td style="text-align: left; padding-left: 10px;">${editor.subject}</td>
-                <td style="text-align: left; padding-left: 10px; font-weight: bold;">${editor.teacher || 'Sin asignar'}</td>
-            `;
+            tr.innerHTML = `<td style="background-color: ${editor.color}; color: #000; font-weight: bold;">COLOR</td><td style="text-align: left; padding-left: 10px;">${editor.subject}</td><td style="text-align: left; padding-left: 10px; font-weight: bold;">${editor.teacher || 'Sin asignar'}</td>`;
             simbologiaBody.appendChild(tr);
         });
 
-        let printEvalSummaryContainer = document.getElementById('printEvalSummaryContainer');
-        printEvalSummaryContainer.innerHTML = '';
-
+        let printEvalSummaryContainer = document.getElementById('printEvalSummaryContainer'); printEvalSummaryContainer.innerHTML = '';
         let subjectsMap = {};
         editorsData.forEach(editor => {
             let subj = editor.subject || 'Sin Asignatura';
-            if(!subjectsMap[subj]) {
-                subjectsMap[subj] = {
-                    subject: subj,
-                    teachers: new Set(),
-                    colors: new Set(),
-                    editorsIds: []
-                };
-            }
-            if(editor.teacher && editor.teacher.trim() !== '') {
-                subjectsMap[subj].teachers.add(editor.teacher.trim());
-            }
-            subjectsMap[subj].colors.add(editor.color);
-            subjectsMap[subj].editorsIds.push(editor.id);
+            if(!subjectsMap[subj]) subjectsMap[subj] = { subject: subj, teachers: new Set(), colors: new Set(), editorsIds: [] };
+            if(editor.teacher && editor.teacher.trim() !== '') subjectsMap[subj].teachers.add(editor.teacher.trim());
+            subjectsMap[subj].colors.add(editor.color); subjectsMap[subj].editorsIds.push(editor.id);
         });
 
         for(let subj in subjectsMap) {
-            let group = subjectsMap[subj];
-            let assignedSet = new Set();
-
+            let group = subjectsMap[subj]; let assignedSet = new Set();
             group.editorsIds.forEach(evalId => {
-                let card = document.querySelector(`.editor-card[data-eval-id="${evalId}"]`);
-                if(card) {
-                    card.querySelectorAll('.slot-select').forEach(s => {
-                        if(s.value && s.value.trim() !== '') {
-                            assignedSet.add(s.value);
-                        }
-                    });
-                }
+                Object.keys(currentSelections).forEach(k => { if(k.startsWith(evalId+'-')) assignedSet.add(currentSelections[k].course); });
             });
-
-            let assignedList = Array.from(assignedSet).sort();
-            let missingList = todosLosCursos.filter(c => !assignedSet.has(c)).sort();
-            let teachersArr = Array.from(group.teachers);
-            let teachersStr = teachersArr.length > 0 ? teachersArr.join(', ') : 'Sin profesor asignado';
+            let assignedList = Array.from(assignedSet).sort(); let missingList = todosLosCursos.filter(c => !assignedSet.has(c)).sort();
+            let teachersStr = Array.from(group.teachers).length > 0 ? Array.from(group.teachers).join(', ') : 'Sin profesor asignado';
             let mainColor = Array.from(group.colors)[0] || '#a5b1c2';
-
-            let summaryBox = document.createElement('div');
-            summaryBox.className = 'print-eval-summary-card';
+            let summaryBox = document.createElement('div'); summaryBox.className = 'print-eval-summary-card';
             summaryBox.innerHTML = `
-                <div class="print-eval-summary-header" style="border-left: 6px solid ${mainColor};">
-                    <span>📊 Asignatura: ${subj} <span style="font-weight:normal; font-size:11px;">(Prof(es): ${teachersStr})</span></span>
-                </div>
+                <div class="print-eval-summary-header" style="border-left: 6px solid ${mainColor};"><span>📊 Asignatura: ${subj} <span style="font-weight:normal; font-size:11px;">(Prof(es): ${teachersStr})</span></span></div>
                 <div class="print-eval-summary-body">
-                    <div class="print-eval-col-assigned">
-                        <strong style="color: #27ae60;">✅ Cursos Asignados (${assignedList.length}):</strong>
-                        <div style="margin-top: 4px; font-weight: bold; color: #2c3e50;">${assignedList.length > 0 ? assignedList.join(', ') : 'Ninguno asignado aún'}</div>
-                    </div>
-                    <div class="print-eval-col-missing">
-                        <strong style="color: #e74c3c;">❌ Cursos Faltantes (${missingList.length}):</strong>
-                        <div style="margin-top: 4px; font-weight: bold; color: #c0392b;">${missingList.length > 0 ? missingList.join(', ') : '¡Todos los cursos asignados!'}</div>
-                    </div>
-                </div>
-            `;
+                    <div class="print-eval-col-assigned"><strong style="color: #27ae60;">✅ Cursos Asignados (${assignedList.length}):</strong><div style="margin-top: 4px; font-weight: bold; color: #2c3e50;">${assignedList.length > 0 ? assignedList.join(', ') : 'Ninguno asignado aún'}</div></div>
+                    <div class="print-eval-col-missing"><strong style="color: #e74c3c;">❌ Cursos Faltantes (${missingList.length}):</strong><div style="margin-top: 4px; font-weight: bold; color: #c0392b;">${missingList.length > 0 ? missingList.join(', ') : '¡Todos los cursos asignados!'}</div></div>
+                </div>`;
             printEvalSummaryContainer.appendChild(summaryBox);
         }
     }
 
     function getStateObject(customName = "", customDateRange = "") {
-        let selections = [];
-        document.querySelectorAll('.slot-select').forEach(s => {
-            if (s.value) {
-                selections.push({
-                    evalId: s.dataset.evalId,
-                    day: s.dataset.day,
-                    hour: s.dataset.hour,
-                    value: s.value
-                });
-            }
+        let selectionsArr = [];
+        Object.keys(currentSelections).forEach(k => {
+            let p = k.split('-');
+            selectionsArr.push({ evalId: p[0], day: p[1], hour: p[2], value: currentSelections[k].course, done: currentSelections[k].done });
         });
         return {
-            id: 'version_' + Date.now(),
-            name: customName || ('Horario ' + new Date().toLocaleDateString()),
+            id: 'version_' + Date.now(), name: customName || ('Horario ' + new Date().toLocaleDateString()),
             createdDate: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
             dateRange: customDateRange || 'Sin rango especificado',
             editorsData: JSON.parse(JSON.stringify(editorsData)),
-            selections: selections,
+            selections: selectionsArr,
             selectedCourse: document.getElementById('courseSelector').value,
-            logoBase64: currentSchoolLogo // Guardamos la imagen de la insignia en el estado
+            logoBase64: currentSchoolLogo
         };
     }
 
     function openSaveModal() {
         document.getElementById('inputScheduleName').value = "Calendario Diagnóstico Principal";
-        let today = new Date().toISOString().split('T')[0];
-        document.getElementById('inputStartDate').value = today;
-        document.getElementById('inputEndDate').value = today;
+        let today = new Date().toISOString().split('T')[0]; document.getElementById('inputStartDate').value = today; document.getElementById('inputEndDate').value = today;
         toggleSaveModal(true);
     }
-
-    function toggleSaveModal(open) {
-        const modal = document.getElementById('saveModal');
-        if(open) modal.classList.add('open');
-        else modal.classList.remove('open');
-    }
+    function toggleSaveModal(open) { const modal = document.getElementById('saveModal'); if(open) modal.classList.add('open'); else modal.classList.remove('open'); }
 
     function confirmSaveVersion() {
         let name = document.getElementById('inputScheduleName').value.trim() || "Calendario sin nombre";
-        let start = document.getElementById('inputStartDate').value;
-        let end = document.getElementById('inputEndDate').value;
-        
+        let start = document.getElementById('inputStartDate').value; let end = document.getElementById('inputEndDate').value;
         let rangeStr = (start && end) ? `${formatDate(start)} al ${formatDate(end)}` : 'Sin rango especificado';
-
         let newVersion = getStateObject(name, rangeStr);
-        
-        let history = getHistory();
-        history.unshift(newVersion);
-        localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
-
-        downloadJsonFile(newVersion);
-
-        toggleSaveModal(false);
-        alert(`¡Horario "${name}" guardado en el historial y descargado como .json exitosamente!`);
+        let history = getHistory(); history.unshift(newVersion); localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
+        downloadJsonFile(newVersion); toggleSaveModal(false); alert(`¡Horario "${name}" guardado exitosamente!`);
     }
 
-    function formatDate(dateStr) {
-        let p = dateStr.split('-');
-        if(p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`;
-        return dateStr;
-    }
+    function formatDate(dateStr) { let p = dateStr.split('-'); if(p.length === 3) return `${p[2]}/${p[1]}/${p[0]}`; return dateStr; }
 
     function downloadJsonFile(stateObj) {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stateObj, null, 2));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", `${stateObj.name.replace(/[^a-zA-Z0-9]/g, '_')}.json`);
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
+        const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", `${stateObj.name.replace(/[^a-zA-Z0-9]/g, '_')}.json`);
+        document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
     }
 
-    function getHistory() {
-        try {
-            let h = localStorage.getItem('calendario_historial_versiones');
-            return h ? JSON.parse(h) : [];
-        } catch(e) { return []; }
-    }
-
-    function openHistoryModal() {
-        renderHistoryList();
-        toggleHistoryModal(true);
-    }
-
-    function toggleHistoryModal(open) {
-        const modal = document.getElementById('historyModal');
-        if(open) modal.classList.add('open');
-        else modal.classList.remove('open');
-    }
+    function getHistory() { try { let h = localStorage.getItem('calendario_historial_versiones'); return h ? JSON.parse(h) : []; } catch(e) { return []; } }
+    function openHistoryModal() { renderHistoryList(); toggleHistoryModal(true); }
+    function toggleHistoryModal(open) { const modal = document.getElementById('historyModal'); if(open) modal.classList.add('open'); else modal.classList.remove('open'); }
 
     function renderHistoryList() {
-        const container = document.getElementById('historyListContainer');
-        let history = getHistory();
-
-        if(history.length === 0) {
-            container.innerHTML = `<p style="text-align:center; color:#718093; padding:20px;">No hay horarios guardados en el historial todavía. Haz clic en "Guardar Horario Actual" para crear uno.</p>`;
-            return;
-        }
-
+        const container = document.getElementById('historyListContainer'); let history = getHistory();
+        if(history.length === 0) { container.innerHTML = `<p style="text-align:center; color:#718093;">No hay horarios guardados en el historial todavía.</p>`; return; }
         container.innerHTML = '';
         history.forEach((version) => {
-            let item = document.createElement('div');
-            item.className = 'history-item';
+            let item = document.createElement('div'); item.className = 'history-item';
             item.innerHTML = `
-                <div class="history-item-info">
-                    <h4>📌 <span id="title-${version.id}">${version.name}</span></h4>
-                    <p><strong>Creado:</strong> ${version.createdDate} | <strong>Rango:</strong> 📅 ${version.dateRange}</p>
-                </div>
-                <div class="history-item-actions">
-                    <button class="btn-action" style="background:#27ae60; padding:6px 10px; font-size:12px;" onclick="loadVersion('${version.id}')">📂 Cargar</button>
-                    <button class="btn-action" style="background:#e74c3c; padding:6px 10px; font-size:12px;" onclick="deleteVersion('${version.id}')">🗑️ Borrar</button>
-                </div>
-            `;
+                <div class="history-item-info"><h4>📌 ${version.name}</h4><p>Creado: ${version.createdDate} | Rango: 📅 ${version.dateRange}</p></div>
+                <div class="history-item-actions"><button class="btn-action" style="background:#27ae60; padding:6px 10px; font-size:12px;" onclick="loadVersion('${version.id}')">📂 Cargar</button><button class="btn-action" style="background:#e74c3c; padding:6px 10px; font-size:12px;" onclick="deleteVersion('${version.id}')">🗑️ Borrar</button></div>`;
             container.appendChild(item);
         });
     }
 
     function loadVersion(id) {
-        let history = getHistory();
-        let version = history.find(v => v.id === id);
-        if(version) {
-            if(confirm(`¿Deseas cargar el horario "${version.name}"? Se sobrescribirá tu pantalla actual.`)) {
-                restoreState(version);
-                toggleHistoryModal(false);
-                alert(`¡Horario "${version.name}" cargado con éxito!`);
-            }
-        }
+        let history = getHistory(); let version = history.find(v => v.id === id);
+        if(version) { if(confirm(`¿Cargar "${version.name}"? Sobrescribirá tu pantalla actual.`)) { restoreState(version); toggleHistoryModal(false); alert(`Horario cargado con éxito.`); } }
     }
+    function deleteVersion(id) { if(confirm("¿Eliminar del historial?")) { let history = getHistory(); history = history.filter(v => v.id !== id); localStorage.setItem('calendario_historial_versiones', JSON.stringify(history)); renderHistoryList(); } }
 
-    function deleteVersion(id) {
-        if(confirm("¿Estás seguro de eliminar este horario del historial?")) {
-            let history = getHistory();
-            history = history.filter(v => v.id !== id);
-            localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
-            renderHistoryList();
-        }
-    }
-
-    function showAutoSaveNotification() {
-        const toast = document.getElementById('autoSaveToast');
-        toast.classList.add('show');
-        setTimeout(() => {
-            toast.classList.remove('show');
-        }, 3000);
-    }
-
-    function autoSaveState() {
-        try {
-            const state = getStateObject();
-            localStorage.setItem('calendario_evaluaciones_autosave_vfinal', JSON.stringify(state));
-        } catch(e) {}
-    }
-
-    setInterval(() => {
-        autoSaveState();
-        showAutoSaveNotification();
-    }, 120000);
+    function autoSaveState() { try { const state = getStateObject(); localStorage.setItem('calendario_evaluaciones_autosave_vfinal', JSON.stringify(state)); } catch(e) {} }
+    setInterval(() => { autoSaveState(); const toast = document.getElementById('autoSaveToast'); toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3000); }, 120000);
 
     function loadBackup(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+        const file = event.target.files[0]; if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(e) {
-            try {
-                const state = JSON.parse(e.target.result);
-                restoreState(state);
-                alert("¡Avance cargado exitosamente desde archivo JSON!");
-            } catch(err) {
-                alert("El archivo JSON no es válido.");
-            }
-        };
+        reader.onload = function(e) { try { const state = JSON.parse(e.target.result); restoreState(state); alert("¡Avance cargado desde JSON!"); } catch(err) { alert("Archivo JSON no válido."); } };
         reader.readAsText(file);
     }
 
     function restoreState(state) {
         if (!state) return;
-        if (state.editorsData) {
-            editorsData = JSON.parse(JSON.stringify(state.editorsData));
-        }
-        
+        if (state.editorsData) editorsData = JSON.parse(JSON.stringify(state.editorsData));
         currentSelections = {};
         if (state.selections) {
             state.selections.forEach(sel => {
-                currentSelections[`${sel.evalId}-${sel.day}-${sel.hour}`] = sel.value;
+                // Compatible con versión anterior (donde value era un string y done no existía)
+                let val = typeof sel === 'object' && sel.value ? sel.value : (sel.course ? sel.course : sel);
+                let done = sel.done || false;
+                if(val && sel.evalId) currentSelections[`${sel.evalId}-${sel.day}-${sel.hour}`] = { course: val, done: done };
             });
         }
-        
-        if (state.logoBase64) {
-            currentSchoolLogo = state.logoBase64;
-        }
-
+        if (state.logoBase64) currentSchoolLogo = state.logoBase64;
         initApp(true);
-
-        if (state.selectedCourse) {
-            document.getElementById('courseSelector').value = state.selectedCourse;
-        }
+        if (state.selectedCourse) document.getElementById('courseSelector').value = state.selectedCourse;
         updateRealtimeData();
     }
 
     function checkAutoSave() {
-        try {
-            const saved = localStorage.getItem('calendario_evaluaciones_autosave_vfinal');
-            if (saved) {
-                const state = JSON.parse(saved);
-                if (confirm("Se encontró un avance guardado automáticamente en tu navegador. ¿Deseas recuperarlo para continuar donde lo dejaste?")) {
-                    restoreState(state);
-                    return;
-                }
-            }
-        } catch(e) {}
+        try { let saved = localStorage.getItem('calendario_evaluaciones_autosave_vfinal'); if (saved) { let state = JSON.parse(saved); if (confirm("Se encontró un avance guardado. ¿Deseas recuperarlo?")) { restoreState(state); return; } } } catch(e) {}
         initApp();
     }
 
     function exportToWord() {
         const course = document.getElementById('courseSelector').value;
-        if (!course) {
-            alert("Por favor, selecciona un curso o 'TODOS' antes de descargar el archivo Word.");
-            return;
-        }
-
-        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>";
-        header += "<head><meta charset='utf-8'><title>Calendario Escolar</title>";
-        header += "<style>table{border-collapse:collapse;width:100%;} th, td{border:1px solid black;padding:6px;text-align:center;font-family:Arial,sans-serif;font-size:12px;}</style>";
-        header += "</head><body>";
-        
-        const footer = "</body></html>";
-        let printSection = document.querySelector('.print-section').innerHTML;
-        
+        if (!course) { alert("Selecciona un curso antes de descargar."); return; }
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Calendario Escolar</title><style>table{border-collapse:collapse;width:100%;} th, td{border:1px solid black;padding:6px;text-align:center;font-family:Arial,sans-serif;font-size:12px;}</style></head><body>";
+        const footer = "</body></html>"; let printSection = document.querySelector('.print-section').innerHTML;
         const html = header + printSection + footer;
-
-        const blob = new Blob(['﻿' + html], {
-            type: 'application/msword'
-        });
-        
-        const URL_OBJ = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = URL_OBJ;
-        a.download = `Calendario_Evaluaciones_${course}.doc`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(URL_OBJ);
+        const blob = new Blob(['\uFEFF' + html], { type: 'application/msword' });
+        const URL_OBJ = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = URL_OBJ; a.download = `Calendario_${course}.doc`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(URL_OBJ);
     }
 
     document.getElementById('courseSelector').addEventListener('change', updateRealtimeData);
-
     checkAutoSave();
-
 </script>
 </body>
 </html>
