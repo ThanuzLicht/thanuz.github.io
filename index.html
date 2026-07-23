@@ -80,15 +80,18 @@
         .editor-header-bar input[type="color"] { border: none; width: 35px; height: 30px; cursor: pointer; background: none; }
         
         .editor-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        .editor-table th, .editor-table td { border: 1px solid #d1d8e0; padding: 4px; text-align: center; vertical-align: top;}
+        .editor-table th, .editor-table td { border: 1px solid #d1d8e0; padding: 4px; text-align: center; vertical-align: middle; }
         .editor-table th { color: white; padding: 6px; font-size: 13px; background-color: #34495e; }
         .day-header { background-color: #ecf0f1 !important; color: #2c3e50 !important; }
-        .hour-col { width: 3%; font-weight: bold; background-color: #ecf0f1; font-size: 13px; vertical-align: middle;}
-        .time-col { width: 9%; font-size: 12px; background-color: #ecf0f1; vertical-align: middle;}
+        .hour-col { width: 3%; font-weight: bold; background-color: #ecf0f1; font-size: 13px; }
+        .time-col { width: 9%; font-size: 12px; background-color: #ecf0f1; }
         .day-col { width: 17.6%; }
-        .recreo-row td { background-color: #e67e22; color: white; font-weight: bold; letter-spacing: 2px; padding: 6px; font-size: 12px; vertical-align: middle;}
+        .recreo-row td { background-color: #e67e22; color: white; font-weight: bold; letter-spacing: 2px; padding: 6px; font-size: 12px; }
         
-        .slot-cell-container { display: flex; flex-direction: column; align-items: center; gap: 4px; min-height: 45px;}
+        .slot-cell-container {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 100%; height: 100%; box-sizing: border-box;
+        }
         
         select.slot-select {
             width: 100%; padding: 6px 0; border: 1px solid #ced6e0; border-radius: 4px;
@@ -101,9 +104,11 @@
         select.slot-select.conflict { background-color: #ff4757 !important; color: white !important; border-color: #ff4757 !important; animation: pulse 1s infinite; }
 
         .status-container {
-            display: none; background: #e8f8f5; border: 1px solid #27ae60; border-radius: 4px; padding: 2px 5px; width: 90%; font-size: 10px; color: #27ae60; font-weight: bold; box-sizing: border-box; cursor: pointer;
+            display: none; background: #e8f8f5; border: 1px solid #27ae60; border-radius: 4px; 
+            padding: 2px; margin-top: 4px; width: 100%; font-size: 10px; color: #27ae60; 
+            font-weight: bold; box-sizing: border-box; cursor: pointer; text-align: center;
         }
-        .status-container input { cursor: pointer; margin-right: 3px; }
+        .status-container input { cursor: pointer; margin-right: 3px; vertical-align: middle; }
 
         .occupied-badge { background-color: #f1f2f6; color: #718093; border: 1px dashed #a4b0be; border-radius: 4px; padding: 6px 4px; font-size: 11px; font-weight: bold; text-align: center; display: block; width: 100%; box-sizing: border-box; cursor: not-allowed; }
         .occupied-badge span { display: block; font-size: 9px; font-weight: normal; color: #ff4757; }
@@ -201,9 +206,8 @@
     <h1>🗓️ Creador Avanzado de Calendario de Evaluaciones</h1>
     
     <div class="instructions">
-        <strong>NUEVA FUNCIÓN - GESTIÓN DE REALIZACIÓN:</strong><br>
-        • Al seleccionar un curso, aparecerá una casilla <strong>"Realizada"</strong>. Márcala cuando la prueba haya concluido.<br>
-        • <strong>Protección:</strong> Si intentas asignar un curso a una prueba que ya figura como "Realizada" en otro horario guardado, el sistema te bloqueará. Si figura en otro horario pero NO se ha realizado, te permitirá reasignarlo con un aviso.
+        <strong>ACTUALIZACIÓN DE DISEÑO:</strong><br>
+        • Se restauró la alineación centrada y compacta de las tablas, manteniendo activa la función de marcar pruebas como <strong>"Realizadas"</strong> sin desfigurar el diseño.
     </div>
 
     <div class="editors-container" id="editorsContainer"></div>
@@ -302,7 +306,6 @@
         { id: 'eval_2', subject: 'Matemática', teacher: 'Prof. María Gómez', color: '#fce762' }
     ];
 
-    // Ahora currentSelections guardará objetos: { course: '5°A', done: false }
     let currentSelections = {}; 
     let currentSchoolLogo = null;
 
@@ -362,7 +365,6 @@
     }
 
     function captureSelections() {
-        // Se actualiza en tiempo real, esta función es de respaldo antes de recrear DOM
         let newSel = {};
         document.querySelectorAll('.slot-cell-container').forEach(td => {
             let sel = td.querySelector('.slot-select');
@@ -372,7 +374,6 @@
                 newSel[key] = { course: sel.value, done: chk ? chk.checked : false };
             }
         });
-        // Mezclar con currentSelections por si hay ocultos
         Object.keys(newSel).forEach(k => currentSelections[k] = newSel[k]);
     }
 
@@ -391,10 +392,10 @@
             if (foundSelection) {
                 if (foundSelection.done) {
                     alert(`❌ BLOQUEO: El curso ${courseValue} ya realizó la evaluación de "${subject}" en el horario guardado como "${v.name}". No puedes volver a asignarlo.`);
-                    return false; // Bloquea
+                    return false; 
                 } else {
                     showInfoToast(`⚠️ ${courseValue} estaba asignado a "${subject}" en el horario "${v.name}" pero NO se realizó. Reasignado exitosamente.`);
-                    return true; // Permite con aviso
+                    return true; 
                 }
             }
         }
@@ -459,13 +460,15 @@
                 } else {
                     let trHour = document.createElement('tr'); trHour.innerHTML = `<td class="hour-col">${hour.num}</td><td class="time-col">${hour.time}</td>`;
                     days.forEach((day, dayIndex) => {
-                        let td = document.createElement('td'); td.className = 'slot-cell-container'; td.dataset.day = dayIndex; td.dataset.hour = hourIndex;
+                        let td = document.createElement('td'); 
+                        let cellContainer = document.createElement('div');
+                        cellContainer.className = 'slot-cell-container';
                         
                         let select = document.createElement('select'); select.className = 'slot-select'; select.dataset.evalId = editor.id; select.dataset.day = dayIndex; select.dataset.hour = hourIndex;
                         cursosDisponibles.forEach(c => { let opt = document.createElement('option'); opt.value = c; opt.textContent = c; select.appendChild(opt); });
                         
                         let statusDiv = document.createElement('div'); statusDiv.className = 'status-container';
-                        statusDiv.innerHTML = `<label><input type="checkbox" class="status-checkbox"> Realizada</label>`;
+                        statusDiv.innerHTML = `<label style="cursor:pointer;"><input type="checkbox" class="status-checkbox"> Realizada</label>`;
                         
                         let selKey = `${editor.id}-${dayIndex}-${hourIndex}`;
                         if(currentSelections[selKey] && currentSelections[selKey].course) {
@@ -477,14 +480,17 @@
                         select.addEventListener('change', (e) => {
                             if(e.target.value) {
                                 let isValid = validateAgainstHistory(editor.id, e.target.value);
-                                if(!isValid) { e.target.value = ''; } // Revertir si está bloqueado
+                                if(!isValid) { e.target.value = ''; }
                             }
                             updateRealtimeData(); 
                         });
                         
                         statusDiv.querySelector('.status-checkbox').addEventListener('change', () => { updateRealtimeData(); });
 
-                        td.appendChild(select); td.appendChild(statusDiv); trHour.appendChild(td);
+                        cellContainer.appendChild(select); 
+                        cellContainer.appendChild(statusDiv); 
+                        td.appendChild(cellContainer);
+                        trHour.appendChild(td);
                     });
                     table.appendChild(trHour);
                 }
@@ -504,7 +510,6 @@
     }
 
     function updateRealtimeData() {
-        // Leer UI a la variable de estado
         document.querySelectorAll('.slot-cell-container').forEach(td => {
             let sel = td.querySelector('.slot-select');
             let chk = td.querySelector('.status-checkbox');
@@ -514,8 +519,13 @@
                 let key = `${sel.dataset.evalId}-${sel.dataset.day}-${sel.dataset.hour}`;
                 currentSelections[key] = { course: sel.value, done: chk.checked };
                 statusDiv.style.display = 'block';
-                if(chk.checked) statusDiv.style.backgroundColor = '#27ae60'; else statusDiv.style.backgroundColor = '#e8f8f5';
-                if(chk.checked) statusDiv.style.color = '#fff'; else statusDiv.style.color = '#27ae60';
+                if(chk.checked) {
+                    statusDiv.style.backgroundColor = '#27ae60';
+                    statusDiv.style.color = '#fff';
+                } else {
+                    statusDiv.style.backgroundColor = '#e8f8f5';
+                    statusDiv.style.color = '#27ae60';
+                }
             } else if (sel && !sel.value) {
                 let key = `${sel.dataset.evalId}-${sel.dataset.day}-${sel.dataset.hour}`;
                 delete currentSelections[key];
@@ -537,7 +547,12 @@
             if(!card) return;
 
             card.querySelectorAll('.slot-cell-container').forEach(td => {
-                let dayIndex = td.dataset.day; let hourIndex = td.dataset.hour; let key = `${dayIndex}-${hourIndex}`;
+                let selectElem = td.querySelector('select.slot-select');
+                let dayIndex = selectElem ? selectElem.dataset.day : null; 
+                let hourIndex = selectElem ? selectElem.dataset.hour : null; 
+                
+                if(!dayIndex || !hourIndex) return;
+                let key = `${dayIndex}-${hourIndex}`;
                 let cellOccupied = globalOccupied[key] || [];
                 let otherOccupations = cellOccupied.filter(o => o.evalId !== editor.id);
 
@@ -769,7 +784,6 @@
         currentSelections = {};
         if (state.selections) {
             state.selections.forEach(sel => {
-                // Compatible con versión anterior (donde value era un string y done no existía)
                 let val = typeof sel === 'object' && sel.value ? sel.value : (sel.course ? sel.course : sel);
                 let done = sel.done || false;
                 if(val && sel.evalId) currentSelections[`${sel.evalId}-${sel.day}-${sel.hour}`] = { course: val, done: done };
