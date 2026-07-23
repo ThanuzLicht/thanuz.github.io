@@ -207,9 +207,8 @@
     <h1>🗓️ Creador Avanzado de Calendario de Evaluaciones</h1>
     
     <div class="instructions">
-        <strong>ACTUALIZACIÓN - NUEVO HORARIO Y MEMORIA INTELIGENTE:</strong><br>
-        • El botón <strong>"➕ Nuevo Horario"</strong> te preguntará si deseas guardar tu trabajo actual antes de limpiar la pantalla.<br>
-        • El sistema recuerda automáticamente el nombre y las fechas que usaste por última vez, agilizando el guardado.
+        <strong>ACTUALIZACIÓN - CORRECCIÓN DE CÓMPUTO FINAL:</strong><br>
+        • Al presionar <strong>"➕ Nuevo Horario"</strong>, la pantalla y el cómputo final de cursos se limpian por completo y correctamente.
     </div>
 
     <div class="editors-container" id="editorsContainer"></div>
@@ -310,12 +309,11 @@
     let currentSelections = {}; 
     let currentSchoolLogo = null;
     
-    // Variables para recordar la última configuración de nombre y fechas
     let lastSavedMeta = {
         name: "Calendario Diagnóstico Principal",
         startDate: new Date().toISOString().split('T')[0],
         endDate: new Date().toISOString().split('T')[0],
-        isConfigured: false // Indica si ya se guardó al menos una vez
+        isConfigured: false
     };
 
     function buildFinalTableRows() {
@@ -735,7 +733,6 @@
     }
 
     function openSaveModal() {
-        // Rellenar automáticamente con lo último guardado o valores por defecto
         document.getElementById('inputScheduleName').value = lastSavedMeta.name;
         document.getElementById('inputStartDate').value = lastSavedMeta.startDate;
         document.getElementById('inputEndDate').value = lastSavedMeta.endDate;
@@ -753,7 +750,6 @@
         let start = document.getElementById('inputStartDate').value; 
         let end = document.getElementById('inputEndDate').value;
         
-        // Actualizar la memoria con los datos nuevos
         lastSavedMeta.name = name;
         if(start) lastSavedMeta.startDate = start;
         if(end) lastSavedMeta.endDate = end;
@@ -771,16 +767,13 @@
         alert(`¡Horario "${name}" guardado y descargado exitosamente!`);
     }
 
-    // GESTIÓN DEL NUEVO BOTÓN NUEVO HORARIO
     function handleNewScheduleButton() {
-        // Verificar si hay datos ingresados para preguntar si desea guardar
         let hasData = Object.keys(currentSelections).length > 0;
         
         if (hasData) {
             let deseaGuardar = confirm("Tienes evaluaciones asignadas en pantalla. ¿Deseas guardar tu horario actual antes de crear uno nuevo?");
             if (deseaGuardar) {
                 if (lastSavedMeta.isConfigured) {
-                    // Si ya se había guardado previamente, guarda automáticamente usando la misma configuración
                     let rangeStr = `${formatDate(lastSavedMeta.startDate)} al ${formatDate(lastSavedMeta.endDate)}`;
                     let savedVersion = getStateObject(lastSavedMeta.name, rangeStr);
                     let history = getHistory();
@@ -790,7 +783,6 @@
                     alert(`¡Horario "${lastSavedMeta.name}" guardado automáticamente con éxito!`);
                     resetScreenToNew();
                 } else {
-                    // Si nunca se ha guardado, abrir el modal de guardado
                     openSaveModal();
                     return;
                 }
@@ -809,6 +801,8 @@
         ];
         document.getElementById('courseSelector').value = '';
         initApp(true);
+        // Forzar actualización inmediata del reporte y cómputo final para que se limpien
+        updateRealtimeData();
         alert("Pantalla limpia. ¡Listo para un nuevo horario!");
     }
 
@@ -848,7 +842,6 @@
             if(confirm(`¿Cargar "${version.name}"? Sobrescribirá tu pantalla actual.`)) { 
                 restoreState(version); 
                 toggleHistoryModal(false); 
-                // Actualizar la memoria con los datos del archivo cargado
                 lastSavedMeta.name = version.name;
                 lastSavedMeta.isConfigured = true;
                 alert(`Horario cargado con éxito.`); 
