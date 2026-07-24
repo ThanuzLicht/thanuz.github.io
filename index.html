@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horario Interactivo - Cuadrícula Definitiva</title>
+    <title>Horario Interactivo - Cuadrícula con Validación Semanal de Cursos</title>
     <style>
         :root {
             --header-gray: #a5b1c2;
@@ -122,7 +122,7 @@
         .btn-new { background-color: #16a085; } .btn-new:hover { background-color: #1abc9c; }
         .btn-add-master { background-color: #8e44ad; color: white; border: none; padding: 8px 14px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         
-        /* Sección de Impresión Final Oficial (Única) */
+        /* Sección de Impresión Final Oficial */
         .print-section { background: white; padding: 20px; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; max-width: 1100px; overflow-x: auto; }
         .header-final { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #222; padding-bottom: 15px; flex-wrap: wrap; gap: 10px; justify-content: center; }
         
@@ -196,7 +196,7 @@
     </div>
 </div>
 
-<!-- MODAL PARA SELECCIONAR CURSO AL SOLTAR (Sin espacio de "Realizada") -->
+<!-- MODAL PARA SELECCIONAR CURSO AL SOLTAR -->
 <div class="modal-overlay" id="dropModal">
     <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header">
@@ -246,8 +246,8 @@
     
     <div class="instructions">
         <strong>INSTRUCCIONES DE USO:</strong><br>
-        • Marca o desmarca la casilla <strong>"Realizada"</strong> directamente en la ficha del horario en cualquier momento.<br>
-        • El sistema te avisará con un color <strong>rojo intermitente</strong> si un curso se repite o choca indebidamente.
+        • El sistema validará automáticamente que **un mismo curso no tenga asignada la misma asignatura más de una vez en la semana**.<br>
+        • Si un curso se repite en distintos días con la misma prueba, las celdas se marcarán en <strong>rojo intermitente (conflicto)</strong> y se mostrará una advertencia.
     </div>
 
     <!-- Bandeja de Bloques Maestros -->
@@ -605,28 +605,35 @@
     function checkConflicts() {
         document.querySelectorAll('.grid-day-col').forEach(td => td.classList.remove('conflict-cell'));
 
-        // Detectar si el mismo curso está asignado más de una vez en la misma semana o en el mismo bloque
-        let courseAssignedCount = {}; // course -> lista de celdas
+        // Mapear qué asignaturas tiene cada curso en la semana: "curso-asignatura" -> [{day, hour}, ...]
+        let courseSubjectMap = {};
+        
         Object.keys(gridSelections).forEach(cellKey => {
             let [day, hour] = cellKey.split('-');
             gridSelections[cellKey].forEach(item => {
-                let courseKey = item.course;
-                if(!courseAssignedCount[courseKey]) courseAssignedCount[courseKey] = [];
-                courseAssignedCount[courseKey].push({ day, hour });
+                let key = `${item.course}___${item.subject}`;
+                if(!courseSubjectMap[key]) courseSubjectMap[key] = [];
+                courseSubjectMap[key].push({ day, hour });
             });
         });
 
-        // Validar conflicto estricto por duplicidad de curso en la misma franja o múltiples veces
+        // Marcar en rojo todas las celdas donde un curso repita la misma asignatura en la semana
         Object.keys(gridSelections).forEach(cellKey => {
             let [day, hour] = cellKey.split('-');
-            let coursesInThisCell = {};
+            let hasConflict = false;
+
             gridSelections[cellKey].forEach(item => {
-                if(coursesInThisCell[item.course]) {
-                    let td = document.querySelector(`.grid-day-col[data-day="${day}"][data-hour="${hour}"]`);
-                    if(td) td.classList.add('conflict-cell');
+                let key = `${item.course}___${item.subject}`;
+                // Si la asignatura para este curso aparece más de 1 vez en toda la parrilla
+                if(courseSubjectMap[key] && courseSubjectMap[key].length > 1) {
+                    hasConflict = true;
                 }
-                coursesInThisCell[item.course] = true;
             });
+
+            if(hasConflict) {
+                let td = document.querySelector(`.grid-day-col[data-day="${day}"][data-hour="${hour}"]`);
+                if(td) td.classList.add('conflict-cell');
+            }
         });
     }
 
@@ -676,14 +683,22 @@
         let isValid = validateAgainstHistory(master.subject, course);
         if(!isValid) return;
 
+        // Validar si el curso ya tiene esta misma asignatura en otro día u hora de esta misma semana
+        let alreadyAssignedElsewhere = false;
+        Object.keys(gridSelections).forEach(cellKey => {
+            gridSelections[cellKey].forEach(item => {
+                if(item.course === course && item.subject === master.subject) {
+                    alreadyAssignedElsewhere = true;
+                }
+            });
+        });
+
+        if(alreadyAssignedElsewhere) {
+            alert(`⚠️ ATENCIÓN: El curso ${course} ya tiene programada la evaluación de "${master.subject}" en otro bloque de esta semana. Se marcará en rojo como conflicto.`);
+        }
+
         let cellKey = `${pendingDropData.day}-${pendingDropData.hour}`;
         if(!gridSelections[cellKey]) gridSelections[cellKey] = [];
-
-        // Comprobar si el curso ya está en este bloque
-        let existingIdx = gridSelections[cellKey].findIndex(i => i.course === course);
-        if(existingIdx >= 0) {
-            alert(`⚠️ CONFLICTO: El curso ${course} ya está asignado en este mismo bloque horario.`);
-        }
 
         let newItem = {
             masterId: master.id,
@@ -694,11 +709,7 @@
             done: false
         };
 
-        if(existingIdx >= 0) {
-            gridSelections[cellKey][existingIdx] = newItem;
-        } else {
-            gridSelections[cellKey].push(newItem);
-        }
+        gridSelections[cellKey].push(newItem);
 
         closeDropModal();
         renderInteractiveGrid();
@@ -899,7 +910,7 @@
     }
     function deleteVersion(id) { if(confirm("¿Eliminar del historial?")) { let history = getHistory(); history = history.filter(v => v.id !== id); localStorage.setItem('calendario_historial_versiones', JSON.stringify(history)); renderHistoryList(); } }
 
-    function autoSaveState() { try { localStorage.setItem('calendario_evaluaciones_autosave_vfinal_clean', JSON.stringify(getStateObject())); } catch(e) {} }
+    function autoSaveState() { try { localStorage.setItem('calendario_evaluaciones_autosave_vweek_conflict', JSON.stringify(getStateObject())); } catch(e) {} }
     setInterval(() => { autoSaveState(); const toast = document.getElementById('autoSaveToast'); toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3000); }, 120000);
 
     function loadBackup(event) {
@@ -921,7 +932,7 @@
     }
 
     function checkAutoSave() {
-        try { let saved = localStorage.getItem('calendario_evaluaciones_autosave_vfinal_clean'); if (saved) { let state = JSON.parse(saved); if (confirm("Se encontró un avance guardado. ¿Deseas recuperarlo?")) { restoreState(state); return; } } } catch(e) {}
+        try { let saved = localStorage.getItem('calendario_evaluaciones_autosave_vweek_conflict'); if (saved) { let state = JSON.parse(saved); if (confirm("Se encontró un avance guardado. ¿Deseas recuperarlo?")) { restoreState(state); return; } } } catch(e) {}
         initApp();
     }
 
