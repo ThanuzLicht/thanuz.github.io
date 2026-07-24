@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horario Interactivo - Cuadrícula con Validación Semanal de Cursos</title>
+    <title>Horario Interactivo - Cuadrícula Definitiva</title>
     <style>
         :root {
             --header-gray: #a5b1c2;
@@ -246,8 +246,8 @@
     
     <div class="instructions">
         <strong>INSTRUCCIONES DE USO:</strong><br>
-        • El sistema validará automáticamente que **un mismo curso no tenga asignada la misma asignatura más de una vez en la semana**.<br>
-        • Si un curso se repite en distintos días con la misma prueba, las celdas se marcarán en <strong>rojo intermitente (conflicto)</strong> y se mostrará una advertencia.
+        • Puedes colocar la misma prueba en las 2 horas que forman parte de un mismo bloque oficial (ej. Bloque 2 = horas 3 y 4) sin problemas.<br>
+        • El sistema detectará conflicto y marcará en <strong>rojo intermitente</strong> solo si la prueba se repite en otro bloque distinto u otro día.
     </div>
 
     <!-- Bandeja de Bloques Maestros -->
@@ -341,18 +341,27 @@
 <script>
     const days = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'];
     const hours = [
-        { type: 'class', num: '1°', time: '8:00 A 8:45' },   
-        { type: 'class', num: '2°', time: '8:45 A 9:30' },   
+        { type: 'class', num: '1°', time: '8:00 A 8:45' },   // Indice 0 (Bloque 1)
+        { type: 'class', num: '2°', time: '8:45 A 9:30' },   // Indice 1 (Bloque 1)
         { type: 'break', label: 'Recreo (9:30 A 9:50)' },    
-        { type: 'class', num: '3°', time: '9:50 A 10:35' },  
-        { type: 'class', num: '4°', time: '10:35 A 11:20' }, 
+        { type: 'class', num: '3°', time: '9:50 A 10:35' },  // Indice 3 (Bloque 2)
+        { type: 'class', num: '4°', time: '10:35 A 11:20' }, // Indice 4 (Bloque 2)
         { type: 'break', label: 'Recreo (11:20 A 11:40)' },  
-        { type: 'class', num: '5°', time: '11:40 A 12:25' }, 
-        { type: 'class', num: '6°', time: '12:25 A 13:10' }, 
+        { type: 'class', num: '5°', time: '11:40 A 12:25' }, // Indice 6 (Bloque 3)
+        { type: 'class', num: '6°', time: '12:25 A 13:10' }, // Indice 7 (Bloque 3)
         { type: 'break', label: 'Almuerzo (13:10 A 13:55)' },
-        { type: 'class', num: '7°', time: '13:55 A 14:40' }, 
-        { type: 'class', num: '8°', time: '14:40 A 15:25' }  
+        { type: 'class', num: '7°', time: '13:55 A 14:40' }, // Indice 9 (Bloque 4)
+        { type: 'class', num: '8°', time: '14:40 A 15:25' }  // Indice 10 (Bloque 4)
     ];
+    
+    // Función auxiliar para saber a qué bloque oficial (1, 2, 3 o 4) pertenece una hora índice
+    function getOfficialBlockIndex(hourIndex) {
+        if (hourIndex === 0 || hourIndex === 1) return 1;
+        if (hourIndex === 3 || hourIndex === 4) return 2;
+        if (hourIndex === 6 || hourIndex === 7) return 3;
+        if (hourIndex === 9 || hourIndex === 10) return 4;
+        return -1;
+    }
     
     const todosLosCursos = ['5°A', '5°B', '5°C', '6°A', '6°B', '6°C', '7°A', '7°B', '7°C', '8°A', '8°B', '8°C'];
     
@@ -605,34 +614,39 @@
     function checkConflicts() {
         document.querySelectorAll('.grid-day-col').forEach(td => td.classList.remove('conflict-cell'));
 
-        // Mapear qué asignaturas tiene cada curso en la semana: "curso-asignatura" -> [{day, hour}, ...]
-        let courseSubjectMap = {};
-        
+        // Agrupar asignaciones de la semana por curso y asignatura: 
+        // "curso___asignatura" -> [{ day, officialBlock }, ...]
+        let courseAssignmentLocations = {};
+
         Object.keys(gridSelections).forEach(cellKey => {
-            let [day, hour] = cellKey.split('-');
+            let [dayStr, hourStr] = cellKey.split('-');
+            let day = parseInt(dayStr);
+            let hour = parseInt(hourStr);
+            let officialBlock = getOfficialBlockIndex(hour);
+
             gridSelections[cellKey].forEach(item => {
                 let key = `${item.course}___${item.subject}`;
-                if(!courseSubjectMap[key]) courseSubjectMap[key] = [];
-                courseSubjectMap[key].push({ day, hour });
+                if(!courseAssignmentLocations[key]) courseAssignmentLocations[key] = [];
+                courseAssignmentLocations[key].push({ day, officialBlock, cellKey });
             });
         });
 
-        // Marcar en rojo todas las celdas donde un curso repita la misma asignatura en la semana
-        Object.keys(gridSelections).forEach(cellKey => {
-            let [day, hour] = cellKey.split('-');
-            let hasConflict = false;
+        // Detectar si un curso tiene la misma asignatura en más de un bloque/día diferente
+        Object.keys(courseAssignmentLocations).forEach(key => {
+            let locs = courseAssignmentLocations[key];
+            if(locs.length > 1) {
+                // Verificar si todas las ubicaciones pertenecen exactamente al mismo Bloque Oficial del mismo Día
+                let first = locs[0];
+                let isAllSameBlockAndDay = locs.every(l => l.day === first.day && l.officialBlock === first.officialBlock);
 
-            gridSelections[cellKey].forEach(item => {
-                let key = `${item.course}___${item.subject}`;
-                // Si la asignatura para este curso aparece más de 1 vez en toda la parrilla
-                if(courseSubjectMap[key] && courseSubjectMap[key].length > 1) {
-                    hasConflict = true;
+                if(!isAllSameBlockAndDay) {
+                    // Hay conflicto real en diferentes bloques o días
+                    locs.forEach(l => {
+                        let [d, h] = l.cellKey.split('-');
+                        let td = document.querySelector(`.grid-day-col[data-day="${d}"][data-hour="${h}"]`);
+                        if(td) td.classList.add('conflict-cell');
+                    });
                 }
-            });
-
-            if(hasConflict) {
-                let td = document.querySelector(`.grid-day-col[data-day="${day}"][data-hour="${hour}"]`);
-                if(td) td.classList.add('conflict-cell');
             }
         });
     }
@@ -683,18 +697,28 @@
         let isValid = validateAgainstHistory(master.subject, course);
         if(!isValid) return;
 
-        // Validar si el curso ya tiene esta misma asignatura en otro día u hora de esta misma semana
-        let alreadyAssignedElsewhere = false;
+        let targetDay = pendingDropData.day;
+        let targetOfficialBlock = getOfficialBlockIndex(pendingDropData.hour);
+
+        // Validar si ya está en OTRO bloque u OTRO día diferente
+        let conflictDetected = false;
         Object.keys(gridSelections).forEach(cellKey => {
+            let [dStr, hStr] = cellKey.split('-');
+            let d = parseInt(dStr);
+            let h = parseInt(hStr);
+            let b = getOfficialBlockIndex(h);
+
             gridSelections[cellKey].forEach(item => {
                 if(item.course === course && item.subject === master.subject) {
-                    alreadyAssignedElsewhere = true;
+                    if(d !== targetDay || b !== targetOfficialBlock) {
+                        conflictDetected = true;
+                    }
                 }
             });
         });
 
-        if(alreadyAssignedElsewhere) {
-            alert(`⚠️ ATENCIÓN: El curso ${course} ya tiene programada la evaluación de "${master.subject}" en otro bloque de esta semana. Se marcará en rojo como conflicto.`);
+        if(conflictDetected) {
+            alert(`⚠️ ATENCIÓN: El curso ${course} ya tiene programada la evaluación de "${master.subject}" en otro bloque o día de esta semana. Se marcará en rojo como conflicto.`);
         }
 
         let cellKey = `${pendingDropData.day}-${pendingDropData.hour}`;
@@ -910,7 +934,7 @@
     }
     function deleteVersion(id) { if(confirm("¿Eliminar del historial?")) { let history = getHistory(); history = history.filter(v => v.id !== id); localStorage.setItem('calendario_historial_versiones', JSON.stringify(history)); renderHistoryList(); } }
 
-    function autoSaveState() { try { localStorage.setItem('calendario_evaluaciones_autosave_vweek_conflict', JSON.stringify(getStateObject())); } catch(e) {} }
+    function autoSaveState() { try { localStorage.setItem('calendario_evaluaciones_autosave_vblock_smart', JSON.stringify(getStateObject())); } catch(e) {} }
     setInterval(() => { autoSaveState(); const toast = document.getElementById('autoSaveToast'); toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3000); }, 120000);
 
     function loadBackup(event) {
@@ -932,7 +956,7 @@
     }
 
     function checkAutoSave() {
-        try { let saved = localStorage.getItem('calendario_evaluaciones_autosave_vweek_conflict'); if (saved) { let state = JSON.parse(saved); if (confirm("Se encontró un avance guardado. ¿Deseas recuperarlo?")) { restoreState(state); return; } } } catch(e) {}
+        try { let saved = localStorage.getItem('calendario_evaluaciones_autosave_vblock_smart'); if (saved) { let state = JSON.parse(saved); if (confirm("Se encontró un avance guardado. ¿Deseas recuperarlo?")) { restoreState(state); return; } } } catch(e) {}
         initApp();
     }
 
