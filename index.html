@@ -79,18 +79,20 @@
         .editor-header-bar input[type="text"] { width: 220px; }
         .editor-header-bar input[type="color"] { border: none; width: 35px; height: 30px; cursor: pointer; background: none; }
         
-        .editor-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        /* Contenedor con scroll horizontal automático para móviles */
+        .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; margin-bottom: 10px; }
+
+        .editor-table { width: 100%; border-collapse: collapse; min-width: 700px; }
         .editor-table th, .editor-table td { border: 1px solid #d1d8e0; padding: 4px; text-align: center; vertical-align: middle; }
         .editor-table th { color: white; padding: 6px; font-size: 13px; background-color: #34495e; }
         .day-header { background-color: #ecf0f1 !important; color: #2c3e50 !important; }
-        .hour-col { width: 3%; font-weight: bold; background-color: #ecf0f1; font-size: 13px; }
-        .time-col { width: 9%; font-size: 12px; background-color: #ecf0f1; }
-        .day-col { width: 17.6%; }
+        .hour-col { width: 40px; font-weight: bold; background-color: #ecf0f1; font-size: 13px; }
+        .time-col { width: 100px; font-size: 12px; background-color: #ecf0f1; }
         .recreo-row td { background-color: #e67e22; color: white; font-weight: bold; letter-spacing: 2px; padding: 6px; font-size: 12px; }
         
         .slot-cell-container {
             display: flex; flex-direction: column; align-items: center; justify-content: center;
-            width: 100%; height: 100%; box-sizing: border-box;
+            width: 100%; height: 100%; box-sizing: border-box; min-width: 110px;
         }
         
         select.slot-select {
@@ -129,45 +131,57 @@
         .btn-new { background-color: #16a085; } .btn-new:hover { background-color: #1abc9c; }
         .btn-add-row { background-color: #8e44ad; color: white; border: none; padding: 10px 15px; font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer; margin-bottom: 20px; display: block; margin-left: auto; margin-right: auto; }
         
-        .print-section { background: white; padding: 20px; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; max-width: 1100px; }
-        .header-final { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #222; padding-bottom: 15px; }
+        .print-section { background: white; padding: 20px; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; max-width: 1100px; overflow-x: auto; }
+        .header-final { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #222; padding-bottom: 15px; flex-wrap: wrap; gap: 10px; justify-content: center; }
         
         .logo-wrapper { width: 90px; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; }
         .logo-wrapper:hover::after { content: "Cambiar insignia"; position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); background: #333; color: white; font-size: 10px; padding: 2px 5px; border-radius: 3px; white-space: nowrap; }
         .logo-placeholder { width: 80px; height: 90px; background-color: #3498db; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: bold; font-size: 12px; border: 2px solid #2980b9; border-radius: 0 0 40px 40px; text-align: center; padding: 5px; }
         #logoImage { max-width: 90px; max-height: 100px; object-fit: contain; }
 
-        .title-final { flex-grow: 1; text-align: center; }
-        .title-final h2 { margin: 0 0 10px 0; font-size: 18px; text-decoration: underline; text-transform: uppercase; }
-        .title-final h3 { margin: 0; font-size: 16px; text-decoration: underline; }
-        .subtitle-course { color: #e74c3c; margin-top: 10px; font-size: 20px; font-weight: 900; }
+        .title-final { flex-grow: 1; text-align: center; min-width: 250px; }
+        .title-final h2 { margin: 0 0 10px 0; font-size: 16px; text-decoration: underline; text-transform: uppercase; }
+        .title-final h3 { margin: 0; font-size: 14px; text-decoration: underline; }
+        .subtitle-course { color: #e74c3c; margin-top: 10px; font-size: 18px; font-weight: 900; }
         
-        .final-table { width: 100%; border-collapse: collapse; border: 2px solid #333; margin-bottom: 20px; font-family: Arial, sans-serif; }
-        .final-table th, .final-table td { border: 1px solid #555; padding: 6px; text-align: center; font-size: 12px; height: 40px; vertical-align: middle; }
+        .final-table { width: 100%; border-collapse: collapse; border: 2px solid #333; margin-bottom: 20px; font-family: Arial, sans-serif; min-width: 600px; }
+        .final-table th, .final-table td { border: 1px solid #555; padding: 6px; text-align: center; font-size: 11px; height: 38px; vertical-align: middle; }
         .final-table th { background-color: var(--header-gray); font-weight: bold; }
         .final-table .bg-gray-light { background-color: var(--bg-gray); font-weight: bold; }
         .final-table .recreo-final { background-color: var(--bg-gray); font-weight: bold; letter-spacing: 1px; color: #333; }
         
-        .final-cell { font-weight: bold; font-size: 11px; text-transform: uppercase; }
+        .final-cell { font-weight: bold; font-size: 10px; text-transform: uppercase; }
         
         .simbologia-title { text-align: center; text-decoration: underline; font-weight: bold; margin-bottom: 10px; margin-top: 25px; }
-        .table-simbologia { width: 90%; margin: 0 auto; border-collapse: collapse; border: 2px solid #333; }
-        .table-simbologia th, .table-simbologia td { border: 1px solid #555; padding: 6px; text-align: center; font-weight: bold; font-size: 12px; }
+        .table-simbologia { width: 100%; margin: 0 auto; border-collapse: collapse; border: 2px solid #333; min-width: 400px; }
+        .table-simbologia th, .table-simbologia td { border: 1px solid #555; padding: 6px; text-align: center; font-weight: bold; font-size: 11px; }
 
         .print-eval-summary-container { margin-top: 25px; page-break-inside: avoid; }
         .print-eval-summary-card { border: 1px solid #333; margin-bottom: 15px; border-radius: 4px; overflow: hidden; font-family: Arial, sans-serif; }
-        .print-eval-summary-header { background-color: var(--header-gray); padding: 8px 12px; font-weight: bold; font-size: 13px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
-        .print-eval-summary-body { display: flex; background: #fff; font-size: 12px; }
-        .print-eval-col-assigned { flex: 1; padding: 8px 12px; border-right: 1px solid #ccc; background-color: #f0fdf4; }
-        .print-eval-col-missing { flex: 1; padding: 8px 12px; background-color: #fef2f2; }
+        .print-eval-summary-header { background-color: var(--header-gray); padding: 8px 12px; font-weight: bold; font-size: 12px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 5px; }
+        .print-eval-summary-body { display: flex; background: #fff; font-size: 11px; flex-wrap: wrap; }
+        .print-eval-col-assigned { flex: 1; min-width: 200px; padding: 8px 12px; border-right: 1px solid #ccc; background-color: #f0fdf4; }
+        .print-eval-col-missing { flex: 1; min-width: 200px; padding: 8px 12px; background-color: #fef2f2; }
 
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.7); } 70% { box-shadow: 0 0 0 5px rgba(255, 71, 87, 0); } 100% { box-shadow: 0 0 0 0 rgba(255, 71, 87, 0); } }
+
+        /* Estilos responsivos adaptados para Smartphones */
+        @media screen and (max-width: 768px) {
+            body { padding: 8px; }
+            .container { padding: 10px; }
+            .generator-controls { padding: 10px; gap: 8px; }
+            .btn-action { width: 100%; justify-content: center; padding: 10px; font-size: 13px; }
+            .generator-controls select { width: 100%; font-size: 14px; }
+            .editor-header-bar { flex-direction: column; align-items: stretch; gap: 8px; }
+            .editor-header-bar input[type="text"] { width: 100%; box-sizing: border-box; }
+            .print-section { padding: 10px; }
+        }
 
         @media print {
             body { background: white; padding: 0; }
             .container { box-shadow: none; max-width: 100%; padding: 0; }
             .editors-container, h1, .instructions, .generator-controls, .btn-add-row, .summary-card, .modal-overlay { display: none !important; }
-            .print-section { border: none; box-shadow: none; width: 100%; max-width: 100%; padding: 0; }
+            .print-section { border: none; box-shadow: none; width: 100%; max-width: 100%; padding: 0; overflow: visible; }
             .logo-wrapper:hover::after { display: none !important; }
             @page { size: landscape; margin: 10mm; }
         }
@@ -188,7 +202,7 @@
         <div class="form-group"><label>Nombre del Horario:</label><input type="text" id="inputScheduleName" placeholder="Ej. Calendario Diagnóstico Principal"></div>
         <div class="form-group"><label>Fecha de Inicio:</label><input type="date" id="inputStartDate"></div>
         <div class="form-group"><label>Fecha de Término:</label><input type="date" id="inputEndDate"></div>
-        <div style="text-align: right; margin-top: 20px;"><button class="btn-action btn-save" onclick="confirmSaveVersion()" style="display: inline-flex;">💾 Guardar y Descargar .json</button></div>
+        <div style="text-align: right; margin-top: 20px;"><button class="btn-action btn-save" onclick="confirmSaveVersion()" style="display: inline-flex; width: auto;">💾 Guardar y Descargar .json</button></div>
     </div>
 </div>
 
@@ -207,8 +221,8 @@
     <h1>🗓️ Creador Avanzado de Calendario de Evaluaciones</h1>
     
     <div class="instructions">
-        <strong>ACTUALIZACIÓN - CORRECCIÓN DE CÓMPUTO FINAL:</strong><br>
-        • Al presionar <strong>"➕ Nuevo Horario"</strong>, la pantalla y el cómputo final de cursos se limpian por completo y correctamente.
+        <strong>VISTA MÓVIL OPTIMIZADA:</strong><br>
+        • Las tablas ahora cuentan con desplazamiento horizontal integrado para una visualización fluida en smartphones.
     </div>
 
     <div class="editors-container" id="editorsContainer"></div>
@@ -216,8 +230,8 @@
     <button class="btn-add-row" onclick="addTableEditor()">➕ Agregar Nueva Fila / Tabla de Evaluación</button>
 
     <div class="generator-controls">
-        <label for="courseSelector" style="font-size: 16px; font-weight: bold;">Curso:</label>
-        <select id="courseSelector">
+        <label for="courseSelector" style="font-size: 16px; font-weight: bold; width: 100%; text-align: center;">Seleccionar Curso:</label>
+        <select id="courseSelector" style="width: 100%;">
             <option value="">-- Selecciona --</option>
             <option value="TODOS">-- TODOS --</option>
             <option value="5°A">5°A</option><option value="5°B">5°B</option><option value="5°C">5°C</option>
@@ -251,25 +265,29 @@
             </div>
         </div>
 
-        <table class="final-table" id="finalPrintTable">
-            <thead>
-                <tr>
-                    <th rowspan="2" colspan="2" class="bg-gray-light">BLOQUES</th>
-                    <th rowspan="2" colspan="2" class="bg-gray-light">AÑO 2026</th>
-                    <th colspan="5" class="bg-gray-light">HORARIO DE CLASES</th>
-                </tr>
-                <tr><th class="bg-gray-light">L</th><th class="bg-gray-light">M</th><th class="bg-gray-light">M</th><th class="bg-gray-light">J</th><th class="bg-gray-light">V</th></tr>
-            </thead>
-            <tbody id="finalTableBody"></tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="final-table" id="finalPrintTable">
+                <thead>
+                    <tr>
+                        <th rowspan="2" colspan="2" class="bg-gray-light">BLOQUES</th>
+                        <th rowspan="2" colspan="2" class="bg-gray-light">AÑO 2026</th>
+                        <th colspan="5" class="bg-gray-light">HORARIO DE CLASES</th>
+                    </tr>
+                    <tr><th class="bg-gray-light">L</th><th class="bg-gray-light">M</th><th class="bg-gray-light">M</th><th class="bg-gray-light">J</th><th class="bg-gray-light">V</th></tr>
+                </thead>
+                <tbody id="finalTableBody"></tbody>
+            </table>
+        </div>
 
         <div class="simbologia-title">SIMBOLOGIA Y PROFESORES</div>
-        <table class="table-simbologia">
-            <thead>
-                <tr><th style="width: 20%;">COLOR</th><th style="width: 45%;">EVALUACIÓN / ASIGNATURA</th><th style="width: 35%;">PROFESOR(A)</th></tr>
-            </thead>
-            <tbody id="simbologiaBody"></tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table-simbologia">
+                <thead>
+                    <tr><th style="width: 20%;">COLOR</th><th style="width: 45%;">EVALUACIÓN / ASIGNATURA</th><th style="width: 35%;">PROFESOR(A)</th></tr>
+                </thead>
+                <tbody id="simbologiaBody"></tbody>
+            </table>
+        </div>
 
         <div class="simbologia-title">CÓMPUTO FINAL DE CURSOS POR ASIGNATURA</div>
         <div id="printEvalSummaryContainer" class="print-eval-summary-container"></div>
@@ -462,6 +480,10 @@
             headerBar.appendChild(teacherWrapper);
             headerBar.appendChild(colorPickerContainer); headerBar.appendChild(btnDelete); card.appendChild(headerBar);
 
+            // Envoltorio responsivo para la tabla de edición
+            let tableWrapper = document.createElement('div');
+            tableWrapper.className = 'table-responsive';
+
             let table = document.createElement('table'); table.className = 'editor-table';
             let headTr = document.createElement('tr'); headTr.innerHTML = `<th class="day-header" colspan="2">HORARIO</th>` + days.map(d => `<th class="day-header day-col">${d}</th>`).join(''); table.appendChild(headTr);
 
@@ -506,7 +528,8 @@
                     table.appendChild(trHour);
                 }
             });
-            card.appendChild(table);
+            tableWrapper.appendChild(table);
+            card.appendChild(tableWrapper);
 
             let summaryCard = document.createElement('div'); summaryCard.className = 'summary-card'; summaryCard.id = `summary-card-${index}`; card.appendChild(summaryCard);
             container.appendChild(card);
@@ -801,7 +824,6 @@
         ];
         document.getElementById('courseSelector').value = '';
         initApp(true);
-        // Forzar actualización inmediata del reporte y cómputo final para que se limpien
         updateRealtimeData();
         alert("Pantalla limpia. ¡Listo para un nuevo horario!");
     }
