@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horario Interactivo - Listas Maestras Editables</title>
+    <title>Horario Interactivo - Listas Centralizadas</title>
     <style>
         :root {
             --header-gray: #a5b1c2;
@@ -70,14 +70,17 @@
         .history-item-actions { display: flex; gap: 6px; flex-wrap: wrap; }
 
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #2c3e50; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #2c3e50; }
         .form-group input, .form-group select { width: 100%; padding: 8px 12px; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 4px; box-sizing: border-box; background: #fff; }
-        
-        .manage-link { font-size: 12px; color: #3498db; cursor: pointer; text-decoration: underline; font-weight: normal; }
-        .manage-link:hover { color: #2980b9; }
 
-        /* Panel de Listas Administrables (Modal de Gestión) */
-        .manage-container { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; max-height: 250px; overflow-y: auto; }
+        /* Estilos para pestañas del modal de gestión unificada */
+        .tabs-header { display: flex; border-bottom: 2px solid #cbd5e1; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px; background: #f1f5f9; border: none; font-weight: bold; cursor: pointer; color: #64748b; font-size: 14px; }
+        .tab-btn.active { background: white; color: #2c3e50; border-bottom: 3px solid #3498db; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        .manage-container { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; margin-bottom: 15px; }
         .manage-row { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 8px 12px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 14px; }
         .btn-delete-item { background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 11px; }
 
@@ -129,6 +132,7 @@
         .btn-upload-logo { background-color: #34495e; } .btn-upload-logo:hover { background-color: #2c3e50; }
         .btn-new { background-color: #16a085; } .btn-new:hover { background-color: #1abc9c; }
         .btn-add-master { background-color: #8e44ad; color: white; border: none; padding: 8px 14px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-manage-lists { background-color: #2980b9; color: white; border: none; padding: 8px 14px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         
         /* Sección de Impresión Final Oficial */
         .print-section { background: white; padding: 20px; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; max-width: 1100px; overflow-x: auto; }
@@ -186,19 +190,13 @@
             <button class="btn-close-modal" onclick="toggleMasterModal(false)">✕ Cerrar</button>
         </div>
         <div class="form-group">
-            <label>
-                Asignatura / Evaluación:
-                <span class="manage-link" onclick="openManageModal('subjects')">⚙️ Administrar Lista</span>
-            </label>
+            <label>Asignatura / Evaluación:</label>
             <select id="masterSubjectSelect">
                 <option value="">-- Seleccione Asignatura --</option>
             </select>
         </div>
         <div class="form-group">
-            <label>
-                Profesor(a) a Cargo:
-                <span class="manage-link" onclick="openManageModal('teachers')">⚙️ Administrar Lista</span>
-            </label>
+            <label>Profesor(a) a Cargo:</label>
             <select id="masterTeacherSelect">
                 <option value="">-- Seleccione Profesor(a) --</option>
             </select>
@@ -214,22 +212,45 @@
     </div>
 </div>
 
-<!-- MODAL PARA ADMINISTRAR LISTAS (ASIGNATURAS / PROFESORES) -->
+<!-- MODAL UNIFICADO PARA ADMINISTRAR LISTAS (ASIGNATURAS / PROFESORES) -->
 <div class="modal-overlay" id="manageModal">
-    <div class="modal-content" style="max-width: 400px;">
+    <div class="modal-content" style="max-width: 450px;">
         <div class="modal-header">
-            <h3 id="manageModalTitle">⚙️ Administrar Lista</h3>
+            <h3>⚙️ Gestión de Asignaturas y Profesores</h3>
             <button class="btn-close-modal" onclick="closeManageModal()">✕ Cerrar</button>
         </div>
-        <div class="form-group">
-            <label id="manageInputLabel">Nuevo Elemento:</label>
-            <div style="display: flex; gap: 8px;">
-                <input type="text" id="newItemInput" placeholder="Escribe aquí...">
-                <button class="btn-action btn-save" onclick="addNewListItem()" style="padding: 8px 12px; font-size: 13px;">➕ Agregar</button>
-            </div>
+        
+        <div class="tabs-header">
+            <button class="tab-btn active" onclick="switchTab('subjects')">📚 Asignaturas</button>
+            <button class="tab-btn" onclick="switchTab('teachers')">👤 Profesores</button>
         </div>
-        <label style="font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #2c3e50;">Elementos Actuales:</label>
-        <div id="manageListContainer" class="manage-container"></div>
+
+        <!-- Pestaña Asignaturas -->
+        <div id="tabSubjects" class="tab-pane active">
+            <div class="form-group">
+                <label>Nueva Asignatura:</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="newSubjectInput" placeholder="Ej. Biología, Música...">
+                    <button class="btn-action btn-save" onclick="addItemToList('subjects')" style="padding: 8px 12px; font-size: 13px;">➕ Agregar</button>
+                </div>
+            </div>
+            <label style="font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #2c3e50;">Asignaturas Actuales:</label>
+            <div id="subjectsListContainer" class="manage-container"></div>
+        </div>
+
+        <!-- Pestaña Profesores -->
+        <div id="tabTeachers" class="tab-pane">
+            <div class="form-group">
+                <label>Nuevo Profesor(a):</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="newTeacherInput" placeholder="Ej. Juan Pérez...">
+                    <button class="btn-action btn-save" onclick="addItemToList('teachers')" style="padding: 8px 12px; font-size: 13px;">➕ Agregar</button>
+                </div>
+            </div>
+            <label style="font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #2c3e50;">Profesores Actuales:</label>
+            <div id="teachersListContainer" class="manage-container"></div>
+        </div>
+
         <div style="text-align: right; margin-top: 15px;">
             <button class="btn-action btn-save" onclick="closeManageModal()" style="display: inline-flex; font-size: 13px; padding: 8px 15px;">Listo</button>
         </div>
@@ -286,15 +307,18 @@
     
     <div class="instructions">
         <strong>INSTRUCCIONES DE USO:</strong><br>
-        • En la creación/edición de bloques puedes usar listas desplegables y hacer clic en <strong>"⚙️ Administrar Lista"</strong> para agregar o eliminar asignaturas y profesores fácilmente.<br>
-        • El sistema avisa en <strong>rojo intermitente</strong> si un curso repite la misma prueba en distintos bloques o días.
+        • Utiliza el botón <strong>"⚙️ Gestionar Listas"</strong> afuera para administrar tus asignaturas y profesores libremente en una ventana única.<br>
+        • El sistema detectará automáticamente si un curso repite la misma prueba en bloques o días distintos avisando en <strong>rojo intermitente</strong>.
     </div>
 
     <!-- Bandeja de Bloques Maestros -->
     <div class="master-palette">
         <div class="palette-header">
             <strong>🎨 Bandeja de Bloques Maestros (Arrastra o haz clic para usar):</strong>
-            <button class="btn-add-master" onclick="openCreateMasterModal()">➕ Crear Nuevo Bloque</button>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-manage-lists" onclick="openManageModal()">⚙️ Gestionar Listas</button>
+                <button class="btn-add-master" onclick="openCreateMasterModal()">➕ Crear Nuevo Bloque</button>
+            </div>
         </div>
         <div class="palette-items" id="masterPaletteContainer"></div>
     </div>
@@ -404,7 +428,6 @@
     
     const todosLosCursos = ['5°A', '5°B', '5°C', '6°A', '6°B', '6°C', '7°A', '7°B', '7°C', '8°A', '8°B', '8°C'];
     
-    // Listas maestras editables almacenables
     let masterSubjectsList = ['Matemática', 'Historia', 'Ciencias Naturales', 'LECTURA', 'Actividad Socioemocional Evaluativa'];
     let masterTeachersList = ['Prof. María Gómez', 'Yocelin Fernandez', 'Prof. Nuevo', 'Prof. Lenguaje', 'Orientación'];
 
@@ -418,7 +441,6 @@
     let gridSelections = {}; 
     let currentSchoolLogo = null;
     let pendingDropData = null;
-    let currentManageType = ''; // 'subjects' o 'teachers'
 
     let lastSavedMeta = {
         name: "Calendario Diagnóstico Principal",
@@ -503,60 +525,80 @@
         });
     }
 
-    function openManageModal(type) {
-        currentManageType = type;
-        document.getElementById('manageModalTitle').textContent = type === 'subjects' ? "⚙️ Administrar Asignaturas" : "⚙️ Administrar Profesores";
-        document.getElementById('manageInputLabel').textContent = type === 'subjects' ? "Nueva Asignatura:" : "Nuevo Profesor(a):";
-        document.getElementById('newItemInput').value = '';
-        renderManageList();
+    function openManageModal() {
+        switchTab('subjects');
+        renderManageLists();
         document.getElementById('manageModal').classList.add('open');
     }
 
     function closeManageModal() {
         document.getElementById('manageModal').classList.remove('open');
-        let currentSubj = document.getElementById('masterSubjectSelect').value;
-        let currentTeacher = document.getElementById('masterTeacherSelect').value;
-        populateDropdowns(currentSubj, currentTeacher);
+        renderMasterPalette();
     }
 
-    function renderManageList() {
-        const container = document.getElementById('manageListContainer');
-        container.innerHTML = '';
-        let list = currentManageType === 'subjects' ? masterSubjectsList : masterTeachersList;
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
 
-        if(list.length === 0) {
-            container.innerHTML = `<p style="text-align:center; color:#718093; font-size:13px;">No hay elementos registrados.</p>`;
-            return;
+        if(tabName === 'subjects') {
+            document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+            document.getElementById('tabSubjects').classList.add('active');
+        } else {
+            document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+            document.getElementById('tabTeachers').classList.add('active');
         }
+    }
 
-        list.forEach((item, index) => {
+    function renderManageLists() {
+        // Asignaturas
+        const subContainer = document.getElementById('subjectsListContainer');
+        subContainer.innerHTML = '';
+        masterSubjectsList.forEach((item, index) => {
             let row = document.createElement('div');
             row.className = 'manage-row';
-            row.innerHTML = `<span>${item}</span><button class="btn-delete-item" onclick="deleteListItem(${index})">🗑️ Eliminar</button>`;
-            container.appendChild(row);
+            row.innerHTML = `<span>${item}</span><button class="btn-delete-item" onclick="deleteItemFromList('subjects', ${index})">🗑️ Eliminar</button>`;
+            subContainer.appendChild(row);
+        });
+
+        // Profesores
+        const teachContainer = document.getElementById('teachersListContainer');
+        teachContainer.innerHTML = '';
+        masterTeachersList.forEach((item, index) => {
+            let row = document.createElement('div');
+            row.className = 'manage-row';
+            row.innerHTML = `<span>${item}</span><button class="btn-delete-item" onclick="deleteItemFromList('teachers', ${index})">🗑️ Eliminar</button>`;
+            teachContainer.appendChild(row);
         });
     }
 
-    function addNewListItem() {
-        let val = document.getElementById('newItemInput').value.trim();
-        if(!val) { alert("Ingresa un valor válido."); return; }
-
-        let list = currentManageType === 'subjects' ? masterSubjectsList : masterTeachersList;
-        if(list.includes(val)) { alert("Este elemento ya existe en la lista."); return; }
-
-        list.push(val);
+    function addItemToList(type) {
+        if(type === 'subjects') {
+            let val = document.getElementById('newSubjectInput').value.trim();
+            if(!val) { alert("Ingresa una asignatura."); return; }
+            if(masterSubjectsList.includes(val)) { alert("Ya existe esta asignatura."); return; }
+            masterSubjectsList.push(val);
+            document.getElementById('newSubjectInput').value = '';
+        } else {
+            let val = document.getElementById('newTeacherInput').value.trim();
+            if(!val) { alert("Ingresa un profesor(a)."); return; }
+            if(masterTeachersList.includes(val)) { alert("Ya existe este profesor."); return; }
+            masterTeachersList.push(val);
+            document.getElementById('newTeacherInput').value = '';
+        }
         saveListsToStorage();
-        document.getElementById('newItemInput').value = '';
-        renderManageList();
+        renderManageLists();
     }
 
-    function deleteListItem(index) {
-        let list = currentManageType === 'subjects' ? masterSubjectsList : masterTeachersList;
-        if(list.length <= 1) { alert("Debes mantener al menos un elemento en la lista."); return; }
-        
-        list.splice(index, 1);
+    function deleteItemFromList(type, index) {
+        if(type === 'subjects') {
+            if(masterSubjectsList.length <= 1) { alert("Debes mantener al menos una asignatura."); return; }
+            masterSubjectsList.splice(index, 1);
+        } else {
+            if(masterTeachersList.length <= 1) { alert("Debes mantener al menos un profesor."); return; }
+            masterTeachersList.splice(index, 1);
+        }
         saveListsToStorage();
-        renderManageList();
+        renderManageLists();
     }
 
     function renderMasterPalette() {
@@ -1064,7 +1106,7 @@
     }
     function deleteVersion(id) { if(confirm("¿Eliminar del historial?")) { let history = getHistory(); history = history.filter(v => v.id !== id); localStorage.setItem('calendario_historial_versiones', JSON.stringify(history)); renderHistoryList(); } }
 
-    function autoSaveState() { try { localStorage.setItem('calendario_evaluaciones_autosave_vlists', JSON.stringify(getStateObject())); } catch(e) {} }
+    function autoSaveState() { try { localStorage.setItem('calendario_evaluaciones_autosave_vlists_outside', JSON.stringify(getStateObject())); } catch(e) {} }
     setInterval(() => { autoSaveState(); const toast = document.getElementById('autoSaveToast'); toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3000); }, 120000);
 
     function loadBackup(event) {
@@ -1086,7 +1128,7 @@
     }
 
     function checkAutoSave() {
-        try { let saved = localStorage.getItem('calendario_evaluaciones_autosave_vlists'); if (saved) { let state = JSON.parse(saved); if (confirm("Se encontró un avance guardado. ¿Deseas recuperarlo?")) { restoreState(state); return; } } } catch(e) {}
+        try { let saved = localStorage.getItem('calendario_evaluaciones_autosave_vlists_outside'); if (saved) { let state = JSON.parse(saved); if (confirm("Se encontró un avance guardado. ¿Deseas recuperarlo?")) { restoreState(state); return; } } } catch(e) {}
         initApp();
     }
 
