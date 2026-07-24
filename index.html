@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horario Interactivo - Cuadrícula con Bloques Arrastrables</title>
+    <title>Horario Interactivo - Cuadrícula con Bloques Maestros Editables</title>
     <style>
         :root {
             --header-gray: #a5b1c2;
@@ -73,16 +73,19 @@
         .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #2c3e50; }
         .form-group input, .form-group select { width: 100%; padding: 8px 12px; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 4px; box-sizing: border-box; background: #fff; }
 
-        /* Panel de Bloques Maestros (Palette / Draggable Items) */
+        /* Panel de Bloques Maestros */
         .master-palette { background: #f8fafc; border: 2px dashed #94a3b8; border-radius: 8px; padding: 15px; margin-bottom: 25px; }
-        .palette-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .palette-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
         .palette-items { display: flex; flex-wrap: wrap; gap: 10px; }
         .master-card {
-            padding: 10px 14px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: grab;
+            padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: grab;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 3px; border: 1px solid rgba(0,0,0,0.15);
-            transition: transform 0.1s; user-select: none;
+            transition: transform 0.1s; user-select: none; min-width: 150px;
         }
         .master-card:active { cursor: grabbing; transform: scale(0.97); }
+        .master-card-actions { display: flex; justify-content: flex-end; gap: 8px; font-size: 11px; border-top: 1px solid rgba(0,0,0,0.15); padding-top: 3px; margin-top: 2px; }
+        .master-card-actions span { cursor: pointer; font-weight: bold; }
+        .master-card-actions span:hover { text-decoration: underline; }
 
         /* Cuadrícula de Calendario */
         .grid-container { width: 100%; overflow-x: auto; margin-bottom: 25px; }
@@ -113,8 +116,8 @@
         .btn-history { background-color: #e67e22; } .btn-history:hover { background-color: #d35400; }
         .btn-upload-logo { background-color: #34495e; } .btn-upload-logo:hover { background-color: #2c3e50; }
         .btn-new { background-color: #16a085; } .btn-new:hover { background-color: #1abc9c; }
-        .btn-add-master { background-color: #8e44ad; color: white; border: none; padding: 6px 12px; font-size: 12px; border-radius: 4px; cursor: pointer; }
-
+        .btn-add-master { background-color: #8e44ad; color: white; border: none; padding: 8px 14px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        
         /* Sección de Impresión Final Oficial */
         .print-section { background: white; padding: 20px; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; max-width: 1100px; overflow-x: auto; }
         .header-final { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #222; padding-bottom: 15px; flex-wrap: wrap; gap: 10px; justify-content: center; }
@@ -163,11 +166,11 @@
 <div id="autoSaveToast"><span>💾</span> <span id="toastText">¡Avance guardado automáticamente!</span></div>
 <div id="infoToast"><span>⚠️</span> <span id="infoToastText">Aviso</span></div>
 
-<!-- MODAL PARA CREAR NUEVO BLOQUE MAESTRO -->
+<!-- MODAL PARA CREAR / EDITAR BLOQUE MAESTRO -->
 <div class="modal-overlay" id="masterModal">
     <div class="modal-content">
         <div class="modal-header">
-            <h3>➕ Crear Bloque Maestro de Evaluación</h3>
+            <h3 id="masterModalTitle">➕ Crear Bloque Maestro de Evaluación</h3>
             <button class="btn-close-modal" onclick="toggleMasterModal(false)">✕ Cerrar</button>
         </div>
         <div class="form-group">
@@ -182,13 +185,14 @@
             <label>Color Identificatorio:</label>
             <input type="color" id="newMasterColor" value="#00b894" style="width: 100%; height: 40px; border: none; cursor: pointer; background: none;">
         </div>
+        <input type="hidden" id="editingMasterId" value="">
         <div style="text-align: right; margin-top: 20px;">
-            <button class="btn-action btn-save" onclick="confirmAddMaster()" style="display: inline-flex;">💾 Agregar a la Bandeja</button>
+            <button class="btn-action btn-save" onclick="confirmSaveMaster()" style="display: inline-flex;">💾 Guardar Bloque</button>
         </div>
     </div>
 </div>
 
-<!-- MODAL PARA SELECCIONAR CURSO AL SOLTAR O HACER CLIC -->
+<!-- MODAL PARA SELECCIONAR CURSO AL SOLTAR -->
 <div class="modal-overlay" id="dropModal">
     <div class="modal-content" style="max-width: 400px;">
         <div class="modal-header">
@@ -238,19 +242,19 @@
 </div>
 
 <div class="container">
-    <h1>🗓️ Creador de Calendario - Bloques Maestros y Arrastre</h1>
+    <h1>🗓️ Creador de Calendario - Bloques Maestros Editables</h1>
     
     <div class="instructions">
         <strong>INSTRUCCIONES DE USO:</strong><br>
-        • Configura tus bloques una sola vez arriba en la <strong>Bandeja de Bloques Maestros</strong>.<br>
-        • <strong>Arrastra</strong> el bloque hacia el día y hora que quieras (o haz clic en un recuadro) y solo selecciona el curso. ¡Cero repeticiones tediosas!
+        • Ahora puedes <strong>✏️ Editar</strong> o <strong>🗑️ Eliminar</strong> cualquier bloque maestro desde la bandeja superior.<br>
+        • Arrastra el bloque hacia el día y hora deseados para programarlo de forma rápida.
     </div>
 
     <!-- Bandeja de Bloques Maestros -->
     <div class="master-palette">
         <div class="palette-header">
             <strong>🎨 Bandeja de Bloques Maestros (Arrastra o haz clic para usar):</strong>
-            <button class="btn-add-master" onclick="openMasterModal()">➕ Crear Nuevo Bloque</button>
+            <button class="btn-add-master" onclick="openCreateMasterModal()">➕ Crear Nuevo Bloque</button>
         </div>
         <div class="palette-items" id="masterPaletteContainer"></div>
     </div>
@@ -352,7 +356,6 @@
     
     const todosLosCursos = ['5°A', '5°B', '5°C', '6°A', '6°B', '6°C', '7°A', '7°B', '7°C', '8°A', '8°B', '8°C'];
     
-    // Bloques maestros configurables
     let masterBlocks = [
         { id: 'm1', subject: 'Matemática', teacher: 'Prof. María Gómez', color: '#fce762' },
         { id: 'm2', subject: 'Historia', teacher: 'Yocelin Fernandez', color: '#00b894' },
@@ -360,11 +363,9 @@
         { id: 'm4', subject: 'LECTURA', teacher: 'Prof. Lenguaje', color: '#ff7675' }
     ];
 
-    let gridSelections = {}; // "day-hour": [ { masterId, subject, teacher, color, course, done }, ... ]
+    let gridSelections = {}; 
     let currentSchoolLogo = null;
-    
-    // Datos temporales para la acción de soltar/arrastrar
-    let pendingDropData = null; // { masterId, day, hour }
+    let pendingDropData = null;
 
     let lastSavedMeta = {
         name: "Calendario Diagnóstico Principal",
@@ -420,9 +421,15 @@
             card.className = 'master-card';
             card.style.backgroundColor = master.color;
             card.draggable = true;
-            card.innerHTML = `<span>📚 ${master.subject}</span><span style="font-weight:normal; font-size:10px;">👤 ${master.teacher}</span>`;
+            card.innerHTML = `
+                <div>📚 ${master.subject}</div>
+                <div style="font-weight:normal; font-size:10px;">👤 ${master.teacher}</div>
+                <div class="master-card-actions">
+                    <span onclick="openEditMasterModal(event, '${master.id}')" style="color:#2c3e50;">✏️ Editar</span>
+                    <span onclick="deleteMasterBlock(event, '${master.id}')" style="color:#c0392b;">🗑️ Eliminar</span>
+                </div>
+            `;
             
-            // Configurar eventos de arrastre (Drag & Drop)
             card.addEventListener('dragstart', (e) => {
                 e.dataTransfer.setData('text/plain', master.id);
             });
@@ -430,7 +437,6 @@
             container.appendChild(card);
         });
 
-        // Llenar select de cursos del modal de soltar
         const selectCourse = document.getElementById('dropCourseSelect');
         selectCourse.innerHTML = `<option value="">-- Seleccione Curso --</option>`;
         todosLosCursos.forEach(c => {
@@ -441,10 +447,25 @@
         });
     }
 
-    function openMasterModal() {
+    function openCreateMasterModal() {
+        document.getElementById('masterModalTitle').textContent = "➕ Crear Bloque Maestro de Evaluación";
         document.getElementById('newMasterSubject').value = '';
         document.getElementById('newMasterTeacher').value = '';
         document.getElementById('newMasterColor').value = '#3498db';
+        document.getElementById('editingMasterId').value = '';
+        document.getElementById('masterModal').classList.add('open');
+    }
+
+    function openEditMasterModal(event, id) {
+        event.stopPropagation();
+        let master = masterBlocks.find(m => m.id === id);
+        if(!master) return;
+
+        document.getElementById('masterModalTitle').textContent = "✏️ Editar Bloque Maestro";
+        document.getElementById('newMasterSubject').value = master.subject;
+        document.getElementById('newMasterTeacher').value = master.teacher;
+        document.getElementById('newMasterColor').value = master.color;
+        document.getElementById('editingMasterId').value = master.id;
         document.getElementById('masterModal').classList.add('open');
     }
 
@@ -453,24 +474,63 @@
         else document.getElementById('masterModal').classList.remove('open');
     }
 
-    function confirmAddMaster() {
+    function confirmSaveMaster() {
         let subj = document.getElementById('newMasterSubject').value.trim();
         let teacher = document.getElementById('newMasterTeacher').value.trim();
         let color = document.getElementById('newMasterColor').value;
+        let editingId = document.getElementById('editingMasterId').value;
 
         if(!subj) { alert("Ingresa el nombre de la asignatura."); return; }
 
-        masterBlocks.push({
-            id: 'm_' + Date.now(),
-            subject: subj,
-            teacher: teacher || 'Sin profesor',
-            color: color
-        });
+        if(editingId) {
+            // Editar existente
+            let master = masterBlocks.find(m => m.id === editingId);
+            if(master) {
+                master.subject = subj;
+                master.teacher = teacher || 'Sin profesor';
+                master.color = color;
+            }
+            // Actualizar también en las celdas ya asignadas que usen este bloque
+            Object.keys(gridSelections).forEach(key => {
+                gridSelections[key].forEach(item => {
+                    if(item.masterId === editingId) {
+                        item.subject = subj;
+                        item.teacher = teacher || 'Sin profesor';
+                        item.color = color;
+                    }
+                });
+            });
+        } else {
+            // Crear nuevo
+            masterBlocks.push({
+                id: 'm_' + Date.now(),
+                subject: subj,
+                teacher: teacher || 'Sin profesor',
+                color: color
+            });
+        }
 
         toggleMasterModal(false);
         renderMasterPalette();
+        renderInteractiveGrid();
         updateReports();
         autoSaveState();
+    }
+
+    function deleteMasterBlock(event, id) {
+        event.stopPropagation();
+        if(confirm("¿Estás seguro de eliminar este bloque maestro? Se removerá del calendario si estaba asignado.")) {
+            masterBlocks = masterBlocks.filter(m => m.id !== id);
+            // Remover de las selecciones de la cuadrícula
+            Object.keys(gridSelections).forEach(key => {
+                gridSelections[key] = gridSelections[key].filter(item => item.masterId !== id);
+                if(gridSelections[key].length === 0) delete gridSelections[key];
+            });
+            renderMasterPalette();
+            renderInteractiveGrid();
+            updateReports();
+            autoSaveState();
+        }
     }
 
     function renderInteractiveGrid() {
@@ -516,7 +576,6 @@
 
                     td.innerHTML = htmlContent || `<span style="color:#cbd5e1; font-size:11px;">+ Arrastrar bloque</span>`;
 
-                    // Eventos de Drag & Drop sobre la celda
                     td.addEventListener('dragover', (e) => { e.preventDefault(); td.classList.add('drag-over'); });
                     td.addEventListener('dragleave', () => { td.classList.remove('drag-over'); });
                     td.addEventListener('drop', (e) => {
@@ -584,7 +643,6 @@
         let cellKey = `${pendingDropData.day}-${pendingDropData.hour}`;
         if(!gridSelections[cellKey]) gridSelections[cellKey] = [];
 
-        // Evitar duplicar el mismo curso en el mismo bloque exacto
         let existingIdx = gridSelections[cellKey].findIndex(i => i.course === course);
         let newItem = {
             masterId: master.id,
@@ -681,7 +739,6 @@
             }
         }
 
-        // Llenar Simbología basada en masterBlocks
         let simbologiaBody = document.getElementById('simbologiaBody'); simbologiaBody.innerHTML = '';
         masterBlocks.forEach(master => {
             let tr = document.createElement('tr');
@@ -689,7 +746,6 @@
             simbologiaBody.appendChild(tr);
         });
 
-        // Cómputo Final por Asignatura
         let printEvalSummaryContainer = document.getElementById('printEvalSummaryContainer'); printEvalSummaryContainer.innerHTML = '';
         masterBlocks.forEach(master => {
             let assignedSet = new Set();
@@ -802,7 +858,7 @@
     }
     function deleteVersion(id) { if(confirm("¿Eliminar del historial?")) { let history = getHistory(); history = history.filter(v => v.id !== id); localStorage.setItem('calendario_historial_versiones', JSON.stringify(history)); renderHistoryList(); } }
 
-    function autoSaveState() { try { localStorage.setItem('calendario_evaluaciones_autosave_vdrag', JSON.stringify(getStateObject())); } catch(e) {} }
+    function autoSaveState() { try { localStorage.setItem('calendario_evaluaciones_autosave_vdrag_edit', JSON.stringify(getStateObject())); } catch(e) {} }
     setInterval(() => { autoSaveState(); const toast = document.getElementById('autoSaveToast'); toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3000); }, 120000);
 
     function loadBackup(event) {
@@ -824,7 +880,7 @@
     }
 
     function checkAutoSave() {
-        try { let saved = localStorage.getItem('calendario_evaluaciones_autosave_vdrag'); if (saved) { let state = JSON.parse(saved); if (confirm("Se encontró un avance guardado. ¿Deseas recuperarlo?")) { restoreState(state); return; } } } catch(e) {}
+        try { let saved = localStorage.getItem('calendario_evaluaciones_autosave_vdrag_edit'); if (saved) { let state = JSON.parse(saved); if (confirm("Se encontró un avance guardado. ¿Deseas recuperarlo?")) { restoreState(state); return; } } } catch(e) {}
         initApp();
     }
 
