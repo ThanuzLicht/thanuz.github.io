@@ -64,4 +64,720 @@
         .btn-close-modal { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         
         .history-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
-        .history-item { background: #f8f9fa; border: 1px solid #d1d8e0; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align
+        .history-item { background: #f8f9fa; border: 1px solid #d1d8e0; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .history-item-info h4 { margin: 0 0 5px 0; color: #2c3e50; font-size: 16px; }
+        .history-item-info p { margin: 0; font-size: 13px; color: #718093; }
+        .history-item-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #2c3e50; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 12px; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 4px; box-sizing: border-box; background: #fff; }
+
+        /* Cuadrícula Principal de Edición Estilo Calendario */
+        .grid-container { width: 100%; overflow-x: auto; margin-bottom: 25px; }
+        .grid-table { width: 100%; border-collapse: collapse; min-width: 800px; background: white; }
+        .grid-table th, .grid-table td { border: 1px solid #cbd5e1; padding: 8px; text-align: center; vertical-align: middle; }
+        .grid-table th { background-color: #34495e; color: white; font-size: 13px; padding: 10px; }
+        .grid-hour-col { font-weight: bold; background-color: #ecf0f1; font-size: 12px; width: 6%; }
+        .grid-time-col { font-size: 11px; background-color: #f8fafc; width: 12%; color: #475569; }
+        .grid-day-col { width: 16.4%; cursor: pointer; transition: background 0.2s; height: 60px; }
+        .grid-day-col:hover { background-color: #f1f5f9; }
+        .grid-recreo-row td { background-color: #e67e22; color: white; font-weight: bold; letter-spacing: 2px; padding: 8px; font-size: 12px; }
+
+        /* Tarjeta dentro de la celda de la cuadrícula */
+        .grid-eval-card {
+            padding: 5px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: #000;
+            margin-bottom: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); text-align: left; position: relative;
+        }
+        .grid-eval-card .card-actions { font-size: 9px; margin-top: 3px; display: flex; justify-content: space-between; align-items: center; border-top: 1px solid rgba(0,0,0,0.1); padding-top: 2px; }
+
+        /* Panel de Asignaturas / Evaluaciones Configurados */
+        .subjects-config-card { background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 6px; padding: 15px; margin-bottom: 20px; }
+        .subjects-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .subject-chip { display: flex; align-items: center; gap: 6px; background: white; border: 1px solid #cbd5e1; padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; }
+        .subject-color-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; }
+
+        .generator-controls { background: #fff; border: 2px dashed #bdc3c7; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 30px; display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .generator-controls select { padding: 10px 15px; font-size: 16px; font-weight: bold; border-radius: 5px; border: 2px solid #3498db; }
+        .btn-action { color: white; border: none; padding: 12px 18px; font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
+        .btn-print { background-color: #27ae60; } .btn-print:hover { background-color: #219653; }
+        .btn-word { background-color: #2980b9; } .btn-word:hover { background-color: #2471a3; }
+        .btn-save { background-color: #d35400; } .btn-save:hover { background-color: #b94200; }
+        .btn-load { background-color: #8e44ad; } .btn-load:hover { background-color: #732d91; }
+        .btn-history { background-color: #e67e22; } .btn-history:hover { background-color: #d35400; }
+        .btn-upload-logo { background-color: #34495e; } .btn-upload-logo:hover { background-color: #2c3e50; }
+        .btn-new { background-color: #16a085; } .btn-new:hover { background-color: #1abc9c; }
+        
+        /* Sección de Impresión Final */
+        .print-section { background: white; padding: 20px; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; max-width: 1100px; overflow-x: auto; }
+        .header-final { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #222; padding-bottom: 15px; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        
+        .logo-wrapper { width: 90px; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; }
+        .logo-wrapper:hover::after { content: "Cambiar insignia"; position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); background: #333; color: white; font-size: 10px; padding: 2px 5px; border-radius: 3px; white-space: nowrap; }
+        .logo-placeholder { width: 80px; height: 90px; background-color: #3498db; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: bold; font-size: 12px; border: 2px solid #2980b9; border-radius: 0 0 40px 40px; text-align: center; padding: 5px; }
+        #logoImage { max-width: 90px; max-height: 100px; object-fit: contain; }
+
+        .title-final { flex-grow: 1; text-align: center; min-width: 250px; }
+        .title-final h2 { margin: 0 0 10px 0; font-size: 18px; text-decoration: underline; text-transform: uppercase; }
+        .title-final h3 { margin: 0; font-size: 16px; text-decoration: underline; }
+        .subtitle-course { color: #e74c3c; margin-top: 10px; font-size: 20px; font-weight: 900; }
+        
+        .final-table { width: 100%; border-collapse: collapse; border: 2px solid #333; margin-bottom: 20px; font-family: Arial, sans-serif; min-width: 650px; }
+        .final-table th, .final-table td { border: 1px solid #555; padding: 6px; text-align: center; font-size: 12px; height: 40px; vertical-align: middle; }
+        .final-table th { background-color: var(--header-gray); font-weight: bold; }
+        .final-table .bg-gray-light { background-color: var(--bg-gray); font-weight: bold; }
+        .final-table .recreo-final { background-color: var(--bg-gray); font-weight: bold; letter-spacing: 1px; color: #333; }
+        
+        .final-cell { font-weight: bold; font-size: 11px; text-transform: uppercase; }
+        
+        .simbologia-title { text-align: center; text-decoration: underline; font-weight: bold; margin-bottom: 10px; margin-top: 25px; }
+        .table-simbologia { width: 90%; margin: 0 auto; border-collapse: collapse; border: 2px solid #333; min-width: 450px; }
+        .table-simbologia th, .table-simbologia td { border: 1px solid #555; padding: 6px; text-align: center; font-weight: bold; font-size: 12px; }
+
+        .print-eval-summary-container { margin-top: 25px; page-break-inside: avoid; }
+        .print-eval-summary-card { border: 1px solid #333; margin-bottom: 15px; border-radius: 4px; overflow: hidden; font-family: Arial, sans-serif; }
+        .print-eval-summary-header { background-color: var(--header-gray); padding: 8px 12px; font-weight: bold; font-size: 13px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        .print-eval-summary-body { display: flex; background: #fff; font-size: 12px; flex-wrap: wrap; }
+        .print-eval-col-assigned { flex: 1; min-width: 220px; padding: 8px 12px; border-right: 1px solid #ccc; background-color: #f0fdf4; }
+        .print-eval-col-missing { flex: 1; min-width: 220px; padding: 8px 12px; background-color: #fef2f2; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; max-width: 100%; padding: 0; }
+            .grid-container, h1, .instructions, .generator-controls, .subjects-config-card, .modal-overlay { display: none !important; }
+            .print-section { border: none; box-shadow: none; width: 100%; max-width: 100%; padding: 0; overflow: visible; }
+            .logo-wrapper:hover::after { display: none !important; }
+            @page { size: landscape; margin: 10mm; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="autoSaveToast"><span>💾</span> <span id="toastText">¡Avance guardado automáticamente!</span></div>
+<div id="infoToast"><span>⚠️</span> <span id="infoToastText">Aviso</span></div>
+
+<div class="modal-overlay" id="cellModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalCellTitle">📌 Programar Evaluación en Bloque</h3>
+            <button class="btn-close-modal" onclick="closeCellModal()">✕ Cerrar</button>
+        </div>
+        <div class="form-group">
+            <label>Asignatura / Evaluación:</label>
+            <select id="modalSubjectSelect"></select>
+        </div>
+        <div class="form-group">
+            <label>Profesor(a) a Cargo:</label>
+            <input type="text" id="modalTeacherInput" placeholder="Nombre del profesor(a)">
+        </div>
+        <div class="form-group">
+            <label>Color Identificatorio:</label>
+            <input type="color" id="modalColorInput" value="#00b894" style="width: 100%; height: 40px; border: none; cursor: pointer; background: none;">
+        </div>
+        <div class="form-group">
+            <label>Curso:</label>
+            <select id="modalCourseSelect">
+                <option value="">-- Seleccione Curso --</option>
+            </select>
+        </div>
+        <div class="form-group" style="display: flex; align-items: center; gap: 8px; background: #e8f8f5; padding: 10px; border-radius: 4px; border: 1px solid #27ae60;">
+            <input type="checkbox" id="modalDoneCheckbox" style="width: 20px; height: 20px; cursor: pointer;">
+            <label for="modalDoneCheckbox" style="margin: 0; cursor: pointer; color: #27ae60; font-weight: bold;">Marcar prueba como REALIZADA ✅</label>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px;">
+            <button class="btn-action" style="background: #e74c3c;" onclick="deleteCurrentCellAssignment()">🗑️ Quitar de este bloque</button>
+            <button class="btn-action btn-save" onclick="saveCellAssignment()" style="display: inline-flex;">💾 Guardar Asignación</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="saveModal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3>💾 Guardar Horario Actual</h3>
+            <button class="btn-close-modal" onclick="toggleSaveModal(false)">✕ Cerrar</button>
+        </div>
+        <div class="form-group"><label>Nombre del Horario:</label><input type="text" id="inputScheduleName" placeholder="Ej. Calendario Diagnóstico Principal"></div>
+        <div class="form-group"><label>Fecha de Inicio:</label><input type="date" id="inputStartDate"></div>
+        <div class="form-group"><label>Fecha de Término:</label><input type="date" id="inputEndDate"></div>
+        <div style="text-align: right; margin-top: 20px;"><button class="btn-action btn-save" onclick="confirmSaveVersion()" style="display: inline-flex;">💾 Guardar y Descargar .json</button></div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="historyModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📋 Historial de Horarios Guardados</h3>
+            <button class="btn-close-modal" onclick="toggleHistoryModal(false)">✕ Cerrar</button>
+        </div>
+        <div id="historyListContainer" class="history-list"></div>
+    </div>
+</div>
+
+<div class="container">
+    <h1>🗓️ Creador de Calendario - Cuadrícula Semanal Interactiva</h1>
+    
+    <div class="instructions">
+        <strong>NUEVA INTERFAZ DE CUADRÍCULA:</strong><br>
+        • Haz clic en cualquier recuadro de los días de la semana para programar o editar una evaluación de forma directa y limpia.<br>
+        • El sistema valida choques, historial de pruebas ya realizadas y genera el reporte consolidado automáticamente.
+    </div>
+
+    <div class="subjects-config-card">
+        <strong>📚 Asignaturas Disponibles para el Calendario:</strong>
+        <div class="subjects-chips" id="subjectsChipsContainer"></div>
+    </div>
+
+    <div class="grid-container">
+        <table class="grid-table">
+            <thead>
+                <tr>
+                    <th colspan="2">BLOQUES / HORA</th>
+                    <th>LUNES</th>
+                    <th>MARTES</th>
+                    <th>MIÉRCOLES</th>
+                    <th>JUEVES</th>
+                    <th>VIERNES</th>
+                </tr>
+            </thead>
+            <tbody id="gridTableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="generator-controls">
+        <label for="courseSelector" style="font-size: 16px; font-weight: bold;">Ver Curso en Reporte:</label>
+        <select id="courseSelector">
+            <option value="">-- Selecciona --</option>
+            <option value="TODOS">-- TODOS --</option>
+            <option value="5°A">5°A</option><option value="5°B">5°B</option><option value="5°C">5°C</option>
+            <option value="6°A">6°A</option><option value="6°B">6°B</option><option value="6°C">6°C</option>
+            <option value="7°A">7°A</option><option value="7°B">7°B</option><option value="7°C">7°C</option>
+            <option value="8°A">8°A</option><option value="8°B">8°B</option><option value="8°C">8°C</option>
+        </select>
+        
+        <button class="btn-action btn-new" onclick="handleNewScheduleButton()">➕ Nuevo Horario</button>
+        <button class="btn-action btn-upload-logo" onclick="document.getElementById('logoFileInput').click()">🖼️ Subir Insignia</button>
+        <input type="file" id="logoFileInput" style="display: none;" accept="image/png, image/jpeg, image/jpg" onchange="loadLogoImage(event)">
+
+        <button class="btn-action btn-save" onclick="openSaveModal()">💾 Guardar Horario</button>
+        <button class="btn-action btn-history" onclick="openHistoryModal()">📋 Historial</button>
+        <button class="btn-action btn-load" onclick="document.getElementById('backupFileInput').click()">📂 Cargar .json</button>
+        <input type="file" id="backupFileInput" style="display: none;" accept=".json" onchange="loadBackup(event)">
+        <button class="btn-action btn-print" onclick="window.print()">🖨️ Imprimir PDF</button>
+        <button class="btn-action btn-word" onclick="exportToWord()">📄 Exportar a Word</button>
+    </div>
+
+    <div class="print-section">
+        <div class="header-final">
+            <div class="logo-wrapper" onclick="document.getElementById('logoFileInput').click()" title="Haz clic para cambiar la insignia de la escuela">
+                <div class="logo-placeholder" id="logoPlaceholder">ESCUELA<br>E-87<br>LAS ROCAS</div>
+                <img id="logoImage" src="" style="display:none;" alt="Insignia Escuela">
+            </div>
+            <div class="title-final">
+                <h2>CALENDARIO DIAGNOSTICO INTEGRAL DE APRENDIZAJE</h2>
+                <h3>AÑO 2026</h3>
+                <div class="subtitle-course" id="print-course-title">CURSO: (SELECCIONE ARRIBA)</div>
+            </div>
+        </div>
+
+        <table class="final-table" id="finalPrintTable">
+            <thead>
+                <tr>
+                    <th rowspan="2" colspan="2" class="bg-gray-light">BLOQUES</th>
+                    <th rowspan="2" colspan="2" class="bg-gray-light">AÑO 2026</th>
+                    <th colspan="5" class="bg-gray-light">HORARIO DE CLASES</th>
+                </tr>
+                <tr><th class="bg-gray-light">L</th><th class="bg-gray-light">M</th><th class="bg-gray-light">M</th><th class="bg-gray-light">J</th><th class="bg-gray-light">V</th></tr>
+            </thead>
+            <tbody id="finalTableBody"></tbody>
+        </table>
+
+        <div class="simbologia-title">SIMBOLOGIA Y PROFESORES</div>
+        <table class="table-simbologia">
+            <thead>
+                <tr><th style="width: 20%;">COLOR</th><th style="width: 45%;">EVALUACIÓN / ASIGNATURA</th><th style="width: 35%;">PROFESOR(A)</th></tr>
+            </thead>
+            <tbody id="simbologiaBody"></tbody>
+        </table>
+
+        <div class="simbologia-title">CÓMPUTO FINAL DE CURSOS POR ASIGNATURA</div>
+        <div id="printEvalSummaryContainer" class="print-eval-summary-container"></div>
+    </div>
+</div>
+
+<script>
+    const days = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'];
+    const hours = [
+        { type: 'class', num: '1°', time: '8:00 A 8:45' },   
+        { type: 'class', num: '2°', time: '8:45 A 9:30' },   
+        { type: 'break', label: 'Recreo (9:30 A 9:50)' },    
+        { type: 'class', num: '3°', time: '9:50 A 10:35' },  
+        { type: 'class', num: '4°', time: '10:35 A 11:20' }, 
+        { type: 'break', label: 'Recreo (11:20 A 11:40)' },  
+        { type: 'class', num: '5°', time: '11:40 A 12:25' }, 
+        { type: 'class', num: '6°', time: '12:25 A 13:10' }, 
+        { type: 'break', label: 'Almuerzo (13:10 A 13:55)' },
+        { type: 'class', num: '7°', time: '13:55 A 14:40' }, 
+        { type: 'class', num: '8°', time: '14:40 A 15:25' }  
+    ];
+    
+    const todosLosCursos = ['5°A', '5°B', '5°C', '6°A', '6°B', '6°C', '7°A', '7°B', '7°C', '8°A', '8°B', '8°C'];
+    
+    const asignaturasConfig = [
+        { name: "Matemática", teacher: "Prof. María Gómez", color: "#fce762" },
+        { name: "Historia", teacher: "Yocelin Fernandez", color: "#00b894" },
+        { name: "Ciencias Naturales", teacher: "Prof. Nuevo", color: "#74b9ff" },
+        { name: "LECTURA", teacher: "Prof. Lenguaje", color: "#ff7675" },
+        { name: "Actividad Socioemocional Evaluativa", teacher: "Orientación", color: "#a29bfe" }
+    ];
+
+    // Estructura de selecciones: clave "day-hour-evalIndex" o similar -> { subject, teacher, color, course, done }
+    let gridSelections = {};
+    let currentSchoolLogo = null;
+    let activeEditingCell = null; // { day, hour }
+
+    let lastSavedMeta = {
+        name: "Calendario Diagnóstico Principal",
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: new Date().toISOString().split('T')[0],
+        isConfigured: false
+    };
+
+    function showInfoToast(msg) {
+        const toast = document.getElementById('infoToast');
+        document.getElementById('infoToastText').textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => { toast.classList.remove('show'); }, 5000);
+    }
+
+    function loadLogoImage(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            currentSchoolLogo = e.target.result;
+            displayLogo();
+            autoSaveState();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function displayLogo() {
+        const placeholder = document.getElementById('logoPlaceholder');
+        const img = document.getElementById('logoImage');
+        if (currentSchoolLogo) {
+            placeholder.style.display = 'none';
+            img.src = currentSchoolLogo; img.style.display = 'block';
+        } else {
+            placeholder.style.display = 'flex';
+            img.style.display = 'none'; img.src = '';
+        }
+    }
+
+    function initApp() {
+        renderSubjectsChips();
+        renderInteractiveGrid();
+        buildFinalTableRows();
+        updateReports();
+        displayLogo();
+    }
+
+    function renderSubjectsChips() {
+        const container = document.getElementById('subjectsChipsContainer');
+        container.innerHTML = '';
+        asignaturasConfig.forEach(subj => {
+            let chip = document.createElement('div');
+            chip.className = 'subject-chip';
+            chip.innerHTML = `<span class="subject-color-dot" style="background:${subj.color};"></span> ${subj.name} <span style="font-weight:normal; color:#64748b; font-size:11px;">(${subj.teacher})</span>`;
+            container.appendChild(chip);
+        });
+
+        // Llenar select del modal
+        const selectSubj = document.getElementById('modalSubjectSelect');
+        selectSubj.innerHTML = '';
+        asignaturasConfig.forEach(subj => {
+            let opt = document.createElement('option');
+            opt.value = subj.name;
+            opt.textContent = subj.name;
+            selectSubj.appendChild(opt);
+        });
+        
+        selectSubj.onchange = (e) => {
+            let found = asignaturasConfig.find(s => s.name === e.target.value);
+            if(found) {
+                document.getElementById('modalTeacherInput').value = found.teacher;
+                document.getElementById('modalColorInput').value = found.color;
+            }
+        };
+
+        // Llenar select de cursos del modal
+        const selectCourse = document.getElementById('modalCourseSelect');
+        selectCourse.innerHTML = `<option value="">-- Seleccione Curso --</option>`;
+        todosLosCursos.forEach(c => {
+            let opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c;
+            selectCourse.appendChild(opt);
+        });
+    }
+
+    function renderInteractiveGrid() {
+        const tbody = document.getElementById('gridTableBody');
+        tbody.innerHTML = '';
+
+        hours.forEach((hour, hourIndex) => {
+            let tr = document.createElement('tr');
+            if (hour.type === 'break') {
+                tr.className = 'grid-recreo-row';
+                tr.innerHTML = `<td colspan="7">${hour.label}</td>`;
+            } else {
+                let isBlockStart = [0, 3, 6, 9].includes(hourIndex);
+                let blockNum = hourIndex < 2 ? '1°' : (hourIndex < 5 ? '2°' : (hourIndex < 8 ? '3°' : '4°'));
+                let firstColHTML = isBlockStart ? `<td rowspan="2" class="grid-hour-col">${blockNum}</td>` : '';
+
+                tr.innerHTML = `
+                    ${firstColHTML}
+                    <td class="grid-time-col">${hour.num}<br><span style="font-size:10px;">${hour.time}</span></td>
+                `;
+
+                days.forEach((day, dayIndex) => {
+                    let td = document.createElement('td');
+                    td.className = 'grid-day-col';
+                    td.dataset.day = dayIndex;
+                    td.dataset.hour = hourIndex;
+
+                    // Renderizar items asignados en este bloque
+                    let cellKey = `${dayIndex}-${hourIndex}`;
+                    let itemsInCell = gridSelections[cellKey] || [];
+                    
+                    let htmlContent = '';
+                    itemsInCell.forEach((item, itemIdx) => {
+                        let doneMark = item.done ? ' ✅' : '';
+                        htmlContent += `
+                            <div class="grid-eval-card" style="background-color: ${item.color};">
+                                <div><strong>${item.course}</strong>${doneMark} - ${item.subject}</div>
+                                <div class="card-actions"><span>${item.teacher}</span></div>
+                            </div>`;
+                    });
+
+                    td.innerHTML = htmlContent || `<span style="color:#cbd5e1; font-size:12px;">+ Asignar</span>`;
+                    td.onclick = () => openCellModal(dayIndex, hourIndex);
+                    tr.appendChild(td);
+                });
+            }
+            tbody.appendChild(tr);
+        });
+    }
+
+    function openCellModal(dayIndex, hourIndex) {
+        activeEditingCell = { day: dayIndex, hour: hourIndex };
+        document.getElementById('modalCellTitle').textContent = `📌 Bloque: ${days[dayIndex]} (${hours[hourIndex].time})`;
+        
+        // Cargar valores por defecto con la primera asignatura
+        if(asignaturasConfig.length > 0) {
+            document.getElementById('modalSubjectSelect').value = asignaturasConfig[0].name;
+            document.getElementById('modalTeacherInput').value = asignaturasConfig[0].teacher;
+            document.getElementById('modalColorInput').value = asignaturasConfig[0].color;
+        }
+        document.getElementById('modalCourseSelect').value = '';
+        document.getElementById('modalDoneCheckbox').checked = false;
+
+        const modal = document.getElementById('cellModal');
+        modal.classList.add('open');
+    }
+
+    function closeCellModal() {
+        document.getElementById('cellModal').classList.remove('open');
+        activeEditingCell = null;
+    }
+
+    function validateAgainstHistory(subject, courseValue) {
+        if(!courseValue) return true;
+        let history = getHistory();
+        for (let v of history) {
+            let foundSelection = v.gridSelections ? Object.values(v.gridSelections).flat().find(s => 
+                s.course === courseValue && s.subject === subject
+            ) : null;
+            
+            if (foundSelection) {
+                if (foundSelection.done) {
+                    alert(`❌ BLOQUEO: El curso ${courseValue} ya realizó la evaluación de "${subject}" en el horario guardado como "${v.name}".`);
+                    return false;
+                } else {
+                    showInfoToast(`⚠️ ${courseValue} estaba asignado a "${subject}" en el horario "${v.name}" pero NO se realizó. Reasignado.`);
+                    return true;
+                }
+            }
+        }
+        return true;
+    }
+
+    function saveCellAssignment() {
+        if(!activeEditingCell) return;
+        let subj = document.getElementById('modalSubjectSelect').value;
+        let teacher = document.getElementById('modalTeacherInput').value;
+        let color = document.getElementById('modalColorInput').value;
+        let course = document.getElementById('modalCourseSelect').value;
+        let done = document.getElementById('modalDoneCheckbox').checked;
+
+        if(!course) { alert("Selecciona un curso."); return; }
+
+        let isValid = validateAgainstHistory(subj, course);
+        if(!isValid) return;
+
+        let cellKey = `${activeEditingCell.day}-${activeEditingCell.hour}`;
+        if(!gridSelections[cellKey]) gridSelections[cellKey] = [];
+
+        // Verificar si el curso ya está en este mismo bloque
+        let existingIdx = gridSelections[cellKey].findIndex(i => i.course === course);
+        let newItem = { subject: subj, teacher: teacher, color: color, course: course, done: done };
+
+        if(existingIdx >= 0) {
+            gridSelections[cellKey][existingIdx] = newItem;
+        } else {
+            gridSelections[cellKey].push(newItem);
+        }
+
+        closeCellModal();
+        renderInteractiveGrid();
+        updateReports();
+        autoSaveState();
+    }
+
+    function deleteCurrentCellAssignment() {
+        if(!activeEditingCell) return;
+        let course = document.getElementById('modalCourseSelect').value;
+        let cellKey = `${activeEditingCell.day}-${activeEditingCell.hour}`;
+        
+        if(gridSelections[cellKey] && course) {
+            gridSelections[cellKey] = gridSelections[cellKey].filter(i => i.course !== course);
+            if(gridSelections[cellKey].length === 0) delete gridSelections[cellKey];
+        }
+
+        closeCellModal();
+        renderInteractiveGrid();
+        updateReports();
+        autoSaveState();
+    }
+
+    function buildFinalTableRows() {
+        const tbody = document.getElementById('finalTableBody');
+        tbody.innerHTML = '';
+        hours.forEach((hour, hourIndex) => {
+            let tr = document.createElement('tr');
+            if(hour.type === 'break') {
+                tr.innerHTML = `<td colspan="4" class="recreo-final"></td><td colspan="5" class="recreo-final">${hour.label.toUpperCase()}</td>`;
+            } else {
+                let isBlockStart = [0, 3, 6, 9].includes(hourIndex);
+                let blockNum = hourIndex < 2 ? '1°' : (hourIndex < 5 ? '2°' : (hourIndex < 8 ? '3°' : '4°'));
+                let firstColHTML = isBlockStart ? `<td rowspan="2" class="bg-gray-light">${blockNum}</td>` : '';
+                
+                tr.innerHTML = `
+                    ${firstColHTML}
+                    <td class="bg-gray-light">${hour.num}</td>
+                    <td class="bg-gray-light">${hour.time.split(' A ')[0]}</td>
+                    <td class="bg-gray-light">${hour.time.split(' A ')[1]}</td>
+                    <td id="final-0-${hourIndex}" class="final-cell"></td>
+                    <td id="final-1-${hourIndex}" class="final-cell"></td>
+                    <td id="final-2-${hourIndex}" class="final-cell"></td>
+                    <td id="final-3-${hourIndex}" class="final-cell"></td>
+                    <td id="final-4-${hourIndex}" class="final-cell"></td>
+                `;
+            }
+            tbody.appendChild(tr);
+        });
+    }
+
+    function updateReports() {
+        const course = document.getElementById('courseSelector').value;
+        document.getElementById('print-course-title').textContent = course === 'TODOS' ? "CALENDARIO GENERAL - TODOS LOS CURSOS" : (course ? `CURSO: ${course}` : "CURSO: (SELECCIONE ARRIBA)");
+        document.querySelectorAll('.final-cell').forEach(cell => { cell.innerHTML = ''; });
+        if (!course) return;
+
+        for (let day = 0; day < 5; day++) {
+            for (let hour = 0; hour < 11; hour++) {
+                if (hours[hour].type === 'break') continue;
+                let cellId = `final-${day}-${hour}`; let cell = document.getElementById(cellId);
+                if (!cell) continue;
+
+                let cellKey = `${day}-${hour}`;
+                let itemsInCell = gridSelections[cellKey] || [];
+
+                if (course === 'TODOS') {
+                    let htmlContent = '';
+                    itemsInCell.forEach(item => {
+                        let teacherLine = item.teacher ? `<br><span style="font-size: 9px; font-weight: normal; opacity: 0.95;">(${item.teacher})</span>` : '';
+                        let doneMark = item.done ? ' <span style="color:#000; font-size:12px;" title="Realizada">✅</span>' : '';
+                        htmlContent += `<div style="background-color: ${item.color}; color: #000; padding: 4px 6px; margin-bottom: 2px; border-radius: 4px; font-weight: bold; font-size: 11px; line-height: 1.2; display: block; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">${item.course}${doneMark} - ${item.subject}${teacherLine}</div>`;
+                    });
+                    cell.innerHTML = htmlContent;
+                } else {
+                    let filtered = itemsInCell.filter(i => i.course === course);
+                    if (filtered.length > 0) {
+                        let item = filtered[0];
+                        let teacherLine = item.teacher ? `<br><span style="font-size: 10px; font-weight: normal; opacity: 0.95;">(${item.teacher})</span>` : '';
+                        let doneMark = item.done ? ' <span style="color:#000; font-size:14px;" title="Realizada">✅</span>' : '';
+                        cell.innerHTML = `<div style="background-color: ${item.color}; color: #000; padding: 5px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; line-height: 1.3; display: block; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">${item.course}${doneMark} - ${item.subject}${teacherLine}</div>`;
+                    }
+                }
+            }
+        }
+
+        // Llenar Simbología
+        let simbologiaBody = document.getElementById('simbologiaBody'); simbologiaBody.innerHTML = '';
+        asignaturasConfig.forEach(subj => {
+            let tr = document.createElement('tr');
+            tr.innerHTML = `<td style="background-color: ${subj.color}; color: #000; font-weight: bold;">COLOR</td><td style="text-align: left; padding-left: 10px;">${subj.name}</td><td style="text-align: left; padding-left: 10px; font-weight: bold;">${subj.teacher}</td>`;
+            simbologiaBody.appendChild(tr);
+        });
+
+        // Cómputo Final por Asignatura
+        let printEvalSummaryContainer = document.getElementById('printEvalSummaryContainer'); printEvalSummaryContainer.innerHTML = '';
+        asignaturasConfig.forEach(subj => {
+            let assignedSet = new Set();
+            Object.values(gridSelections).flat().forEach(item => {
+                if(item.subject === subj.name) assignedSet.add(item.course);
+            });
+            let assignedList = Array.from(assignedSet).sort();
+            let missingList = todosLosCursos.filter(c => !assignedSet.has(c)).sort();
+
+            let summaryBox = document.createElement('div'); summaryBox.className = 'print-eval-summary-card';
+            summaryBox.innerHTML = `
+                <div class="print-eval-summary-header" style="border-left: 6px solid ${subj.color};"><span>📊 Asignatura: ${subj.name} <span style="font-weight:normal; font-size:11px;">(Prof: ${subj.teacher})</span></span></div>
+                <div class="print-eval-summary-body">
+                    <div class="print-eval-col-assigned"><strong style="color: #27ae60;">✅ Cursos Asignados (${assignedList.length}):</strong><div style="margin-top: 4px; font-weight: bold; color: #2c3e50;">${assignedList.length > 0 ? assignedList.join(', ') : 'Ninguno asignado aún'}</div></div>
+                    <div class="print-eval-col-missing"><strong style="color: #e74c3c;">❌ Cursos Faltantes (${missingList.length}):</strong><div style="margin-top: 4px; font-weight: bold; color: #c0392b;">${missingList.length > 0 ? missingList.join(', ') : '¡Todos los cursos asignados!'}</div></div>
+                </div>`;
+            printEvalSummaryContainer.appendChild(summaryBox);
+        });
+    }
+
+    function getStateObject(customName = "", customDateRange = "") {
+        return {
+            id: 'version_' + Date.now(), name: customName || lastSavedMeta.name,
+            createdDate: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            dateRange: customDateRange || `${formatDate(lastSavedMeta.startDate)} al ${formatDate(lastSavedMeta.endDate)}`,
+            gridSelections: JSON.parse(JSON.stringify(gridSelections)),
+            selectedCourse: document.getElementById('courseSelector').value,
+            logoBase64: currentSchoolLogo
+        };
+    }
+
+    function openSaveModal() {
+        document.getElementById('inputScheduleName').value = lastSavedMeta.name;
+        document.getElementById('inputStartDate').value = lastSavedMeta.startDate;
+        document.getElementById('inputEndDate').value = lastSavedMeta.endDate;
+        toggleSaveModal(true);
+    }
+    function toggleSaveModal(open) { const modal = document.getElementById('saveModal'); if(open) modal.classList.add('open'); else modal.classList.remove('open'); }
+
+    function confirmSaveVersion() {
+        let name = document.getElementById('inputScheduleName').value.trim() || "Calendario sin nombre";
+        let start = document.getElementById('inputStartDate').value; 
+        let end = document.getElementById('inputEndDate').value;
+        
+        lastSavedMeta.name = name;
+        if(start) lastSavedMeta.startDate = start;
+        if(end) lastSavedMeta.endDate = end;
+        lastSavedMeta.isConfigured = true;
+
+        let rangeStr = (start && end) ? `${formatDate(start)} al ${formatDate(end)}` : 'Sin rango especificado';
+        let newVersion = getStateObject(name, rangeStr);
+        
+        let history = getHistory(); history.unshift(newVersion); 
+        localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
+        
+        downloadJsonFile(newVersion); toggleSaveModal(false); alert(`¡Horario "${name}" guardado exitosamente!`);
+    }
+
+    function handleNewScheduleButton() {
+        let hasData = Object.keys(gridSelections).length > 0;
+        if (hasData) {
+            if (confirm("¿Deseas guardar tu horario actual antes de crear uno nuevo?")) {
+                if (lastSavedMeta.isConfigured) {
+                    let savedVersion = getStateObject(lastSavedMeta.name, `${formatDate(lastSavedMeta.startDate)} al ${formatDate(lastSavedMeta.endDate)}`);
+                    let history = getHistory(); history.unshift(savedVersion);
+                    localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
+                    downloadJsonFile(savedVersion);
+                    resetScreenToNew();
+                } else { openSaveModal(); return; }
+            } else { resetScreenToNew(); }
+        } else { resetScreenToNew(); }
+    }
+
+    function resetScreenToNew() {
+        gridSelections = {};
+        document.getElementById('courseSelector').value = '';
+        renderInteractiveGrid();
+        updateReports();
+        alert("Pantalla limpia. ¡Listo para un nuevo horario!");
+    }
+
+    function formatDate(dateStr) { if(!dateStr) return ''; let p = dateStr.split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : dateStr; }
+    function downloadJsonFile(stateObj) {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stateObj, null, 2));
+        const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", `${stateObj.name.replace(/[^a-zA-Z0-9]/g, '_')}.json`);
+        document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
+    }
+
+    function getHistory() { try { let h = localStorage.getItem('calendario_historial_versiones'); return h ? JSON.parse(h) : []; } catch(e) { return []; } }
+    function openHistoryModal() { renderHistoryList(); toggleHistoryModal(true); }
+    function toggleHistoryModal(open) { const modal = document.getElementById('historyModal'); if(open) modal.classList.add('open'); else modal.classList.remove('open'); }
+
+    function renderHistoryList() {
+        const container = document.getElementById('historyListContainer'); let history = getHistory();
+        if(history.length === 0) { container.innerHTML = `<p style="text-align:center; color:#718093;">No hay horarios guardados en el historial.</p>`; return; }
+        container.innerHTML = '';
+        history.forEach((version) => {
+            let item = document.createElement('div'); item.className = 'history-item';
+            item.innerHTML = `
+                <div class="history-item-info"><h4>📌 ${version.name}</h4><p>Creado: ${version.createdDate} | Rango: 📅 ${version.dateRange}</p></div>
+                <div class="history-item-actions"><button class="btn-action" style="background:#27ae60; padding:6px 10px; font-size:12px;" onclick="loadVersion('${version.id}')">📂 Cargar</button><button class="btn-action" style="background:#e74c3c; padding:6px 10px; font-size:12px;" onclick="deleteVersion('${version.id}')">🗑️ Borrar</button></div>`;
+            container.appendChild(item);
+        });
+    }
+
+    function loadVersion(id) {
+        let history = getHistory(); let version = history.find(v => v.id === id);
+        if(version) { if(confirm(`¿Cargar "${version.name}"?`)) { restoreState(version); toggleHistoryModal(false); alert(`Horario cargado con éxito.`); } }
+    }
+    function deleteVersion(id) { if(confirm("¿Eliminar del historial?")) { let history = getHistory(); history = history.filter(v => v.id !== id); localStorage.setItem('calendario_historial_versiones', JSON.stringify(history)); renderHistoryList(); } }
+
+    function autoSaveState() { try { localStorage.setItem('calendario_evaluaciones_autosave_vgrid', JSON.stringify(getStateObject())); } catch(e) {} }
+    setInterval(() => { autoSaveState(); const toast = document.getElementById('autoSaveToast'); toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3000); }, 120000);
+
+    function loadBackup(event) {
+        const file = event.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) { try { restoreState(JSON.parse(e.target.result)); alert("¡Cargado desde JSON!"); } catch(err) { alert("Archivo no válido."); } };
+        reader.readAsText(file);
+    }
+
+    function restoreState(state) {
+        if (!state) return;
+        gridSelections = state.gridSelections || {};
+        if (state.logoBase64) currentSchoolLogo = state.logoBase64;
+        renderInteractiveGrid();
+        if (state.selectedCourse) document.getElementById('courseSelector').value = state.selectedCourse;
+        updateReports();
+    }
+
+    function checkAutoSave() {
+        try { let saved = localStorage.getItem('calendario_evaluaciones_autosave_vgrid'); if (saved) { let state = JSON.parse(saved); if (confirm("Se encontró un avance guardado en la cuadrícula. ¿Deseas recuperarlo?")) { restoreState(state); return; } } } catch(e) {}
+        initApp();
+    }
+
+    function exportToWord() {
+        const course = document.getElementById('courseSelector').value;
+        if (!course) { alert("Selecciona un curso antes de descargar."); return; }
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Calendario</title><style>table{border-collapse:collapse;width:100%;} th, td{border:1px solid black;padding:6px;text-align:center;font-family:Arial,sans-serif;font-size:12px;}</style></head><body>";
+        const footer = "</body></html>"; let printSection = document.querySelector('.print-section').innerHTML;
+        const blob = new Blob(['\uFEFF' + (header + printSection + footer)], { type: 'application/msword' });
+        const URL_OBJ = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = URL_OBJ; a.download = `Calendario_${course}.doc`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(URL_OBJ);
+    }
+
+    document.getElementById('courseSelector').addEventListener('change', updateReports);
+    checkAutoSave();
+</script>
+</body>
+</html>
