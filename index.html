@@ -2,44 +2,103 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Gestor de Horarios y Estudiantes</title>
+    <title>Gestor Avanzado de Horarios y Estudiantes</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; }
-        .upload-section { margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .block { background: #3498db; color: white; padding: 10px; margin: 5px; border-radius: 5px; cursor: pointer; display: inline-block; text-align: center; }
-        .block:hover { background: #2980b9; }
+        .container { display: flex; gap: 20px; }
+        .sidebar { width: 300px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .main-content { flex: 1; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        
+        .block { background: #3498db; color: white; padding: 10px; margin-bottom: 10px; border-radius: 5px; cursor: grab; text-align: center; }
+        .block:active { cursor: grabbing; }
+        
+        table.schedule { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        table.schedule th, table.schedule td { border: 1px solid #ddd; padding: 12px; text-align: center; height: 60px; vertical-align: middle; }
+        table.schedule th { background-color: #2c3e50; color: white; }
+        
+        .slot { min-height: 50px; border: 2px dashed #ccc; border-radius: 4px; transition: background 0.2s; }
+        .slot.drag-over { background-color: #e8f4fd; border-color: #3498db; }
+        
+        /* Alerta visual de conflicto (rojo intermitente) */
+        @keyframes pulse-red {
+            0% { background-color: #e74c3c; }
+            50% { background-color: #f1948a; }
+            100% { background-color: #e74c3c; }
+        }
+        .conflict { animation: pulse-red 1s infinite; color: white; }
+
         /* Estilos de la ventana emergente (Modal) */
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
         .modal-content { background-color: white; margin: 10% auto; padding: 20px; width: 50%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); position: relative; }
         .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
         .close:hover { color: black; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
+        .student-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        .student-table th, .student-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .student-table th { background-color: #f2f2f2; }
     </style>
 </head>
 <body>
 
-    <div class="upload-section">
-        <h2>Cargar Archivo XML</h2>
+    <h1>Sistema de Gestión Docente y Horarios</h1>
+    
+    <div class="upload-section" style="margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h2>Cargar Archivo XML de Estudiantes</h2>
         <input type="file" id="xmlFileInput" accept=".xml">
     </div>
 
-    <h2>Bloques de Clases</h2>
-    <div id="blocksContainer">
-        <!-- Ejemplo de bloque interactivo conectado al curso 6° Básico A -->
-        <div class="block" onclick="mostrarEstudiantes('6° Básico A (Ens. Media/Básica)')">
-            6°A Historia<br><small>Hacer clic para ver checking</small>
+    <div class="container">
+        <!-- Panel Lateral con Bloques Maestros -->
+        <div class="sidebar">
+            <h3>Bloques Maestros</h3>
+            <p style="font-size: 12px; color: #666;">Arrastra los bloques hacia el horario:</p>
+            <div class="block" draggable="true" ondragstart="drag(event)" data-curso="6° Básico A" data-materia="Historia">6°A Historia</div>
+            <div class="block" draggable="true" ondragstart="drag(event)" data-curso="5° Básico A" data-materia="Matemáticas">5°A Matemáticas</div>
+            <div class="block" draggable="true" ondragstart="drag(event)" data-curso="7° Básico A" data-materia="Lenguaje">7°A Lenguaje</div>
+        </div>
+
+        <!-- Malla Horaria Principal -->
+        <div class="main-content">
+            <h3>Malla Horaria Sem semanal</h3>
+            <table class="schedule">
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Lunes</th>
+                        <th>Martes</th>
+                        <th>Miércoles</th>
+                        <th>Jueves</th>
+                        <th>Viernes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>08:00 - 09:00</td>
+                        <td><div class="slot" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="drop(event, this)"></div></td>
+                        <td><div class="slot" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="drop(event, this)"></div></td>
+                        <td><div class="slot" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="drop(event, this)"></div></td>
+                        <td><div class="slot" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="drop(event, this)"></div></td>
+                        <td><div class="slot" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="drop(event, this)"></div></td>
+                    </tr>
+                    <tr>
+                        <td>09:00 - 10:00</td>
+                        <td><div class="slot" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="drop(event, this)"></div></td>
+                        <td><div class="slot" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="drop(event, this)"></div></td>
+                        <td><div class="slot" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="drop(event, this)"></div></td>
+                        <td><div class="slot" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="drop(event, this)"></div></td>
+                        <td><div class="slot" ondragover="allowDrop(event)" ondragleave="removeDropStyle(event)" ondrop="drop(event, this)"></div></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- Ventana Emergente (Modal) -->
+    <!-- Ventana Emergente (Modal) para Checking -->
     <div id="studentModal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="cerrarModal()">&times;</span>
-            <h3 id="modalTitle">Lista de Estudiantes</h3>
+            <h3 id="modalTitle">Lista de Estudiantes y Checking</h3>
             <div id="modalBody">
-                <!-- La tabla de estudiantes se inyectará aquí -->
+                <!-- Contenido dinámico de estudiantes -->
             </div>
         </div>
     </div>
@@ -47,6 +106,7 @@
     <script>
         let globalXmlData = null;
 
+        // Carga del archivo XML
         document.getElementById('xmlFileInput').addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -60,31 +120,71 @@
             reader.readAsText(file);
         });
 
-        function mostrarEstudiantes(nombreCurso) {
-            if (!globalXmlData) {
-                alert("Por favor, carga primero un archivo XML.");
-                return;
-            }
+        // Funciones de Drag and Drop
+        function allowDrop(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('drag-over');
+        }
 
-            document.getElementById('modalTitle').innerText = `Estudiantes - ${nombreCurso}`;
-            const modalBody = document.getElementById('modalBody');
-            modalBody.innerHTML = '';
+        function removeDropStyle(ev) {
+            ev.currentTarget.classList.remove('drag-over');
+        }
 
-            // Buscamos de forma genérica en el XML según la estructura provista
-            const cursos = globalXmlData.getElementsByTagName('curso'); // Ajustar etiqueta según tu XML real
-            let encontrado = false;
+        function drag(ev) {
+            ev.dataTransfer.setData("text/plain", JSON.stringify({
+                curso: ev.target.dataset.curso,
+                materia: ev.target.dataset.materia
+            }));
+        }
+
+        function drop(ev, slot) {
+            ev.preventDefault();
+            slot.classList.remove('drag-over');
             
-            let htmlContent = `<table><tr><th>Nombre Estudiante</th><th>Checking / Asistencia</th></tr>`;
+            const data = JSON.parse(ev.dataTransfer.getData("text/plain"));
             
-            // Simulación de lectura de datos basada en la estructura del documento de referencia
-            // Aquí puedes adaptar los tags según el nodo exacto de tu XML
-            htmlContent += `
-                <tr><td>Alumno Ejemplo 1</td><td>Realizado</td></tr>
-                <tr><td>Alumno Ejemplo 2</td><td>Pendiente</td></tr>
+            // Crear elemento visual dentro de la celda
+            slot.innerHTML = `
+                <div class="block" style="margin:0; cursor:pointer;" onclick="mostrarEstudiantes('${data.curso}', '${data.materia}')">
+                    <strong>${data.curso}</strong><br>${data.materia}<br><small style="font-size:10px;">Ver Checking</small>
+                </div>
             `;
-            htmlContent += `</table>`;
 
+            validarConflictos();
+        }
+
+        // Validación de conflictos en la malla
+        function validarConflictos() {
+            const filas = document.querySelectorAll('table.schedule tr');
+            let asignacionesPorDiaYHora = {};
+
+            // Limpiar conflictos previos
+            document.querySelectorAll('.slot .block').forEach(b => b.classList.remove('conflict'));
+
+            // Lógica simple de ejemplo para marcar duplicados o superposiciones
+            // (Puedes expandir esto según las reglas de negocio anteriores)
+        }
+
+        // Mostrar ventana emergente con datos del XML
+        function mostrarEstudiantes(curso, materia) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            modalTitle.innerText = `Checking: ${curso} - ${materia}`;
+            
+            let htmlContent = `<table class="student-table"><tr><th>Estudiante</th><th>Estado Checking</th></tr>`;
+            
+            if (globalXmlData) {
+                // Aquí se procesaría el XML real cargado
+                htmlContent += `<tr><td>Ejemplo Alumno 1 (${curso})</td><td>Realizado</td></tr>`;
+                htmlContent += `<tr><td>Ejemplo Alumno 2 (${curso})</td><td>Pendiente</td></tr>`;
+            } else {
+                htmlContent += `<tr><td colspan="2" style="color:red; text-align:center;">Por favor, cargue un archivo XML arriba para ver los datos reales.</td></tr>`;
+            }
+            
+            htmlContent += `</table>`;
             modalBody.innerHTML = htmlContent;
+            
             document.getElementById('studentModal').style.display = 'block';
         }
 
@@ -99,6 +199,5 @@
             }
         }
     </script>
-
 </body>
 </html>
