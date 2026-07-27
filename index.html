@@ -3,896 +3,1282 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visor Multi-Formato Mineduc & Excel</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome CDN -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- SheetJS (xlsx) -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#1e3a8a',
-                        excelGreen: '#107c41',
-                    }
-                }
-            }
+    <title>Horario Interactivo - Gestión Completa</title>
+    <style>
+        :root {
+            --header-gray: #a5b1c2;
+            --bg-gray: #d1d8e0;
         }
-    </script>
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        h1, h2 {
+            text-align: center;
+            color: #2c3e50;
+        }
+        .instructions {
+            background: #e8f4f8;
+            padding: 15px 20px;
+            border-left: 5px solid #3498db;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        #autoSaveToast {
+            position: fixed; bottom: 20px; right: 20px; background-color: #27ae60; color: white;
+            padding: 10px 20px; border-radius: 6px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex; align-items: center; gap: 8px; z-index: 9999; opacity: 0; transition: opacity 0.4s ease-in-out; pointer-events: none;
+        }
+        #autoSaveToast.show { opacity: 1; }
+
+        #infoToast {
+            position: fixed; bottom: 70px; right: 20px; background-color: #f39c12; color: white;
+            padding: 10px 20px; border-radius: 6px; font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex; align-items: center; gap: 8px; z-index: 9999; opacity: 0; transition: opacity 0.4s ease-in-out; pointer-events: none; max-width: 350px; font-size: 13px;
+        }
+        #infoToast.show { opacity: 1; }
+
+        /* Modales */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center; z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .modal-content { background: white; width: 95%; max-width: 520px; border-radius: 8px; padding: 25px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ecf0f1; padding-bottom: 10px; margin-bottom: 15px; }
+        .modal-header h3 { margin: 0; color: #2c3e50; font-size: 18px; }
+        .btn-close-modal { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        
+        .history-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .history-item { background: #f8f9fa; border: 1px solid #d1d8e0; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .history-item-info h4 { margin: 0 0 5px 0; color: #2c3e50; font-size: 16px; }
+        .history-item-info p { margin: 0; font-size: 13px; color: #718093; }
+        .history-item-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #2c3e50; }
+        .form-group input, .form-group select { width: 100%; padding: 8px 12px; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 4px; box-sizing: border-box; background: #fff; }
+
+        /* Estilos para pestañas del modal de gestión unificada */
+        .tabs-header { display: flex; border-bottom: 2px solid #cbd5e1; margin-bottom: 15px; }
+        .tab-btn { flex: 1; padding: 10px 5px; background: #f1f5f9; border: none; font-weight: bold; cursor: pointer; color: #64748b; font-size: 13px; text-align: center; }
+        .tab-btn.active { background: white; color: #2c3e50; border-bottom: 3px solid #3498db; }
+        .tab-pane { display: none; }
+        .tab-pane.active { display: block; }
+
+        .manage-container { display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; margin-bottom: 15px; }
+        .manage-row { display: flex; justify-content: space-between; align-items: center; background: #f8fafc; padding: 8px 12px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 14px; }
+        .manage-row-actions { display: flex; gap: 6px; }
+        .btn-edit-item { background: #f39c12; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .btn-delete-item { background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 3px; cursor: pointer; font-size: 11px; font-weight: bold; }
+
+        /* Panel de Bloques Maestros */
+        .master-palette { background: #f8fafc; border: 2px dashed #94a3b8; border-radius: 8px; padding: 15px; margin-bottom: 25px; }
+        .palette-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 10px; }
+        .palette-items { display: flex; flex-wrap: wrap; gap: 10px; }
+        .master-card {
+            padding: 8px 12px; border-radius: 6px; font-weight: bold; font-size: 12px; cursor: grab;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; flex-direction: column; gap: 3px; border: 1px solid rgba(0,0,0,0.15);
+            transition: transform 0.1s; user-select: none; min-width: 150px;
+        }
+        .master-card:active { cursor: grabbing; transform: scale(0.97); }
+        .master-card-actions { display: flex; justify-content: flex-end; gap: 8px; font-size: 11px; border-top: 1px solid rgba(0,0,0,0.15); padding-top: 3px; margin-top: 2px; }
+        .master-card-actions span { cursor: pointer; font-weight: bold; }
+        .master-card-actions span:hover { text-decoration: underline; }
+
+        /* Cuadrícula de Calendario */
+        .grid-container { width: 100%; overflow-x: auto; margin-bottom: 25px; }
+        .grid-table { width: 100%; border-collapse: collapse; min-width: 800px; background: white; }
+        .grid-table th, .grid-table td { border: 1px solid #cbd5e1; padding: 6px; text-align: center; vertical-align: middle; }
+        .grid-table th { background-color: #34495e; color: white; font-size: 13px; padding: 10px; }
+        .grid-hour-col { font-weight: bold; background-color: #ecf0f1; font-size: 12px; width: 6%; }
+        .grid-time-col { font-size: 11px; background-color: #f8fafc; width: 12%; color: #475569; }
+        .grid-day-col { width: 16.4%; cursor: pointer; transition: background 0.2s; height: 65px; position: relative; }
+        .grid-day-col:hover { background-color: #f1f5f9; }
+        .grid-day-col.drag-over { background-color: #e2e8f0 !important; border: 2px dashed #3498db; }
+        .grid-day-col.conflict-cell { background-color: #ff4757 !important; animation: pulse 1s infinite; }
+        .grid-recreo-row td { background-color: #e67e22; color: white; font-weight: bold; letter-spacing: 2px; padding: 8px; font-size: 12px; }
+
+        /* Ficha asignada en celda */
+        .assigned-chip {
+            padding: 6px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: #000;
+            margin-bottom: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); text-align: left; position: relative;
+        }
+        .assigned-chip .chip-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 10px; border-top: 1px solid rgba(0,0,0,0.15); padding-top: 2px; }
+        .assigned-chip input[type="checkbox"] { cursor: pointer; vertical-align: middle; margin-right: 3px; }
+
+        @keyframes pulse { 0% { box-shadow: inset 0 0 0 0 rgba(255, 71, 87, 0.7); } 70% { box-shadow: inset 0 0 0 8px rgba(255, 71, 87, 0); } 100% { box-shadow: inset 0 0 0 0 rgba(255, 71, 87, 0); } }
+
+        .generator-controls { background: #fff; border: 2px dashed #bdc3c7; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 30px; display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .generator-controls select { padding: 10px 15px; font-size: 16px; font-weight: bold; border-radius: 5px; border: 2px solid #3498db; }
+        .btn-action { color: white; border: none; padding: 12px 18px; font-size: 14px; font-weight: bold; border-radius: 5px; cursor: pointer; transition: background 0.2s; display: flex; align-items: center; gap: 6px; }
+        .btn-print { background-color: #27ae60; } .btn-print:hover { background-color: #219653; }
+        .btn-word { background-color: #2980b9; } .btn-word:hover { background-color: #2471a3; }
+        .btn-save { background-color: #d35400; } .btn-save:hover { background-color: #b94200; }
+        .btn-load { background-color: #8e44ad; } .btn-load:hover { background-color: #732d91; }
+        .btn-history { background-color: #e67e22; } .btn-history:hover { background-color: #d35400; }
+        .btn-upload-logo { background-color: #34495e; } .btn-upload-logo:hover { background-color: #2c3e50; }
+        .btn-new { background-color: #16a085; } .btn-new:hover { background-color: #1abc9c; }
+        .btn-add-master { background-color: #8e44ad; color: white; border: none; padding: 8px 14px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-manage-lists { background-color: #2980b9; color: white; border: none; padding: 8px 14px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        
+        /* Sección de Impresión Final Oficial */
+        .print-section { background: white; padding: 20px; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; max-width: 1100px; overflow-x: auto; }
+        .header-final { display: flex; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #222; padding-bottom: 15px; flex-wrap: wrap; gap: 10px; justify-content: center; }
+        
+        .logo-wrapper { width: 90px; display: flex; justify-content: center; align-items: center; cursor: pointer; position: relative; }
+        .logo-wrapper:hover::after { content: "Cambiar insignia"; position: absolute; bottom: -20px; left: 50%; transform: translateX(-50%); background: #333; color: white; font-size: 10px; padding: 2px 5px; border-radius: 3px; white-space: nowrap; }
+        .logo-placeholder { width: 80px; height: 90px; background-color: #3498db; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; font-weight: bold; font-size: 12px; border: 2px solid #2980b9; border-radius: 0 0 40px 40px; text-align: center; padding: 5px; }
+        #logoImage { max-width: 90px; max-height: 100px; object-fit: contain; }
+
+        .title-final { flex-grow: 1; text-align: center; min-width: 250px; }
+        .title-final h2 { margin: 0 0 10px 0; font-size: 18px; text-decoration: underline; text-transform: uppercase; }
+        .title-final h3 { margin: 0; font-size: 16px; text-decoration: underline; }
+        .subtitle-course { color: #e74c3c; margin-top: 10px; font-size: 20px; font-weight: 900; }
+        
+        .final-table { width: 100%; border-collapse: collapse; border: 2px solid #333; margin-bottom: 20px; font-family: Arial, sans-serif; min-width: 650px; }
+        .final-table th, .final-table td { border: 1px solid #555; padding: 6px; text-align: center; font-size: 12px; height: 40px; vertical-align: middle; }
+        .final-table th { background-color: var(--header-gray); font-weight: bold; }
+        .final-table .bg-gray-light { background-color: var(--bg-gray); font-weight: bold; }
+        .final-table .recreo-final { background-color: var(--bg-gray); font-weight: bold; letter-spacing: 1px; color: #333; }
+        
+        .final-cell { font-weight: bold; font-size: 11px; text-transform: uppercase; }
+        
+        .simbologia-title { text-align: center; text-decoration: underline; font-weight: bold; margin-bottom: 10px; margin-top: 25px; }
+        .table-simbologia { width: 90%; margin: 0 auto; border-collapse: collapse; border: 2px solid #333; min-width: 450px; }
+        .table-simbologia th, .table-simbologia td { border: 1px solid #555; padding: 6px; text-align: center; font-weight: bold; font-size: 12px; }
+
+        .print-eval-summary-container { margin-top: 25px; page-break-inside: avoid; }
+        .print-eval-summary-card { border: 1px solid #333; margin-bottom: 15px; border-radius: 4px; overflow: hidden; font-family: Arial, sans-serif; }
+        .print-eval-summary-header { background-color: var(--header-gray); padding: 8px 12px; font-weight: bold; font-size: 13px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; }
+        .print-eval-summary-body { display: flex; background: #fff; font-size: 12px; flex-wrap: wrap; }
+        .print-eval-col-assigned { flex: 1; min-width: 220px; padding: 8px 12px; border-right: 1px solid #ccc; background-color: #f0fdf4; }
+        .print-eval-col-missing { flex: 1; min-width: 220px; padding: 8px 12px; background-color: #fef2f2; }
+
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; max-width: 100%; padding: 0; }
+            .grid-container, .master-palette, h1, .instructions, .generator-controls, .modal-overlay { display: none !important; }
+            .print-section { border: none; box-shadow: none; width: 100%; max-width: 100%; padding: 0; overflow: visible; }
+            .logo-wrapper:hover::after { display: none !important; }
+            @page { size: landscape; margin: 10mm; }
+        }
+    </style>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans antialiased min-h-screen flex flex-col">
+<body>
 
-    <!-- Header -->
-    <header class="bg-primary text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center">
-            <div class="flex items-center space-x-3 mb-4 md:mb-0">
-                <div class="bg-blue-600 p-3 rounded-lg shadow">
-                    <i class="fa-solid fa-layer-group text-2xl text-white"></i>
-                </div>
-                <div>
-                    <h1 class="text-2xl font-bold tracking-tight">Visor Multi-Formato: Mineduc & Excel</h1>
-                    <p class="text-blue-200 text-sm">Gestión completa de Asignaturas, Profesores y Cursos</p>
-                </div>
-            </div>
-            <div class="flex flex-wrap gap-3 items-center">
-                <!-- Botón para abrir el Modal de Gestión -->
-                <button onclick="openGestionModal()" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition shadow flex items-center space-x-2">
-                    <i class="fa-solid fa-gear"></i>
-                    <span>Gestión Asignaturas, Profesores y Cursos</span>
-                </button>
-                <button onclick="switchTab('xml')" id="tab-btn-xml" class="bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition shadow flex items-center space-x-2">
-                    <i class="fa-solid fa-file-code"></i>
-                    <span>Panel XML Mineduc</span>
-                </button>
-                <button onclick="switchTab('excel')" id="tab-btn-excel" class="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition shadow flex items-center space-x-2">
-                    <i class="fa-solid fa-file-excel"></i>
-                    <span>Panel Visor Excel</span>
-                </button>
-            </div>
+<div id="autoSaveToast"><span>💾</span> <span id="toastText">¡Avance guardado automáticamente!</span></div>
+<div id="infoToast"><span>⚠️</span> <span id="infoToastText">Aviso</span></div>
+
+<!-- MODAL PARA CREAR / EDITAR BLOQUE MAESTRO -->
+<div class="modal-overlay" id="masterModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="masterModalTitle">➕ Crear Bloque Maestro de Evaluación</h3>
+            <button class="btn-close-modal" onclick="toggleMasterModal(false)">✕ Cerrar</button>
         </div>
-    </header>
-
-    <!-- Main Content -->
-    <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8 flex-grow w-full">
-
-        <!-- ================= PANEL 1: XML MINEDUC ================= -->
-        <section id="panel-xml" class="space-y-6">
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div>
-                    <h2 class="text-xl font-bold text-slate-800">Visor y Comparador de Nómina Mineduc (XML)</h2>
-                    <p class="text-sm text-slate-500">Carga tu archivo XML actual y el anterior.</p>
-                </div>
-                <div class="flex flex-wrap gap-2">
-                    <label for="xml-file-input" class="cursor-pointer bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow flex items-center space-x-2">
-                        <i class="fa-solid fa-upload"></i><span>Cargar XML Actual</span>
-                    </label>
-                    <input type="file" id="xml-file-input" accept=".xml" class="hidden">
-
-                    <label for="xml-prev-input" class="cursor-pointer bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow flex items-center space-x-2">
-                        <i class="fa-solid fa-clock-rotate-left"></i><span>XML Anterior</span>
-                    </label>
-                    <input type="file" id="xml-prev-input" accept=".xml" class="hidden">
-                </div>
-            </div>
-
-            <div id="upload-prompt-xml" class="bg-white rounded-2xl shadow-sm border border-dashed border-slate-300 p-12 text-center">
-                <div class="bg-blue-50 text-blue-600 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl">
-                    <i class="fa-solid fa-cloud-arrow-up"></i>
-                </div>
-                <h3 class="text-lg font-bold text-slate-700 mb-1">Ningún XML cargado todavía</h3>
-            </div>
-
-            <div id="dashboard-container-xml" class="hidden space-y-6">
-                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-                        <h3 class="font-semibold text-slate-800 text-lg">Nómina Mineduc Consolidada</h3>
-                        <span id="result-count-xml" class="text-xs bg-blue-50 text-blue-700 font-medium px-2.5 py-1 rounded-full">0 registros</span>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
-                            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-xs">
-                                <tr>
-                                    <th class="px-6 py-3">Origen</th>
-                                    <th class="px-6 py-3">Categoría</th>
-                                    <th class="px-6 py-3">Curso</th>
-                                    <th class="px-6 py-3">RUN</th>
-                                    <th class="px-6 py-3">Nombre Completo</th>
-                                    <th class="px-6 py-3 text-center">Género</th>
-                                    <th class="px-6 py-3">Fecha Ingreso</th>
-                                    <th class="px-6 py-3 text-center">Asistencia</th>
-                                </tr>
-                            </thead>
-                            <tbody id="alumnos-tbody-xml" class="divide-y divide-slate-200 bg-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-
-        <!-- ================= PANEL 2: EXCEL INDEPENDIENTE ================= -->
-        <section id="panel-excel" class="hidden space-y-6">
-            <div class="bg-white rounded-xl shadow-sm p-6 border border-slate-100 flex flex-col md:flex-row justify-between items-center gap-4">
-                <div>
-                    <h2 class="text-xl font-bold text-slate-800 flex items-center space-x-2">
-                        <i class="fa-solid fa-file-excel text-excelGreen"></i>
-                        <span>Visor Independiente de Archivos Excel (.xlsx, .xls)</span>
-                    </h2>
-                    <p class="text-sm text-slate-500">Filtra por Roles, Estados, Anomalías y excepciones manuales.</p>
-                </div>
-                <div>
-                    <label for="excel-file-input" class="cursor-pointer bg-excelGreen hover:bg-emerald-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition shadow flex items-center space-x-2">
-                        <i class="fa-solid fa-upload"></i>
-                        <span>Cargar Archivo Excel</span>
-                    </label>
-                    <input type="file" id="excel-file-input" accept=".xlsx, .xls" class="hidden">
-                </div>
-            </div>
-
-            <div id="upload-prompt-excel" class="bg-white rounded-2xl shadow-sm border border-dashed border-slate-300 p-12 text-center">
-                <div class="bg-emerald-50 text-excelGreen w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl">
-                    <i class="fa-solid fa-file-excel"></i>
-                </div>
-                <h3 class="text-lg font-bold text-slate-700 mb-1">Ningún Excel cargado todavía</h3>
-            </div>
-
-            <div id="dashboard-container-excel" class="hidden space-y-6">
-                <!-- Barra de Filtros Completa para Excel -->
-                <div class="bg-white rounded-xl shadow-sm p-4 border border-slate-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 items-center text-sm text-slate-600">
-                    <div>
-                        <span class="font-semibold text-slate-800">Archivo:</span> <span id="excel-filename" class="text-excelGreen font-medium">-</span>
-                    </div>
-                    <div>
-                        <span class="font-semibold text-slate-800">Hoja:</span>
-                        <select id="excel-sheet-select" class="ml-1 rounded-lg border border-slate-300 py-1 px-2 text-sm bg-white"></select>
-                    </div>
-                    <div>
-                        <select id="excel-filter-role" class="w-full rounded-lg border border-slate-300 py-1.5 px-2 text-sm bg-white">
-                            <option value="">Rol: Todos (Student/Teacher)</option>
-                            <option value="student">Student</option>
-                            <option value="teacher">Teacher</option>
-                        </select>
-                    </div>
-                    <div>
-                        <select id="excel-filter-status" class="w-full rounded-lg border border-slate-300 py-1.5 px-2 text-sm bg-white">
-                            <option value="">Estado: Todos (Active/Inactive)</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive / Desactivated</option>
-                        </select>
-                    </div>
-                    <div>
-                        <select id="excel-filter-format" class="w-full rounded-lg border border-amber-300 bg-amber-50 text-amber-900 py-1.5 px-2 text-sm font-medium">
-                            <option value="all">🔍 Formato: Todos</option>
-                            <option value="normal">✅ Solo formato correcto</option>
-                            <option value="anomaly">⚠️ Solo anomalías pendientes</option>
-                            <option value="overridden">💡 Forzados como Normales</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm p-4 border border-slate-100">
-                    <input type="text" id="excel-search-input" placeholder="Búsqueda libre en la planilla..." class="w-full rounded-lg border border-slate-300 py-2 px-3 text-sm">
-                </div>
-
-                <div class="bg-white rounded-xl shadow-sm border border-slate-100 overflow-hidden">
-                    <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                        <h3 class="font-semibold text-slate-800 text-lg">Contenido de la Planilla Excel</h3>
-                        <span id="excel-row-count" class="text-xs bg-emerald-50 text-emerald-800 font-medium px-2.5 py-1 rounded-full">0 filas</span>
-                    </div>
-                    <div class="overflow-x-auto max-h-[600px]">
-                        <table id="excel-table" class="min-w-full divide-y divide-slate-200 text-left text-sm">
-                            <thead id="excel-thead" class="bg-slate-100 text-slate-600 font-semibold uppercase tracking-wider text-xs sticky top-0"></thead>
-                            <tbody id="excel-tbody" class="divide-y divide-slate-200 bg-white"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- ================= MODAL DE GESTIÓN (ASIGNATURAS, PROFESORES Y CURSOS) ================= -->
-    <div id="gestion-modal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center hidden">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 overflow-hidden border border-slate-100">
-            <!-- Modal Header -->
-            <div class="flex justify-between items-center px-6 py-4 bg-slate-50 border-b border-slate-100">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-gear text-slate-700"></i>
-                    <h3 class="font-bold text-slate-800 text-lg">Gestión de Asignaturas, Profesores y Cursos</h3>
-                </div>
-                <button onclick="closeGestionModal()" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-3 py-1.5 rounded-lg font-medium transition flex items-center space-x-1">
-                    <i class="fa-solid fa-xmark"></i><span>Cerrar</span>
-                </button>
-            </div>
-
-            <!-- Modal Tabs -->
-            <div class="flex border-b border-slate-100 bg-slate-50/50 px-6 pt-2">
-                <button onclick="switchModalTab('asignaturas')" id="modal-tab-asignaturas" class="flex-1 pb-3 text-sm font-semibold text-blue-600 border-b-2 border-blue-600 transition flex items-center justify-center space-x-2">
-                    <i class="fa-solid fa-book-open"></i><span>Asignaturas</span>
-                </button>
-                <button onclick="switchModalTab('profesores')" id="modal-tab-profesores" class="flex-1 pb-3 text-sm font-semibold text-slate-500 hover:text-slate-700 transition flex items-center justify-center space-x-2">
-                    <i class="fa-solid fa-user-tie"></i><span>Profesores</span>
-                </button>
-                <button onclick="switchModalTab('cursos')" id="modal-tab-cursos" class="flex-1 pb-3 text-sm font-semibold text-slate-500 hover:text-slate-700 transition flex items-center justify-center space-x-2">
-                    <i class="fa-solid fa-chalkboard"></i><span>Cursos</span>
-                </button>
-            </div>
-
-            <!-- Modal Body Content -->
-            <div class="p-6 space-y-6 max-h-[60vh] overflow-y-auto">
-
-                <!-- CONTENIDO ASIGNATURAS -->
-                <div id="content-tab-asignaturas" class="space-y-4">
-                    <div>
-                        <label id="label-asignatura-input" class="block text-sm font-medium text-slate-700 mb-1">Nueva Asignatura:</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="input-asignatura-val" placeholder="Ej. Biología, Música..." class="flex-grow rounded-lg border border-slate-300 py-2 px-3 text-sm focus:ring-2 focus:ring-primary">
-                            <input type="hidden" id="edit-index-asignatura" value="-1">
-                            <button onclick="guardarAsignatura()" id="btn-save-asignatura" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow flex items-center space-x-1">
-                                <i class="fa-solid fa-plus"></i><span id="btn-text-asignatura">Agregar</span>
-                            </button>
-                            <button onclick="cancelarEdicionAsignatura()" id="btn-cancel-asignatura" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm transition">Cancelar</button>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Asignaturas Actuales:</h4>
-                        <div id="list-asignaturas" class="space-y-2"></div>
-                    </div>
-                </div>
-
-                <!-- CONTENIDO PROFESORES -->
-                <div id="content-tab-profesores" class="hidden space-y-4">
-                    <div>
-                        <label id="label-profesor-input" class="block text-sm font-medium text-slate-700 mb-1">Nuevo Profesor:</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="input-profesor-val" placeholder="Ej. Juan Pérez..." class="flex-grow rounded-lg border border-slate-300 py-2 px-3 text-sm focus:ring-2 focus:ring-primary">
-                            <input type="hidden" id="edit-index-profesor" value="-1">
-                            <button onclick="guardarProfesor()" id="btn-save-profesor" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow flex items-center space-x-1">
-                                <i class="fa-solid fa-plus"></i><span id="btn-text-profesor">Agregar</span>
-                            </button>
-                            <button onclick="cancelarEdicionProfesor()" id="btn-cancel-profesor" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm transition">Cancelar</button>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Profesores Actuales:</h4>
-                        <div id="list-profesores" class="space-y-2"></div>
-                    </div>
-                </div>
-
-                <!-- CONTENIDO CURSOS -->
-                <div id="content-tab-cursos" class="hidden space-y-4">
-                    <div>
-                        <label id="label-curso-input" class="block text-sm font-medium text-slate-700 mb-1">Nuevo Curso:</label>
-                        <div class="flex gap-2">
-                            <input type="text" id="input-curso-val" placeholder="Ej. 1°A, 2°B, 5°A..." class="flex-grow rounded-lg border border-slate-300 py-2 px-3 text-sm focus:ring-2 focus:ring-primary">
-                            <input type="hidden" id="edit-index-curso" value="-1">
-                            <button onclick="guardarCurso()" id="btn-save-curso" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow flex items-center space-x-1">
-                                <i class="fa-solid fa-plus"></i><span id="btn-text-curso">Agregar</span>
-                            </button>
-                            <button onclick="cancelarEdicionCurso()" id="btn-cancel-curso" class="hidden bg-slate-200 hover:bg-slate-300 text-slate-700 px-3 py-2 rounded-lg text-sm transition">Cancelar</button>
-                        </div>
-                    </div>
-                    <div>
-                        <h4 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">Cursos Actuales:</h4>
-                        <div id="list-cursos" class="space-y-2"></div>
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- Modal Footer -->
-            <div class="flex justify-end px-6 py-4 bg-slate-50 border-t border-slate-100">
-                <button onclick="closeGestionModal()" class="bg-amber-600 hover:bg-amber-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition shadow">
-                    Listo
-                </button>
-            </div>
+        <div class="form-group">
+            <label>Asignatura / Evaluación:</label>
+            <select id="masterSubjectSelect">
+                <option value="">-- Seleccione Asignatura --</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Profesor(a) a Cargo:</label>
+            <select id="masterTeacherSelect">
+                <option value="">-- Seleccione Profesor(a) --</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Color Identificatorio:</label>
+            <input type="color" id="newMasterColor" value="#00b894" style="width: 100%; height: 40px; border: none; cursor: pointer; background: none;">
+        </div>
+        <input type="hidden" id="editingMasterId" value="">
+        <div style="text-align: right; margin-top: 20px;">
+            <button class="btn-action btn-save" onclick="confirmSaveMaster()" style="display: inline-flex;">💾 Guardar Bloque</button>
         </div>
     </div>
+</div>
 
+<!-- MODAL UNIFICADO PARA ADMINISTRAR ASIGNATURAS, PROFESORES Y CURSOS -->
+<div class="modal-overlay" id="manageModal">
+    <div class="modal-content" style="max-width: 480px;">
+        <div class="modal-header">
+            <h3>⚙️ Gestión General (Asignaturas, Profesores y Cursos)</h3>
+            <button class="btn-close-modal" onclick="closeManageModal()">✕ Cerrar</button>
+        </div>
+        
+        <div class="tabs-header">
+            <button class="tab-btn active" onclick="switchTab('subjects')">📚 Asignaturas</button>
+            <button class="tab-btn" onclick="switchTab('teachers')">👤 Profesores</button>
+            <button class="tab-btn" onclick="switchTab('courses')">🏫 Cursos</button>
+        </div>
 
-    <!-- App Logic Script -->
-    <script>
-        // --- GESTIÓN DE TABS GENERALES ---
-        function switchTab(tab) {
-            const panelXml = document.getElementById('panel-xml');
-            const panelExcel = document.getElementById('panel-excel');
-            const btnXml = document.getElementById('tab-btn-xml');
-            const btnExcel = document.getElementById('tab-btn-excel');
+        <!-- Pestaña Asignaturas -->
+        <div id="tabSubjects" class="tab-pane active">
+            <div class="form-group">
+                <label id="lblSubjectAction">Nueva Asignatura:</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="subjectInput" placeholder="Ej. Biología, Música...">
+                    <button class="btn-action btn-save" id="btnSaveSubject" onclick="saveItem('subjects')" style="padding: 8px 12px; font-size: 13px;">➕ Agregar</button>
+                    <button class="btn-action btn-history" id="btnCancelSubject" onclick="cancelEditItem('subjects')" style="padding: 8px 12px; font-size: 13px; display:none;">Cancelar</button>
+                </div>
+            </div>
+            <label style="font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #2c3e50;">Asignaturas Actuales:</label>
+            <div id="subjectsListContainer" class="manage-container"></div>
+        </div>
 
-            if (tab === 'xml') {
-                panelXml.classList.remove('hidden');
-                panelExcel.classList.add('hidden');
-                btnXml.className = "bg-blue-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition shadow flex items-center space-x-2";
-                btnExcel.className = "bg-slate-700 hover:bg-slate-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition shadow flex items-center space-x-2";
-            } else {
-                panelXml.classList.add('hidden');
-                panelExcel.classList.remove('hidden');
-                btnExcel.className = "bg-excelGreen text-white px-4 py-2.5 rounded-lg text-sm font-medium transition shadow flex items-center space-x-2";
-                btnXml.className = "bg-slate-700 hover:bg-slate-600 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition shadow flex items-center space-x-2";
-            }
+        <!-- Pestaña Profesores -->
+        <div id="tabTeachers" class="tab-pane">
+            <div class="form-group">
+                <label id="lblTeacherAction">Nuevo Profesor(a):</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="teacherInput" placeholder="Ej. Juan Pérez...">
+                    <button class="btn-action btn-save" id="btnSaveTeacher" onclick="saveItem('teachers')" style="padding: 8px 12px; font-size: 13px;">➕ Agregar</button>
+                    <button class="btn-action btn-history" id="btnCancelTeacher" onclick="cancelEditItem('teachers')" style="padding: 8px 12px; font-size: 13px; display:none;">Cancelar</button>
+                </div>
+            </div>
+            <label style="font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #2c3e50;">Profesores Actuales:</label>
+            <div id="teachersListContainer" class="manage-container"></div>
+        </div>
+
+        <!-- Pestaña Cursos -->
+        <div id="tabCourses" class="tab-pane">
+            <div class="form-group">
+                <label id="lblCourseAction">Nuevo Curso:</label>
+                <div style="display: flex; gap: 8px;">
+                    <input type="text" id="courseInput" placeholder="Ej. 1°A, 2°B...">
+                    <button class="btn-action btn-save" id="btnSaveCourse" onclick="saveItem('courses')" style="padding: 8px 12px; font-size: 13px;">➕ Agregar</button>
+                    <button class="btn-action btn-history" id="btnCancelCourse" onclick="cancelEditItem('courses')" style="padding: 8px 12px; font-size: 13px; display:none;">Cancelar</button>
+                </div>
+            </div>
+            <label style="font-weight: bold; margin-bottom: 5px; font-size: 13px; color: #2c3e50;">Cursos Actuales:</label>
+            <div id="coursesListContainer" class="manage-container"></div>
+        </div>
+
+        <div style="text-align: right; margin-top: 15px;">
+            <button class="btn-action btn-save" onclick="closeManageModal()" style="display: inline-flex; font-size: 13px; padding: 8px 15px;">Listo</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA SELECCIONAR CURSO AL SOLTAR -->
+<div class="modal-overlay" id="dropModal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3>📌 Asignar Curso al Bloque</h3>
+            <button class="btn-close-modal" onclick="closeDropModal()">✕ Cerrar</button>
+        </div>
+        <div class="form-group">
+            <label id="dropModalInfo" style="font-size: 13px; color: #2c3e50; margin-bottom: 10px;"></label>
+            <label>Selecciona el Curso:</label>
+            <select id="dropCourseSelect">
+                <option value="">-- Seleccione Curso --</option>
+            </select>
+        </div>
+        <div style="text-align: right; margin-top: 20px;">
+            <button class="btn-action btn-save" onclick="confirmDropAssignment()" style="display: inline-flex;">💾 Asignar Curso</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL DE GUARDADO -->
+<div class="modal-overlay" id="saveModal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h3>💾 Guardar Horario Actual</h3>
+            <button class="btn-close-modal" onclick="toggleSaveModal(false)">✕ Cerrar</button>
+        </div>
+        <div class="form-group"><label>Nombre del Horario:</label><input type="text" id="inputScheduleName"></div>
+        <div class="form-group"><label>Fecha de Inicio:</label><input type="date" id="inputStartDate"></div>
+        <div class="form-group"><label>Fecha de Término:</label><input type="date" id="inputEndDate"></div>
+        <div style="text-align: right; margin-top: 20px;"><button class="btn-action btn-save" onclick="confirmSaveVersion()" style="display: inline-flex;">💾 Guardar y Descargar .json</button></div>
+    </div>
+</div>
+
+<!-- MODAL DE HISTORIAL -->
+<div class="modal-overlay" id="historyModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>📋 Historial de Horarios Guardados</h3>
+            <button class="btn-close-modal" onclick="toggleHistoryModal(false)">✕ Cerrar</button>
+        </div>
+        <div id="historyListContainer" class="history-list"></div>
+    </div>
+</div>
+
+<div class="container">
+    <h1>🗓️ Creador de Calendario Escolar</h1>
+    
+    <div class="instructions">
+        <strong>INSTRUCCIONES DE USO:</strong><br>
+        • Utiliza el botón <strong>"⚙️ Gestionar Listas"</strong> para agregar, editar o eliminar asignaturas, profesores y cursos libremente.<br>
+        • El sistema detecta automáticamente si un curso repite la misma prueba en bloques o días distintos avisando en <strong>rojo intermitente</strong>.
+    </div>
+
+    <!-- Bandeja de Bloques Maestros -->
+    <div class="master-palette">
+        <div class="palette-header">
+            <strong>🎨 Bandeja de Bloques Maestros (Arrastra o haz clic para usar):</strong>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-manage-lists" onclick="openManageModal()">⚙️ Gestionar Listas</button>
+                <button class="btn-add-master" onclick="openCreateMasterModal()">➕ Crear Nuevo Bloque</button>
+            </div>
+        </div>
+        <div class="palette-items" id="masterPaletteContainer"></div>
+    </div>
+
+    <!-- Cuadrícula Semanal -->
+    <div class="grid-container">
+        <table class="grid-table">
+            <thead>
+                <tr>
+                    <th colspan="2">BLOQUES / HORA</th>
+                    <th>LUNES</th>
+                    <th>MARTES</th>
+                    <th>MIÉRCOLES</th>
+                    <th>JUEVES</th>
+                    <th>VIERNES</th>
+                </tr>
+            </thead>
+            <tbody id="gridTableBody"></tbody>
+        </table>
+    </div>
+
+    <div class="generator-controls">
+        <label for="courseSelector" style="font-size: 16px; font-weight: bold;">Ver Curso en Reporte:</label>
+        <select id="courseSelector">
+            <option value="">-- Selecciona --</option>
+            <option value="TODOS">-- TODOS --</option>
+        </select>
+        
+        <button class="btn-action btn-new" onclick="handleNewScheduleButton()">➕ Nuevo Horario</button>
+        <button class="btn-action btn-upload-logo" onclick="document.getElementById('logoFileInput').click()">🖼️ Subir Insignia</button>
+        <input type="file" id="logoFileInput" style="display: none;" accept="image/png, image/jpeg, image/jpg" onchange="loadLogoImage(event)">
+
+        <button class="btn-action btn-save" onclick="openSaveModal()">💾 Guardar Horario</button>
+        <button class="btn-action btn-history" onclick="openHistoryModal()">📋 Historial</button>
+        <button class="btn-action btn-load" onclick="document.getElementById('backupFileInput').click()">📂 Cargar .json</button>
+        <input type="file" id="backupFileInput" style="display: none;" accept=".json" onchange="loadBackup(event)">
+        <button class="btn-action btn-print" onclick="window.print()">🖨️ Imprimir PDF</button>
+        <button class="btn-action btn-word" onclick="exportToWord()">📄 Exportar a Word</button>
+    </div>
+
+    <!-- Sección de Impresión Final Oficial -->
+    <div class="print-section">
+        <div class="header-final">
+            <div class="logo-wrapper" onclick="document.getElementById('logoFileInput').click()" title="Haz clic para cambiar la insignia de la escuela">
+                <div class="logo-placeholder" id="logoPlaceholder">ESCUELA<br>E-87<br>LAS ROCAS</div>
+                <img id="logoImage" src="" style="display:none;" alt="Insignia Escuela">
+            </div>
+            <div class="title-final">
+                <h2>CALENDARIO DIAGNOSTICO INTEGRAL DE APRENDIZAJE</h2>
+                <h3>AÑO 2026</h3>
+                <div class="subtitle-course" id="print-course-title">CURSO: (SELECCIONE ARRIBA)</div>
+            </div>
+        </div>
+
+        <table class="final-table" id="finalPrintTable">
+            <thead>
+                <tr>
+                    <th rowspan="2" colspan="2" class="bg-gray-light">BLOQUES</th>
+                    <th rowspan="2" colspan="2" class="bg-gray-light">AÑO 2026</th>
+                    <th colspan="5" class="bg-gray-light">HORARIO DE CLASES</th>
+                </tr>
+                <tr><th class="bg-gray-light">L</th><th class="bg-gray-light">M</th><th class="bg-gray-light">M</th><th class="bg-gray-light">J</th><th class="bg-gray-light">V</th></tr>
+            </thead>
+            <tbody id="finalTableBody"></tbody>
+        </table>
+
+        <div class="simbologia-title">SIMBOLOGIA Y PROFESORES</div>
+        <table class="table-simbologia">
+            <thead>
+                <tr><th style="width: 20%;">COLOR</th><th style="width: 45%;">EVALUACIÓN / ASIGNATURA</th><th style="width: 35%;">PROFESOR(A)</th></tr>
+            </thead>
+            <tbody id="simbologiaBody"></tbody>
+        </table>
+
+        <div class="simbologia-title">CÓMPUTO FINAL DE CURSOS POR ASIGNATURA</div>
+        <div id="printEvalSummaryContainer" class="print-eval-summary-container"></div>
+    </div>
+</div>
+
+<script>
+    const days = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'];
+    const hours = [
+        { type: 'class', num: '1°', time: '8:00 A 8:45' },   
+        { type: 'class', num: '2°', time: '8:45 A 9:30' },   
+        { type: 'break', label: 'Recreo (9:30 A 9:50)' },    
+        { type: 'class', num: '3°', time: '9:50 A 10:35' },  
+        { type: 'class', num: '4°', time: '10:35 A 11:20' }, 
+        { type: 'break', label: 'Recreo (11:20 A 11:40)' },  
+        { type: 'class', num: '5°', time: '11:40 A 12:25' }, 
+        { type: 'class', num: '6°', time: '12:25 A 13:10' }, 
+        { type: 'break', label: 'Almuerzo (13:10 A 13:55)' },
+        { type: 'class', num: '7°', time: '13:55 A 14:40' }, 
+        { type: 'class', num: '8°', time: '14:40 A 15:25' }  
+    ];
+    
+    function getOfficialBlockIndex(hourIndex) {
+        if (hourIndex === 0 || hourIndex === 1) return 1;
+        if (hourIndex === 3 || hourIndex === 4) return 2;
+        if (hourIndex === 6 || hourIndex === 7) return 3;
+        if (hourIndex === 9 || hourIndex === 10) return 4;
+        return -1;
+    }
+    
+    let masterCoursesList = ['1°A', '1°B', '2°A', '2°B', '3°A', '3°B', '4°A', '4°B', '5°A', '5°B', '5°C', '6°A', '6°B', '6°C', '7°A', '7°B', '7°C', '8°A', '8°B', '8°C'];
+    let masterSubjectsList = ['Matemática', 'Historia', 'Ciencias Naturales', 'LECTURA', 'Actividad Socioemocional Evaluativa'];
+    let masterTeachersList = ['Prof. María Gómez', 'Yocelin Fernandez', 'Prof. Nuevo', 'Prof. Lenguaje', 'Orientación'];
+
+    // Control de edición en curso dentro del modal de gestión
+    let editingState = {
+        subjects: { index: null, value: '' },
+        teachers: { index: null, value: '' },
+        courses: { index: null, value: '' }
+    };
+
+    let masterBlocks = [
+        { id: 'm1', subject: 'Matemática', teacher: 'Prof. María Gómez', color: '#fce762' },
+        { id: 'm2', subject: 'Historia', teacher: 'Yocelin Fernandez', color: '#00b894' },
+        { id: 'm3', subject: 'Ciencias Naturales', teacher: 'Prof. Nuevo', color: '#74b9ff' },
+        { id: 'm4', subject: 'LECTURA', teacher: 'Prof. Lenguaje', color: '#ff7675' }
+    ];
+
+    let gridSelections = {}; 
+    let currentSchoolLogo = null;
+    let pendingDropData = null;
+
+    let lastSavedMeta = {
+        name: "Calendario Diagnóstico Principal",
+        startDate: new Date().toISOString().split('T')[0],
+        endDate: new Date().toISOString().split('T')[0],
+        isConfigured: false
+    };
+
+    function showInfoToast(msg) {
+        const toast = document.getElementById('infoToast');
+        document.getElementById('infoToastText').textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => { toast.classList.remove('show'); }, 5000);
+    }
+
+    function loadLogoImage(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            currentSchoolLogo = e.target.result;
+            displayLogo();
+            autoSaveState();
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function displayLogo() {
+        const placeholder = document.getElementById('logoPlaceholder');
+        const img = document.getElementById('logoImage');
+        if (currentSchoolLogo) {
+            placeholder.style.display = 'none';
+            img.src = currentSchoolLogo; img.style.display = 'block';
+        } else {
+            placeholder.style.display = 'flex';
+            img.style.display = 'none'; img.src = '';
         }
+    }
 
+    function initApp() {
+        loadListsFromStorage();
+        updateCourseSelectorDropdown();
+        renderMasterPalette();
+        renderInteractiveGrid();
+        buildFinalTableRows();
+        updateReports();
+        displayLogo();
+    }
 
-        // --- LÓGICA DEL MODAL DE GESTIÓN (Asignaturas, Profesores, Cursos) ---
-        let asignaturasList = JSON.parse(localStorage.getItem('appAsignaturas') || '["MATEMATICA", "CIENCIAS", "INGLES", "Cuestionario de Condiciones para la formación integral"]');
-        let profesoresList = JSON.parse(localStorage.getItem('appProfesores') || '["Juan Pérez", "María Gómez"]');
-        let cursosList = JSON.parse(localStorage.getItem('appCursos') || '["1°A", "1°B", "2°A", "2°B", "3°A", "3°B", "4°A", "4°B", "5°A", "5°B", "6°A", "6°B", "7°A", "7°B", "8°A", "8°B"]');
+    function loadListsFromStorage() {
+        try {
+            let savedSubs = localStorage.getItem('calendario_master_subjects');
+            if(savedSubs) masterSubjectsList = JSON.parse(savedSubs);
+            let savedTeachs = localStorage.getItem('calendario_master_teachers');
+            if(savedTeachs) masterTeachersList = JSON.parse(savedTeachs);
+            let savedCourses = localStorage.getItem('calendario_master_courses');
+            if(savedCourses) masterCoursesList = JSON.parse(savedCourses);
+        } catch(e) {}
+    }
 
-        function openGestionModal() {
-            document.getElementById('gestion-modal').classList.remove('hidden');
-            renderAsignaturas();
-            renderProfesores();
-            renderCursos();
-        }
+    function saveListsToStorage() {
+        try {
+            localStorage.setItem('calendario_master_subjects', JSON.stringify(masterSubjectsList));
+            localStorage.setItem('calendario_master_teachers', JSON.stringify(masterTeachersList));
+            localStorage.setItem('calendario_master_courses', JSON.stringify(masterCoursesList));
+        } catch(e) {}
+    }
 
-        function closeGestionModal() {
-            document.getElementById('gestion-modal').classList.add('hidden');
-        }
+    function updateCourseSelectorDropdown() {
+        const sel = document.getElementById('courseSelector');
+        let currentVal = sel.value;
+        sel.innerHTML = `<option value="">-- Selecciona --</option><option value="TODOS">-- TODOS --</option>`;
+        masterCoursesList.forEach(c => {
+            let opt = document.createElement('option');
+            opt.value = c; opt.textContent = c;
+            sel.appendChild(opt);
+        });
+        sel.value = currentVal;
+    }
 
-        function switchModalTab(tab) {
-            const tAsig = document.getElementById('content-tab-asignaturas');
-            const tProf = document.getElementById('content-tab-profesores');
-            const tCurs = document.getElementById('content-tab-cursos');
-            
-            const bAsig = document.getElementById('modal-tab-asignaturas');
-            const bProf = document.getElementById('modal-tab-profesores');
-            const bCurs = document.getElementById('modal-tab-cursos');
-
-            tAsig.classList.add('hidden');
-            tProf.classList.add('hidden');
-            tCurs.classList.add('hidden');
-            bAsig.className = "flex-1 pb-3 text-sm font-semibold text-slate-500 hover:text-slate-700 transition flex items-center justify-center space-x-2";
-            bProf.className = "flex-1 pb-3 text-sm font-semibold text-slate-500 hover:text-slate-700 transition flex items-center justify-center space-x-2";
-            bCurs.className = "flex-1 pb-3 text-sm font-semibold text-slate-500 hover:text-slate-700 transition flex items-center justify-center space-x-2";
-
-            if (tab === 'asignaturas') {
-                tAsig.classList.remove('hidden');
-                bAsig.className = "flex-1 pb-3 text-sm font-semibold text-blue-600 border-b-2 border-blue-600 transition flex items-center justify-center space-x-2";
-            } else if (tab === 'profesores') {
-                tProf.classList.remove('hidden');
-                bProf.className = "flex-1 pb-3 text-sm font-semibold text-blue-600 border-b-2 border-blue-600 transition flex items-center justify-center space-x-2";
-            } else if (tab === 'cursos') {
-                tCurs.classList.remove('hidden');
-                bCurs.className = "flex-1 pb-3 text-sm font-semibold text-blue-600 border-b-2 border-blue-600 transition flex items-center justify-center space-x-2";
-            }
-        }
-
-        // --- CRUD ASIGNATURAS ---
-        function renderAsignaturas() {
-            const container = document.getElementById('list-asignaturas');
-            container.innerHTML = '';
-            asignaturasList.forEach((item, index) => {
-                container.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-lg text-sm">
-                        <span class="font-medium text-slate-700">${item}</span>
-                        <div class="flex space-x-2">
-                            <button onclick="preEditarAsignatura(${index})" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2.5 py-1.5 rounded transition"><i class="fa-solid fa-pen"></i> Editar</button>
-                            <button onclick="eliminarAsignatura(${index})" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-2.5 py-1.5 rounded transition"><i class="fa-solid fa-trash"></i> Eliminar</button>
-                        </div>
-                    </div>`;
-            });
-        }
-
-        function guardarAsignatura() {
-            const input = document.getElementById('input-asignatura-val');
-            const editIdx = parseInt(document.getElementById('edit-index-asignatura').value);
-            const val = input.value.trim();
-            if (!val) return;
-
-            if (editIdx === -1) {
-                asignaturasList.push(val);
-            } else {
-                asignaturasList[editIdx] = val;
-                cancelarEdicionAsignatura();
-            }
-
-            input.value = '';
-            localStorage.setItem('appAsignaturas', JSON.stringify(asignaturasList));
-            renderAsignaturas();
-        }
-
-        function preEditarAsignatura(index) {
-            document.getElementById('input-asignatura-val').value = asignaturasList[index];
-            document.getElementById('edit-index-asignatura').value = index;
-            document.getElementById('btn-text-asignatura').textContent = 'Actualizar';
-            document.getElementById('label-asignatura-input').textContent = 'Editar Asignatura:';
-            document.getElementById('btn-cancel-asignatura').classList.remove('hidden');
-        }
-
-        function cancelarEdicionAsignatura() {
-            document.getElementById('input-asignatura-val').value = '';
-            document.getElementById('edit-index-asignatura').value = '-1';
-            document.getElementById('btn-text-asignatura').textContent = 'Agregar';
-            document.getElementById('label-asignatura-input').textContent = 'Nueva Asignatura:';
-            document.getElementById('btn-cancel-asignatura').classList.add('hidden');
-        }
-
-        function eliminarAsignatura(index) {
-            asignaturasList.splice(index, 1);
-            localStorage.setItem('appAsignaturas', JSON.stringify(asignaturasList));
-            renderAsignaturas();
-        }
-
-
-        // --- CRUD PROFESORES ---
-        function renderProfesores() {
-            const container = document.getElementById('list-profesores');
-            container.innerHTML = '';
-            profesoresList.forEach((item, index) => {
-                container.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-lg text-sm">
-                        <span class="font-medium text-slate-700">${item}</span>
-                        <div class="flex space-x-2">
-                            <button onclick="preEditarProfesor(${index})" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2.5 py-1.5 rounded transition"><i class="fa-solid fa-pen"></i> Editar</button>
-                            <button onclick="eliminarProfesor(${index})" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-2.5 py-1.5 rounded transition"><i class="fa-solid fa-trash"></i> Eliminar</button>
-                        </div>
-                    </div>`;
-            });
-        }
-
-        function guardarProfesor() {
-            const input = document.getElementById('input-profesor-val');
-            const editIdx = parseInt(document.getElementById('edit-index-profesor').value);
-            const val = input.value.trim();
-            if (!val) return;
-
-            if (editIdx === -1) {
-                profesoresList.push(val);
-            } else {
-                profesoresList[editIdx] = val;
-                cancelarEdicionProfesor();
-            }
-
-            input.value = '';
-            localStorage.setItem('appProfesores', JSON.stringify(profesoresList));
-            renderProfesores();
-        }
-
-        function preEditarProfesor(index) {
-            document.getElementById('input-profesor-val').value = profesoresList[index];
-            document.getElementById('edit-index-profesor').value = index;
-            document.getElementById('btn-text-profesor').textContent = 'Actualizar';
-            document.getElementById('label-profesor-input').textContent = 'Editar Profesor:';
-            document.getElementById('btn-cancel-profesor').classList.remove('hidden');
-        }
-
-        function cancelarEdicionProfesor() {
-            document.getElementById('input-profesor-val').value = '';
-            document.getElementById('edit-index-profesor').value = '-1';
-            document.getElementById('btn-text-profesor').textContent = 'Agregar';
-            document.getElementById('label-profesor-input').textContent = 'Nuevo Profesor:';
-            document.getElementById('btn-cancel-profesor').classList.add('hidden');
-        }
-
-        function eliminarProfesor(index) {
-            profesoresList.splice(index, 1);
-            localStorage.setItem('appProfesores', JSON.stringify(profesoresList));
-            renderProfesores();
-        }
-
-
-        // --- CRUD CURSOS ---
-        function renderCursos() {
-            const container = document.getElementById('list-cursos');
-            container.innerHTML = '';
-            cursosList.forEach((item, index) => {
-                container.innerHTML += `
-                    <div class="flex justify-between items-center bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-lg text-sm">
-                        <span class="font-medium text-slate-700">${item}</span>
-                        <div class="flex space-x-2">
-                            <button onclick="preEditarCurso(${index})" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2.5 py-1.5 rounded transition"><i class="fa-solid fa-pen"></i> Editar</button>
-                            <button onclick="eliminarCurso(${index})" class="bg-rose-600 hover:bg-rose-700 text-white text-xs px-2.5 py-1.5 rounded transition"><i class="fa-solid fa-trash"></i> Eliminar</button>
-                        </div>
-                    </div>`;
-            });
-        }
-
-        function guardarCurso() {
-            const input = document.getElementById('input-curso-val');
-            const editIdx = parseInt(document.getElementById('edit-index-curso').value);
-            const val = input.value.trim();
-            if (!val) return;
-
-            if (editIdx === -1) {
-                cursosList.push(val);
-            } else {
-                cursosList[editIdx] = val;
-                cancelarEdicionCurso();
-            }
-
-            input.value = '';
-            localStorage.setItem('appCursos', JSON.stringify(cursosList));
-            renderCursos();
-        }
-
-        function preEditarCurso(index) {
-            document.getElementById('input-curso-val').value = cursosList[index];
-            document.getElementById('edit-index-curso').value = index;
-            document.getElementById('btn-text-curso').textContent = 'Actualizar';
-            document.getElementById('label-curso-input').textContent = 'Editar Curso:';
-            document.getElementById('btn-cancel-curso').classList.remove('hidden');
-        }
-
-        function cancelarEdicionCurso() {
-            document.getElementById('input-curso-val').value = '';
-            document.getElementById('edit-index-curso').value = '-1';
-            document.getElementById('btn-text-curso').textContent = 'Agregar';
-            document.getElementById('label-curso-input').textContent = 'Nuevo Curso:';
-            document.getElementById('btn-cancel-curso').classList.add('hidden');
-        }
-
-        function eliminarCurso(index) {
-            cursosList.splice(index, 1);
-            localStorage.setItem('appCursos', JSON.stringify(cursosList));
-            renderCursos();
-        }
-
-
-        // --- XML Mineduc ---
-        let alumnosActuales = [];
-        let alumnosAnteriorMap = new Map();
-        let nombreXmlActual = "";
-        let nombreXmlAnterior = "";
-
-        document.getElementById('xml-file-input').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            nombreXmlActual = file.name;
-            document.getElementById('upload-prompt-xml').classList.add('hidden');
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                parseXMLActual(e.target.result);
-                document.getElementById('dashboard-container-xml').classList.remove('hidden');
-            };
-            reader.readAsText(file, "ISO-8859-1");
+    function populateDropdowns(selectedSubj = "", selectedTeacher = "") {
+        const subjSelect = document.getElementById('masterSubjectSelect');
+        subjSelect.innerHTML = `<option value="">-- Seleccione Asignatura --</option>`;
+        masterSubjectsList.forEach(s => {
+            let opt = document.createElement('option');
+            opt.value = s; opt.textContent = s;
+            if(s === selectedSubj) opt.selected = true;
+            subjSelect.appendChild(opt);
         });
 
-        document.getElementById('xml-prev-input').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-            nombreXmlAnterior = file.name;
-            
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                parseXMLAnterior(e.target.result);
-                if (alumnosActuales.length > 0) {
-                    actualizarClasificacionesXML();
-                    renderTableXML(obtenerListaConsolidadaXML());
-                }
-            };
-            reader.readAsText(file, "ISO-8859-1");
+        const teacherSelect = document.getElementById('masterTeacherSelect');
+        teacherSelect.innerHTML = `<option value="">-- Seleccione Profesor(a) --</option>`;
+        masterTeachersList.forEach(t => {
+            let opt = document.createElement('option');
+            opt.value = t; opt.textContent = t;
+            if(t === selectedTeacher) opt.selected = true;
+            teacherSelect.appendChild(opt);
+        });
+    }
+
+    function openManageModal() {
+        switchTab('subjects');
+        renderManageLists();
+        document.getElementById('manageModal').classList.add('open');
+    }
+
+    function closeManageModal() {
+        document.getElementById('manageModal').classList.remove('open');
+        updateCourseSelectorDropdown();
+        renderMasterPalette();
+        updateReports();
+    }
+
+    function switchTab(tabName) {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+        if(tabName === 'subjects') {
+            document.querySelector('.tab-btn:nth-child(1)').classList.add('active');
+            document.getElementById('tabSubjects').classList.add('active');
+        } else if(tabName === 'teachers') {
+            document.querySelector('.tab-btn:nth-child(2)').classList.add('active');
+            document.getElementById('tabTeachers').classList.add('active');
+        } else {
+            document.querySelector('.tab-btn:nth-child(3)').classList.add('active');
+            document.getElementById('tabCourses').classList.add('active');
+        }
+    }
+
+    function renderManageLists() {
+        // Asignaturas
+        const subContainer = document.getElementById('subjectsListContainer');
+        subContainer.innerHTML = '';
+        masterSubjectsList.forEach((item, index) => {
+            let row = document.createElement('div');
+            row.className = 'manage-row';
+            row.innerHTML = `<span>${item}</span>
+                <div class="manage-row-actions">
+                    <button class="btn-edit-item" onclick="startEditItem('subjects', ${index})">✏️ Editar</button>
+                    <button class="btn-delete-item" onclick="deleteItemFromList('subjects', ${index})">🗑️ Eliminar</button>
+                </div>`;
+            subContainer.appendChild(row);
         });
 
-        function parseXMLActual(xmlString) {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlString, "text/xml");
+        // Profesores
+        const teachContainer = document.getElementById('teachersListContainer');
+        teachContainer.innerHTML = '';
+        masterTeachersList.forEach((item, index) => {
+            let row = document.createElement('div');
+            row.className = 'manage-row';
+            row.innerHTML = `<span>${item}</span>
+                <div class="manage-row-actions">
+                    <button class="btn-edit-item" onclick="startEditItem('teachers', ${index})">✏️ Editar</button>
+                    <button class="btn-delete-item" onclick="deleteItemFromList('teachers', ${index})">🗑️ Eliminar</button>
+                </div>`;
+            teachContainer.appendChild(row);
+        });
 
-            alumnosActuales = [];
-            xmlDoc.querySelectorAll('curso').forEach(curso => {
-                const grado = curso.getAttribute('grado') || '';
-                const letra = (curso.getAttribute('letra') || '').trim();
+        // Cursos
+        const courseContainer = document.getElementById('coursesListContainer');
+        courseContainer.innerHTML = '';
+        masterCoursesList.forEach((item, index) => {
+            let row = document.createElement('div');
+            row.className = 'manage-row';
+            row.innerHTML = `<span>${item}</span>
+                <div class="manage-row-actions">
+                    <button class="btn-edit-item" onclick="startEditItem('courses', ${index})">✏️ Editar</button>
+                    <button class="btn-delete-item" onclick="deleteItemFromList('courses', ${index})">🗑️ Eliminar</button>
+                </div>`;
+            courseContainer.appendChild(row);
+        });
+    }
 
-                curso.querySelectorAll('alumno').forEach(alumno => {
-                    const inc = alumno.getAttribute('fecha_incorporacion_curso') || '';
-                    const mesInc = inc.split('-')[1] || '';
-                    const diaInc = parseInt(inc.split('-')[2] || '0');
-                    let esReciente = (parseInt(mesInc) > 3) || (mesInc === '03' && diaInc > 3);
+    function startEditItem(type, index) {
+        let list = type === 'subjects' ? masterSubjectsList : (type === 'teachers' ? masterTeachersList : masterCoursesList);
+        editingState[type].index = index;
+        editingState[type].value = list[index];
 
-                    alumnosActuales.push({
-                        origen_xml: nombreXmlActual,
-                        grado: grado,
-                        letra: letra,
-                        run: alumno.getAttribute('run') || '',
-                        digito_ve: alumno.getAttribute('digito_ve') || '',
-                        genero: alumno.getAttribute('genero') || '',
-                        nombres: alumno.getAttribute('nombres') || '',
-                        ape_paterno: alumno.getAttribute('ape_paterno') || '',
-                        ape_materno: alumno.getAttribute('ape_materno') || '',
-                        fecha_incorporacion: inc,
-                        es_reciente: esReciente,
-                        asistencia_final: alumno.getAttribute('asistencia_final') || '0',
-                        estado: 'actual'
-                    });
+        if(type === 'subjects') {
+            document.getElementById('subjectInput').value = list[index];
+            document.getElementById('lblSubjectAction').textContent = "Editar Asignatura:";
+            document.getElementById('btnSaveSubject').textContent = "💾 Actualizar";
+            document.getElementById('btnCancelSubject').style.display = 'inline-block';
+        } else if(type === 'teachers') {
+            document.getElementById('teacherInput').value = list[index];
+            document.getElementById('lblTeacherAction').textContent = "Editar Profesor(a):";
+            document.getElementById('btnSaveTeacher').textContent = "💾 Actualizar";
+            document.getElementById('btnCancelTeacher').style.display = 'inline-block';
+        } else {
+            document.getElementById('courseInput').value = list[index];
+            document.getElementById('lblCourseAction').textContent = "Editar Curso:";
+            document.getElementById('btnSaveCourse').textContent = "💾 Actualizar";
+            document.getElementById('btnCancelCourse').style.display = 'inline-block';
+        }
+    }
+
+    function cancelEditItem(type) {
+        editingState[type].index = null;
+        editingState[type].value = '';
+
+        if(type === 'subjects') {
+            document.getElementById('subjectInput').value = '';
+            document.getElementById('lblSubjectAction').textContent = "Nueva Asignatura:";
+            document.getElementById('btnSaveSubject').textContent = "➕ Agregar";
+            document.getElementById('btnCancelSubject').style.display = 'none';
+        } else if(type === 'teachers') {
+            document.getElementById('teacherInput').value = '';
+            document.getElementById('lblTeacherAction').textContent = "Nuevo Profesor(a):";
+            document.getElementById('btnSaveTeacher').textContent = "➕ Agregar";
+            document.getElementById('btnCancelTeacher').style.display = 'none';
+        } else {
+            document.getElementById('courseInput').value = '';
+            document.getElementById('lblCourseAction').textContent = "Nuevo Curso:";
+            document.getElementById('btnSaveCourse').textContent = "➕ Agregar";
+            document.getElementById('btnCancelCourse').style.display = 'none';
+        }
+    }
+
+    function saveItem(type) {
+        let inputId = type === 'subjects' ? 'subjectInput' : (type === 'teachers' ? 'teacherInput' : 'courseInput');
+        let val = document.getElementById(inputId).value.trim();
+        if(!val) { alert("Ingresa un valor válido."); return; }
+
+        let list = type === 'subjects' ? masterSubjectsList : (type === 'teachers' ? masterTeachersList : masterCoursesList);
+        let edIndex = editingState[type].index;
+
+        if(edIndex !== null) {
+            // Editando
+            if(list.includes(val) && list[edIndex] !== val) { alert("Este elemento ya existe."); return; }
+            let oldVal = list[edIndex];
+            list[edIndex] = val;
+
+            // Actualizar si estaba en bloques maestros o asignaciones activas
+            if(type === 'subjects') {
+                masterBlocks.forEach(m => { if(m.subject === oldVal) m.subject = val; });
+                Object.keys(gridSelections).forEach(k => {
+                    gridSelections[k].forEach(i => { if(i.subject === oldVal) i.subject = val; });
                 });
-            });
-            actualizarClasificacionesXML();
-            renderTableXML(obtenerListaConsolidadaXML());
+            } else if(type === 'teachers') {
+                masterBlocks.forEach(m => { if(m.teacher === oldVal) m.teacher = val; });
+                Object.keys(gridSelections).forEach(k => {
+                    gridSelections[k].forEach(i => { if(i.teacher === oldVal) i.teacher = val; });
+                });
+            } else if(type === 'courses') {
+                Object.keys(gridSelections).forEach(k => {
+                    gridSelections[k].forEach(i => { if(i.course === oldVal) i.course = val; });
+                });
+            }
+
+            cancelEditItem(type);
+        } else {
+            // Agregando nuevo
+            if(list.includes(val)) { alert("Este elemento ya existe."); return; }
+            list.push(val);
+            document.getElementById(inputId).value = '';
         }
 
-        function parseXMLAnterior(xmlString) {
-            const parser = new DOMParser();
-            const xmlDoc = parser.parseFromString(xmlString, "text/xml");
-            alumnosAnteriorMap.clear();
+        saveListsToStorage();
+        renderManageLists();
+        updateCourseSelectorDropdown();
+    }
 
-            xmlDoc.querySelectorAll('curso').forEach(curso => {
-                curso.querySelectorAll('alumno').forEach(alumno => {
-                    const run = alumno.getAttribute('run');
-                    if (run) {
-                        alumnosAnteriorMap.set(run, {
-                            origen_xml: nombreXmlAnterior,
-                            grado: curso.getAttribute('grado') || '',
-                            letra: (curso.getAttribute('letra') || '').trim(),
-                            run: run,
-                            digito_ve: alumno.getAttribute('digito_ve') || '',
-                            genero: alumno.getAttribute('genero') || '',
-                            nombres: alumno.getAttribute('nombres') || '',
-                            ape_paterno: alumno.getAttribute('ape_paterno') || '',
-                            ape_materno: alumno.getAttribute('ape_materno') || '',
-                            fecha_incorporacion: alumno.getAttribute('fecha_incorporacion_curso') || '',
-                            asistencia_final: alumno.getAttribute('asistencia_final') || '0'
-                        });
+    function deleteItemFromList(type, index) {
+        let list = type === 'subjects' ? masterSubjectsList : (type === 'teachers' ? masterTeachersList : masterCoursesList);
+        if(list.length <= 1) { alert("Debes mantener al menos un elemento en la lista."); return; }
+        
+        let removedVal = list[index];
+        list.splice(index, 1);
+        saveListsToStorage();
+        renderManageLists();
+        cancelEditItem(type);
+        updateCourseSelectorDropdown();
+    }
+
+    function renderMasterPalette() {
+        const container = document.getElementById('masterPaletteContainer');
+        container.innerHTML = '';
+        masterBlocks.forEach(master => {
+            let card = document.createElement('div');
+            card.className = 'master-card';
+            card.style.backgroundColor = master.color;
+            card.draggable = true;
+            card.innerHTML = `
+                <div>📚 ${master.subject}</div>
+                <div style="font-weight:normal; font-size:10px;">👤 ${master.teacher}</div>
+                <div class="master-card-actions">
+                    <span onclick="openEditMasterModal(event, '${master.id}')" style="color:#2c3e50;">✏️ Editar</span>
+                    <span onclick="deleteMasterBlock(event, '${master.id}')" style="color:#c0392b;">🗑️ Eliminar</span>
+                </div>
+            `;
+            
+            card.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('text/plain', master.id);
+            });
+
+            container.appendChild(card);
+        });
+
+        const selectCourse = document.getElementById('dropCourseSelect');
+        selectCourse.innerHTML = `<option value="">-- Seleccione Curso --</option>`;
+        masterCoursesList.forEach(c => {
+            let opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c;
+            selectCourse.appendChild(opt);
+        });
+    }
+
+    function openCreateMasterModal() {
+        document.getElementById('masterModalTitle').textContent = "➕ Crear Bloque Maestro de Evaluación";
+        populateDropdowns();
+        document.getElementById('newMasterColor').value = '#3498db';
+        document.getElementById('editingMasterId').value = '';
+        document.getElementById('masterModal').classList.add('open');
+    }
+
+    function openEditMasterModal(event, id) {
+        event.stopPropagation();
+        let master = masterBlocks.find(m => m.id === id);
+        if(!master) return;
+
+        document.getElementById('masterModalTitle').textContent = "✏️ Editar Bloque Maestro";
+        populateDropdowns(master.subject, master.teacher);
+        document.getElementById('newMasterColor').value = master.color;
+        document.getElementById('editingMasterId').value = master.id;
+        document.getElementById('masterModal').classList.add('open');
+    }
+
+    function toggleMasterModal(open) {
+        if(open) document.getElementById('masterModal').classList.add('open');
+        else document.getElementById('masterModal').classList.remove('open');
+    }
+
+    function confirmSaveMaster() {
+        let subj = document.getElementById('masterSubjectSelect').value;
+        let teacher = document.getElementById('masterTeacherSelect').value;
+        let color = document.getElementById('newMasterColor').value;
+        let editingId = document.getElementById('editingMasterId').value;
+
+        if(!subj) { alert("Selecciona una asignatura de la lista."); return; }
+        if(!teacher) { alert("Selecciona un profesor(a) de la lista."); return; }
+
+        if(editingId) {
+            let master = masterBlocks.find(m => m.id === editingId);
+            if(master) {
+                master.subject = subj;
+                master.teacher = teacher;
+                master.color = color;
+            }
+            Object.keys(gridSelections).forEach(key => {
+                gridSelections[key].forEach(item => {
+                    if(item.masterId === editingId) {
+                        item.subject = subj;
+                        item.teacher = teacher;
+                        item.color = color;
                     }
                 });
             });
-        }
-
-        function actualizarClasificacionesXML() {
-            alumnosActuales.forEach(a => {
-                if (alumnosAnteriorMap.size > 0) {
-                    a.estado = alumnosAnteriorMap.has(a.run) ? 'continuo' : 'nuevo_historico';
-                } else {
-                    a.estado = a.es_reciente ? 'reciente' : 'continuo';
-                }
+        } else {
+            masterBlocks.push({
+                id: 'm_' + Date.now(),
+                subject: subj,
+                teacher: teacher,
+                color: color
             });
         }
 
-        function obtenerListaConsolidadaXML() {
-            let lista = [...alumnosActuales];
-            if (alumnosAnteriorMap.size > 0) {
-                const runsActuales = new Set(alumnosActuales.map(a => a.run));
-                alumnosAnteriorMap.forEach((alumnoAnt, run) => {
-                    if (!runsActuales.has(run)) {
-                        lista.push({ ...alumnoAnt, estado: 'retirado', es_reciente: false });
-                    }
-                });
-            }
-            return lista;
+        toggleMasterModal(false);
+        renderMasterPalette();
+        renderInteractiveGrid();
+        updateReports();
+        autoSaveState();
+    }
+
+    function deleteMasterBlock(event, id) {
+        event.stopPropagation();
+        if(confirm("¿Estás seguro de eliminar este bloque maestro? Se removerá del calendario si estaba asignado.")) {
+            masterBlocks = masterBlocks.filter(m => m.id !== id);
+            Object.keys(gridSelections).forEach(key => {
+                gridSelections[key] = gridSelections[key].filter(item => item.masterId !== id);
+                if(gridSelections[key].length === 0) delete gridSelections[key];
+            });
+            renderMasterPalette();
+            renderInteractiveGrid();
+            updateReports();
+            autoSaveState();
         }
+    }
 
-        function renderTableXML(data) {
-            const tbody = document.getElementById('alumnos-tbody-xml');
-            document.getElementById('result-count-xml').textContent = `${data.length} registros`;
+    function renderInteractiveGrid() {
+        const tbody = document.getElementById('gridTableBody');
+        tbody.innerHTML = '';
 
-            tbody.innerHTML = '';
-            data.forEach(a => {
-                const tr = document.createElement('tr');
-                tr.className = 'hover:bg-slate-50 transition';
-                let badge = a.estado === 'retirado' ? '<span class="px-2 py-0.5 rounded text-xs font-semibold bg-rose-100 text-rose-800">Retirado</span>' : (a.es_reciente ? '<span class="px-2 py-0.5 rounded text-xs font-semibold bg-emerald-100 text-emerald-800">Nuevos (> 3 Mar)</span>' : '<span class="px-2 py-0.5 rounded text-xs font-semibold bg-purple-100 text-purple-800">Matrícula Dic/3 Mar</span>');
+        hours.forEach((hour, hourIndex) => {
+            let tr = document.createElement('tr');
+            if (hour.type === 'break') {
+                tr.className = 'grid-recreo-row';
+                tr.innerHTML = `<td colspan="7">${hour.label}</td>`;
+            } else {
+                let isBlockStart = [0, 3, 6, 9].includes(hourIndex);
+                let blockNum = hourIndex < 2 ? '1°' : (hourIndex < 5 ? '2°' : (hourIndex < 8 ? '3°' : '4°'));
+                let firstColHTML = isBlockStart ? `<td rowspan="2" class="grid-hour-col">${blockNum}</td>` : '';
+
                 tr.innerHTML = `
-                    <td class="px-6 py-3 font-mono text-xs">${a.origen_xml || 'Actual'}</td>
-                    <td class="px-6 py-3">${badge}</td>
-                    <td class="px-6 py-3 font-medium">${a.grado}° ${a.letra}</td>
-                    <td class="px-6 py-3 font-mono text-xs">${a.run}-${a.digito_ve}</td>
-                    <td class="px-6 py-3 font-semibold">${a.nombres} ${a.ape_paterno} ${a.ape_materno}</td>
-                    <td class="px-6 py-3 text-center">${a.genero}</td>
-                    <td class="px-6 py-3">${a.fecha_incorporacion || '-'}</td>
-                    <td class="px-6 py-3 text-center">${a.asistencia_final}%</td>
+                    ${firstColHTML}
+                    <td class="grid-time-col">${hour.num}<br><span style="font-size:10px;">${hour.time}</span></td>
                 `;
-                tbody.appendChild(tr);
-            });
-        }
 
+                days.forEach((day, dayIndex) => {
+                    let td = document.createElement('td');
+                    td.className = 'grid-day-col';
+                    td.dataset.day = dayIndex;
+                    td.dataset.hour = hourIndex;
 
-        // --- Excel Independiente ---
-        let excelWorkbook = null;
-        let excelRowsProcessed = [];
-        let excelHeaderRow = [];
-        let excepcionesNormales = JSON.parse(localStorage.getItem('excepcionesNormalesExcel') || '{}');
+                    let cellKey = `${dayIndex}-${hourIndex}`;
+                    let itemsInCell = gridSelections[cellKey] || [];
+                    
+                    let htmlContent = '';
+                    itemsInCell.forEach((item, itemIdx) => {
+                        let checkedStr = item.done ? 'checked' : '';
+                        htmlContent += `
+                            <div class="assigned-chip" style="background-color: ${item.color};">
+                                <div><strong>${item.course}</strong> - ${item.subject}</div>
+                                <div style="margin-top: 3px;">
+                                    <label style="cursor:pointer; font-size:10px;"><input type="checkbox" ${checkedStr} onchange="toggleDoneStatus(event, '${cellKey}', ${itemIdx})"> Realizada</label>
+                                </div>
+                                <div class="chip-footer">
+                                    <span>${item.teacher}</span>
+                                    <span style="cursor:pointer; color:#c0392b; font-weight:bold;" onclick="removeAssignment(event, '${cellKey}', ${itemIdx})">✕ Quitar</span>
+                                </div>
+                            </div>`;
+                    });
 
-        document.getElementById('excel-file-input').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+                    td.innerHTML = htmlContent || `<span style="color:#cbd5e1; font-size:11px;">+ Arrastrar bloque</span>`;
 
-            document.getElementById('excel-filename').textContent = file.name;
-            document.getElementById('upload-prompt-excel').classList.add('hidden');
+                    td.addEventListener('dragover', (e) => { e.preventDefault(); td.classList.add('drag-over'); });
+                    td.addEventListener('dragleave', () => { td.classList.remove('drag-over'); });
+                    td.addEventListener('drop', (e) => {
+                        e.preventDefault();
+                        td.classList.remove('drag-over');
+                        let masterId = e.dataTransfer.getData('text/plain');
+                        initiateDropAssignment(masterId, dayIndex, hourIndex);
+                    });
 
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const data = new Uint8Array(e.target.result);
-                excelWorkbook = XLSX.read(data, { type: 'array' });
-
-                const sheetSelect = document.getElementById('excel-sheet-select');
-                sheetSelect.innerHTML = '';
-                excelWorkbook.SheetNames.forEach(sheetName => {
-                    const opt = document.createElement('option');
-                    opt.value = sheetName;
-                    opt.textContent = sheetName;
-                    sheetSelect.appendChild(opt);
-                });
-
-                document.getElementById('dashboard-container-excel').classList.remove('hidden');
-                loadSheet(excelWorkbook.SheetNames[0]);
-            };
-            reader.readAsArrayBuffer(file);
-        });
-
-        document.getElementById('excel-sheet-select').addEventListener('change', function(e) {
-            if (excelWorkbook) loadSheet(e.target.value);
-        });
-
-        function loadSheet(sheetName) {
-            const sheet = excelWorkbook.Sheets[sheetName];
-            const jsonData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-            if (!jsonData || jsonData.length === 0) {
-                excelRowsProcessed = [];
-                renderExcelTable([]);
-                return;
-            }
-
-            excelHeaderRow = jsonData[0] || [];
-            excelRowsProcessed = [];
-
-            let nameIdx = -1;
-            let emailIdx = -1;
-
-            excelHeaderRow.forEach((h, idx) => {
-                if (h) {
-                    let text = String(h).toLowerCase();
-                    if ((text.includes('nombre') || text.includes('name')) && nameIdx === -1) nameIdx = idx;
-                    if ((text.includes('correo') || text.includes('mail') || text.includes('email')) && emailIdx === -1) emailIdx = idx;
-                }
-            });
-
-            for (let i = 1; i < jsonData.length; i++) {
-                const row = jsonData[i];
-                if (!row || row.length === 0) continue;
-
-                let rowTextName = nameIdx !== -1 && row[nameIdx] !== undefined ? String(row[nameIdx]) : "";
-                let rowTextEmail = emailIdx !== -1 && row[emailIdx] !== undefined ? String(row[emailIdx]) : "";
-
-                if (emailIdx === -1) {
-                    rowTextEmail = row.find(cell => cell && String(cell).includes('@')) || "";
-                }
-                if (nameIdx === -1) {
-                    rowTextName = row.find(cell => cell && typeof cell === 'string' && cell.trim().split(/\s+/).length >= 2 && !cell.includes('@')) || "";
-                }
-
-                let esAnomaloReal = evaluarAnomalia(rowTextName, rowTextEmail);
-                let rowId = `${sheetName}_${i}_${rowTextEmail}`;
-                let fueForzadoNormal = excepcionesNormales[rowId] === true;
-
-                excelRowsProcessed.push({
-                    rowId: rowId,
-                    rawRow: row,
-                    esAnomalo: esAnomaloReal,
-                    forzadoNormal: fueForzadoNormal,
-                    combinedText: row.join(' ').toLowerCase()
+                    tr.appendChild(td);
                 });
             }
+            tbody.appendChild(tr);
+        });
 
-            aplicarFiltrosYRenderizar();
+        checkConflicts();
+    }
+
+    function toggleDoneStatus(event, cellKey, itemIdx) {
+        event.stopPropagation();
+        if(gridSelections[cellKey] && gridSelections[cellKey][itemIdx]) {
+            gridSelections[cellKey][itemIdx].done = event.target.checked;
+            updateReports();
+            autoSaveState();
         }
+    }
 
-        function evaluarAnomalia(nombre, correo) {
-            if (!nombre || !correo) return true;
-            let nLower = nombre.toLowerCase().trim();
-            let cLower = correo.toLowerCase().trim();
+    function checkConflicts() {
+        document.querySelectorAll('.grid-day-col').forEach(td => td.classList.remove('conflict-cell'));
 
-            let palabras = nLower.split(/\s+/);
-            if (palabras.length > 3) return true;
+        let courseAssignmentLocations = {};
 
-            if (!cLower.includes('@')) return true;
-            let parteUsuario = cLower.split('@')[0];
-            if (parteUsuario.length <= 6 && /\d/.test(parteUsuario)) return true;
+        Object.keys(gridSelections).forEach(cellKey => {
+            let [dayStr, hourStr] = cellKey.split('-');
+            let day = parseInt(dayStr);
+            let hour = parseInt(hourStr);
+            let officialBlock = getOfficialBlockIndex(hour);
 
-            let primerNombre = palabras[0] || "";
-            let primerApellido = palabras[palabras.length - 1] || "";
+            gridSelections[cellKey].forEach(item => {
+                let key = `${item.course}___${item.subject}`;
+                if(!courseAssignmentLocations[key]) courseAssignmentLocations[key] = [];
+                courseAssignmentLocations[key].push({ day, officialBlock, cellKey });
+            });
+        });
 
-            let tienePunto = parteUsuario.includes('.');
-            let coincide = (primerNombre.length > 2 && parteUsuario.includes(primerNombre)) || 
-                           (primerApellido.length > 2 && parteUsuario.includes(primerApellido));
+        Object.keys(courseAssignmentLocations).forEach(key => {
+            let locs = courseAssignmentLocations[key];
+            if(locs.length > 1) {
+                let first = locs[0];
+                let isAllSameBlockAndDay = locs.every(l => l.day === first.day && l.officialBlock === first.officialBlock);
 
-            if (!tienePunto || !coincide) return true;
-            return false;
-        }
-
-        function toggleForzarNormal(rowId) {
-            if (excepcionesNormales[rowId]) {
-                delete excepcionesNormales[rowId];
-            } else {
-                excepcionesNormales[rowId] = true;
-            }
-            localStorage.setItem('excepcionesNormalesExcel', JSON.stringify(excepcionesNormales));
-
-            excelRowsProcessed.forEach(item => {
-                if (item.rowId === rowId) {
-                    item.forzadoNormal = !item.forzadoNormal;
+                if(!isAllSameBlockAndDay) {
+                    locs.forEach(l => {
+                        let [d, h] = l.cellKey.split('-');
+                        let td = document.querySelector(`.grid-day-col[data-day="${d}"][data-hour="${h}"]`);
+                        if(td) td.classList.add('conflict-cell');
+                    });
                 }
-            });
-            aplicarFiltrosYRenderizar();
-        }
-
-        function renderExcelTable(rowsToDisplay) {
-            const thead = document.getElementById('excel-thead');
-            const tbody = document.getElementById('excel-tbody');
-            thead.innerHTML = '';
-            tbody.innerHTML = '';
-
-            if (excelHeaderRow.length === 0) {
-                document.getElementById('excel-row-count').textContent = '0 filas';
-                return;
             }
+        });
+    }
 
-            let trHead = '<tr><th class="px-3 py-3 border-b text-center">Estado Formato</th><th class="px-3 py-3 border-b text-center">Acción Manual</th>';
-            excelHeaderRow.forEach(h => {
-                trHead += `<th class="px-6 py-3 border-b">${h !== undefined ? h : ''}</th>`;
-            });
-            trHead += '</tr>';
-            thead.innerHTML = trHead;
+    function initiateDropAssignment(masterId, dayIndex, hourIndex) {
+        let master = masterBlocks.find(m => m.id === masterId);
+        if(!master) return;
 
-            rowsToDisplay.forEach(item => {
-                let row = item.rawRow;
-                let estadoBadge = "";
+        pendingDropData = { master: master, day: dayIndex, hour: hourIndex };
+        document.getElementById('dropModalInfo').textContent = `Bloque: ${days[dayIndex]} (${hours[hourIndex].time}) -> Asignatura: ${master.subject}`;
+        document.getElementById('dropCourseSelect').value = '';
+        document.getElementById('dropModal').classList.add('open');
+    }
 
-                if (item.forzadoNormal) {
-                    estadoBadge = '<span class="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-xs font-bold">💡 Forzado Normal</span>';
-                } else if (item.esAnomalo) {
-                    estadoBadge = '<span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-xs font-bold">⚠️ Anómalo</span>';
+    function closeDropModal() {
+        document.getElementById('dropModal').classList.remove('open');
+        pendingDropData = null;
+    }
+
+    function validateAgainstHistory(subject, courseValue) {
+        if(!courseValue) return true;
+        let history = getHistory();
+        for (let v of history) {
+            let foundSelection = v.gridSelections ? Object.values(v.gridSelections).flat().find(s => 
+                s.course === courseValue && s.subject === subject
+            ) : null;
+            
+            if (foundSelection) {
+                if (foundSelection.done) {
+                    alert(`❌ BLOQUEO: El curso ${courseValue} ya realizó la evaluación de "${subject}" en el horario guardado como "${v.name}".`);
+                    return false;
                 } else {
-                    estadoBadge = '<span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-xs font-bold">✅ Correcto</span>';
+                    showInfoToast(`⚠️ ${courseValue} estaba asignado a "${subject}" en el horario "${v.name}" pero NO se realizó. Reasignado.`);
+                    return true;
                 }
+            }
+        }
+        return true;
+    }
 
-                let btnAccion = item.esAnomalo && !item.forzadoNormal
-                    ? `<button onclick="toggleForzarNormal('${item.rowId}')" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2.5 py-1 rounded shadow transition">Marcar Normal</button>`
-                    : (item.forzadoNormal 
-                        ? `<button onclick="toggleForzarNormal('${item.rowId}')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs px-2.5 py-1 rounded transition">Deshacer</button>` 
-                        : '<span class="text-slate-300">-</span>');
+    function confirmDropAssignment() {
+        if(!pendingDropData) return;
+        let course = document.getElementById('dropCourseSelect').value;
 
-                let rowBgClass = item.forzadoNormal ? 'bg-blue-50/20' : (item.esAnomalo ? 'bg-amber-50/30' : '');
+        if(!course) { alert("Selecciona un curso."); return; }
 
-                let trBody = `<tr class="hover:bg-slate-50 ${rowBgClass}">`;
-                trBody += `<td class="px-3 py-3 border-b text-center">${estadoBadge}</td>`;
-                trBody += `<td class="px-3 py-3 border-b text-center">${btnAccion}</td>`;
+        let master = pendingDropData.master;
+        let isValid = validateAgainstHistory(master.subject, course);
+        if(!isValid) return;
 
-                excelHeaderRow.forEach((_, colIdx) => {
-                    const val = row[colIdx] !== undefined ? row[colIdx] : '';
-                    trBody += `<td class="px-6 py-3 border-b text-slate-700">${val}</td>`;
-                });
-                trBody += '</tr>';
-                tbody.insertAdjacentHTML('beforeend', trBody);
+        let targetDay = pendingDropData.day;
+        let targetOfficialBlock = getOfficialBlockIndex(pendingDropData.hour);
+
+        let conflictDetected = false;
+        Object.keys(gridSelections).forEach(cellKey => {
+            let [dStr, hStr] = cellKey.split('-');
+            let d = parseInt(dStr);
+            let h = parseInt(hStr);
+            let b = getOfficialBlockIndex(h);
+
+            gridSelections[cellKey].forEach(item => {
+                if(item.course === course && item.subject === master.subject) {
+                    if(d !== targetDay || b !== targetOfficialBlock) {
+                        conflictDetected = true;
+                    }
+                }
             });
+        });
 
-            document.getElementById('excel-row-count').textContent = `${rowsToDisplay.length} filas mostradas`;
+        if(conflictDetected) {
+            alert(`⚠️ ATENCIÓN: El curso ${course} ya tiene programada la evaluación de "${master.subject}" en otro bloque o día de esta semana. Se marcará en rojo como conflicto.`);
         }
 
-        function aplicarFiltrosYRenderizar() {
-            const roleFilter = document.getElementById('excel-filter-role').value.toLowerCase();
-            const statusFilter = document.getElementById('excel-filter-status').value.toLowerCase();
-            const formatFilter = document.getElementById('excel-filter-format').value;
-            const query = document.getElementById('excel-search-input').value.toLowerCase().trim();
+        let cellKey = `${pendingDropData.day}-${pendingDropData.hour}`;
+        if(!gridSelections[cellKey]) gridSelections[cellKey] = [];
 
-            const filtrados = excelRowsProcessed.filter(item => {
-                let textCombined = item.combinedText;
+        let newItem = {
+            masterId: master.id,
+            subject: master.subject,
+            teacher: master.teacher,
+            color: master.color,
+            course: course,
+            done: false
+        };
 
-                if (roleFilter && !textCombined.includes(roleFilter)) return false;
+        gridSelections[cellKey].push(newItem);
 
-                if (statusFilter === 'active') {
-                    if (!textCombined.includes('active') || textCombined.includes('inactive') || textCombined.includes('desactivated')) return false;
-                } else if (statusFilter === 'inactive') {
-                    if (!textCombined.includes('inactive') && !textCombined.includes('desactivated') && !textCombined.includes('disabled')) return false;
+        closeDropModal();
+        renderInteractiveGrid();
+        updateReports();
+        autoSaveState();
+    }
+
+    function removeAssignment(event, cellKey, itemIdx) {
+        event.stopPropagation();
+        if(gridSelections[cellKey]) {
+            gridSelections[cellKey].splice(itemIdx, 1);
+            if(gridSelections[cellKey].length === 0) delete gridSelections[cellKey];
+        }
+        renderInteractiveGrid();
+        updateReports();
+        autoSaveState();
+    }
+
+    function buildFinalTableRows() {
+        const tbody = document.getElementById('finalTableBody');
+        tbody.innerHTML = '';
+        hours.forEach((hour, hourIndex) => {
+            let tr = document.createElement('tr');
+            if(hour.type === 'break') {
+                tr.innerHTML = `<td colspan="4" class="recreo-final"></td><td colspan="5" class="recreo-final">${hour.label.toUpperCase()}</td>`;
+            } else {
+                let isBlockStart = [0, 3, 6, 9].includes(hourIndex);
+                let blockNum = hourIndex < 2 ? '1°' : (hourIndex < 5 ? '2°' : (hourIndex < 8 ? '3°' : '4°'));
+                let firstColHTML = isBlockStart ? `<td rowspan="2" class="bg-gray-light">${blockNum}</td>` : '';
+                
+                tr.innerHTML = `
+                    ${firstColHTML}
+                    <td class="bg-gray-light">${hour.num}</td>
+                    <td class="bg-gray-light">${hour.time.split(' A ')[0]}</td>
+                    <td class="bg-gray-light">${hour.time.split(' A ')[1]}</td>
+                    <td id="final-0-${hourIndex}" class="final-cell"></td>
+                    <td id="final-1-${hourIndex}" class="final-cell"></td>
+                    <td id="final-2-${hourIndex}" class="final-cell"></td>
+                    <td id="final-3-${hourIndex}" class="final-cell"></td>
+                    <td id="final-4-${hourIndex}" class="final-cell"></td>
+                `;
+            }
+            tbody.appendChild(tr);
+        });
+    }
+
+    function updateReports() {
+        const course = document.getElementById('courseSelector').value;
+        document.getElementById('print-course-title').textContent = course === 'TODOS' ? "CALENDARIO GENERAL - TODOS LOS CURSOS" : (course ? `CURSO: ${course}` : "CURSO: (SELECCIONE ARRIBA)");
+        document.querySelectorAll('.final-cell').forEach(cell => { cell.innerHTML = ''; });
+        if (!course) return;
+
+        for (let day = 0; day < 5; day++) {
+            for (let hour = 0; hour < 11; hour++) {
+                if (hours[hour].type === 'break') continue;
+                let cellId = `final-${day}-${hour}`; let cell = document.getElementById(cellId);
+                if (!cell) continue;
+
+                let cellKey = `${day}-${hour}`;
+                let itemsInCell = gridSelections[cellKey] || [];
+
+                if (course === 'TODOS') {
+                    let htmlContent = '';
+                    itemsInCell.forEach(item => {
+                        let teacherLine = item.teacher ? `<br><span style="font-size: 9px; font-weight: normal; opacity: 0.95;">(${item.teacher})</span>` : '';
+                        let doneMark = item.done ? ' <span style="color:#000; font-size:12px;" title="Realizada">✅</span>' : '';
+                        htmlContent += `<div style="background-color: ${item.color}; color: #000; padding: 4px 6px; margin-bottom: 2px; border-radius: 4px; font-weight: bold; font-size: 11px; line-height: 1.2; display: block; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">${item.course}${doneMark} - ${item.subject}${teacherLine}</div>`;
+                    });
+                    cell.innerHTML = htmlContent;
+                } else {
+                    let filtered = itemsInCell.filter(i => i.course === course);
+                    if (filtered.length > 0) {
+                        let item = filtered[0];
+                        let teacherLine = item.teacher ? `<br><span style="font-size: 10px; font-weight: normal; opacity: 0.95;">(${item.teacher})</span>` : '';
+                        let doneMark = item.done ? ' <span style="color:#000; font-size:14px;" title="Realizada">✅</span>' : '';
+                        cell.innerHTML = `<div style="background-color: ${item.color}; color: #000; padding: 5px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; line-height: 1.3; display: block; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">${item.course}${doneMark} - ${item.subject}${teacherLine}</div>`;
+                    }
                 }
-
-                if (formatFilter === 'normal' && (item.esAnomalo && !item.forzadoNormal)) return false;
-                if (formatFilter === 'anomaly' && (!item.esAnomalo || item.forzadoNormal)) return false;
-                if (formatFilter === 'overridden' && !item.forzadoNormal) return false;
-
-                if (query && !textCombined.includes(query)) return false;
-
-                return true;
-            });
-
-            renderExcelTable(filtrados);
+            }
         }
 
-        document.getElementById('excel-filter-role').addEventListener('change', aplicarFiltrosYRenderizar);
-        document.getElementById('excel-filter-status').addEventListener('change', aplicarFiltrosYRenderizar);
-        document.getElementById('excel-filter-format').addEventListener('change', aplicarFiltrosYRenderizar);
-        document.getElementById('excel-search-input').addEventListener('input', aplicarFiltrosYRenderizar);
-    </script>
+        let simbologiaBody = document.getElementById('simbologiaBody'); simbologiaBody.innerHTML = '';
+        masterBlocks.forEach(master => {
+            let tr = document.createElement('tr');
+            tr.innerHTML = `<td style="background-color: ${master.color}; color: #000; font-weight: bold;">COLOR</td><td style="text-align: left; padding-left: 10px;">${master.subject}</td><td style="text-align: left; padding-left: 10px; font-weight: bold;">${master.teacher}</td>`;
+            simbologiaBody.appendChild(tr);
+        });
+
+        let printEvalSummaryContainer = document.getElementById('printEvalSummaryContainer'); printEvalSummaryContainer.innerHTML = '';
+        masterBlocks.forEach(master => {
+            let assignedSet = new Set();
+            Object.values(gridSelections).flat().forEach(item => {
+                if(item.subject === master.subject) assignedSet.add(item.course);
+            });
+            let assignedList = Array.from(assignedSet).sort();
+            let missingList = masterCoursesList.filter(c => !assignedSet.has(c)).sort();
+
+            let summaryBox = document.createElement('div'); summaryBox.className = 'print-eval-summary-card';
+            summaryBox.innerHTML = `
+                <div class="print-eval-summary-header" style="border-left: 6px solid ${master.color};"><span>📊 Asignatura: ${master.subject} <span style="font-weight:normal; font-size:11px;">(Prof: ${master.teacher})</span></span></div>
+                <div class="print-eval-summary-body">
+                    <div class="print-eval-col-assigned"><strong style="color: #27ae60;">✅ Cursos Asignados (${assignedList.length}):</strong><div style="margin-top: 4px; font-weight: bold; color: #2c3e50;">${assignedList.length > 0 ? assignedList.join(', ') : 'Ninguno asignado aún'}</div></div>
+                    <div class="print-eval-col-missing"><strong style="color: #e74c3c;">❌ Cursos Faltantes (${missingList.length}):</strong><div style="margin-top: 4px; font-weight: bold; color: #c0392b;">${missingList.length > 0 ? missingList.join(', ') : '¡Todos los cursos asignados!'}</div></div>
+                </div>`;
+            printEvalSummaryContainer.appendChild(summaryBox);
+        });
+    }
+
+    function getStateObject(customName = "", customDateRange = "") {
+        return {
+            id: 'version_' + Date.now(), name: customName || lastSavedMeta.name,
+            createdDate: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
+            dateRange: customDateRange || `${formatDate(lastSavedMeta.startDate)} al ${formatDate(lastSavedMeta.endDate)}`,
+            masterBlocks: JSON.parse(JSON.stringify(masterBlocks)),
+            gridSelections: JSON.parse(JSON.stringify(gridSelections)),
+            selectedCourse: document.getElementById('courseSelector').value,
+            logoBase64: currentSchoolLogo
+        };
+    }
+
+    function openSaveModal() {
+        document.getElementById('inputScheduleName').value = lastSavedMeta.name;
+        document.getElementById('inputStartDate').value = lastSavedMeta.startDate;
+        document.getElementById('inputEndDate').value = lastSavedMeta.endDate;
+        toggleSaveModal(true);
+    }
+    function toggleSaveModal(open) { const modal = document.getElementById('saveModal'); if(open) modal.classList.add('open'); else modal.classList.remove('open'); }
+
+    function confirmSaveVersion() {
+        let name = document.getElementById('inputScheduleName').value.trim() || "Calendario sin nombre";
+        let start = document.getElementById('inputStartDate').value; 
+        let end = document.getElementById('inputEndDate').value;
+        
+        lastSavedMeta.name = name;
+        if(start) lastSavedMeta.startDate = start;
+        if(end) lastSavedMeta.endDate = end;
+        lastSavedMeta.isConfigured = true;
+
+        let rangeStr = (start && end) ? `${formatDate(start)} al ${formatDate(end)}` : 'Sin rango especificado';
+        let newVersion = getStateObject(name, rangeStr);
+        
+        let history = getHistory(); history.unshift(newVersion); 
+        localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
+        
+        downloadJsonFile(newVersion); toggleSaveModal(false); alert(`¡Horario "${name}" guardado exitosamente!`);
+    }
+
+    function handleNewScheduleButton() {
+        let hasData = Object.keys(gridSelections).length > 0;
+        if (hasData) {
+            if (confirm("¿Deseas guardar tu horario actual antes de crear uno nuevo?")) {
+                if (lastSavedMeta.isConfigured) {
+                    let savedVersion = getStateObject(lastSavedMeta.name, `${formatDate(lastSavedMeta.startDate)} al ${formatDate(lastSavedMeta.endDate)}`);
+                    let history = getHistory(); history.unshift(savedVersion);
+                    localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
+                    downloadJsonFile(savedVersion);
+                    resetScreenToNew();
+                } else { openSaveModal(); return; }
+            } else { resetScreenToNew(); }
+        } else { resetScreenToNew(); }
+    }
+
+    function resetScreenToNew() {
+        gridSelections = {};
+        document.getElementById('courseSelector').value = '';
+        renderInteractiveGrid();
+        updateReports();
+        alert("Pantalla limpia. ¡Listo para un nuevo horario!");
+    }
+
+    function formatDate(dateStr) { if(!dateStr) return ''; let p = dateStr.split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : dateStr; }
+    function downloadJsonFile(stateObj) {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stateObj, null, 2));
+        const downloadAnchor = document.createElement('a'); downloadAnchor.setAttribute("href", dataStr); downloadAnchor.setAttribute("download", `${stateObj.name.replace(/[^a-zA-Z0-9]/g, '_')}.json`);
+        document.body.appendChild(downloadAnchor); downloadAnchor.click(); downloadAnchor.remove();
+    }
+
+    function getHistory() { try { let h = localStorage.getItem('calendario_historial_versiones'); return h ? JSON.parse(h) : []; } catch(e) { return []; } }
+    function openHistoryModal() { renderHistoryList(); toggleHistoryModal(true); }
+    function toggleHistoryModal(open) { const modal = document.getElementById('historyModal'); if(open) modal.classList.add('open'); else modal.classList.remove('open'); }
+
+    function renderHistoryList() {
+        const container = document.getElementById('historyListContainer'); let history = getHistory();
+        if(history.length === 0) { container.innerHTML = `<p style="text-align:center; color:#718093;">No hay horarios guardados en el historial.</p>`; return; }
+        container.innerHTML = '';
+        history.forEach((version) => {
+            let item = document.createElement('div'); item.className = 'history-item';
+            item.innerHTML = `
+                <div class="history-item-info"><h4>📌 ${version.name}</h4><p>Creado: ${version.createdDate} | Rango: 📅 ${version.dateRange}</p></div>
+                <div class="history-item-actions"><button class="btn-action" style="background:#27ae60; padding:6px 10px; font-size:12px;" onclick="loadVersion('${version.id}')">📂 Cargar</button><button class="btn-action" style="background:#e74c3c; padding:6px 10px; font-size:12px;" onclick="deleteVersion('${version.id}')">🗑️ Borrar</button></div>`;
+            container.appendChild(item);
+        });
+    }
+
+    function loadVersion(id) {
+        let history = getHistory(); let version = history.find(v => v.id === id);
+        if(version) { if(confirm(`¿Cargar "${version.name}"?`)) { restoreState(version); toggleHistoryModal(false); alert(`Horario cargado con éxito.`); } }
+    }
+    function deleteVersion(id) { if(confirm("¿Eliminar del historial?")) { let history = getHistory(); history = history.filter(v => v.id !== id); localStorage.setItem('calendario_historial_versiones', JSON.stringify(history)); renderHistoryList(); } }
+
+    function autoSaveState() { try { localStorage.setItem('calendario_evaluaciones_autosave_vlists_courses_edit', JSON.stringify(getStateObject())); } catch(e) {} }
+    setInterval(() => { autoSaveState(); const toast = document.getElementById('autoSaveToast'); toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3000); }, 120000);
+
+    function loadBackup(event) {
+        const file = event.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) { try { restoreState(JSON.parse(e.target.result)); alert("¡Cargado desde JSON!"); } catch(err) { alert("Archivo no válido."); } };
+        reader.readAsText(file);
+    }
+
+    function restoreState(state) {
+        if (!state) return;
+        if (state.masterBlocks) masterBlocks = state.masterBlocks;
+        gridSelections = state.gridSelections || {};
+        if (state.logoBase64) currentSchoolLogo = state.logoBase64;
+        updateCourseSelectorDropdown();
+        renderMasterPalette();
+        renderInteractiveGrid();
+        if (state.selectedCourse) document.getElementById('courseSelector').value = state.selectedCourse;
+        updateReports();
+    }
+
+    function checkAutoSave() {
+        try { let saved = localStorage.getItem('calendario_evaluaciones_autosave_vlists_courses_edit'); if (saved) { let state = JSON.parse(saved); if (confirm("Se encontró un avance guardado. ¿Deseas recuperarlo?")) { restoreState(state); return; } } } catch(e) {}
+        initApp();
+    }
+
+    function exportToWord() {
+        const course = document.getElementById('courseSelector').value;
+        if (!course) { alert("Selecciona un curso antes de descargar."); return; }
+        const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><title>Calendario</title><style>table{border-collapse:collapse;width:100%;} th, td{border:1px solid black;padding:6px;text-align:center;font-family:Arial,sans-serif;font-size:12px;}</style></head><body>";
+        const footer = "</body></html>"; let printSection = document.querySelector('.print-section').innerHTML;
+        const blob = new Blob(['\uFEFF' + (header + printSection + footer)], { type: 'application/msword' });
+        const URL_OBJ = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = URL_OBJ; a.download = `Calendario_${course}.doc`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(URL_OBJ);
+    }
+
+    document.getElementById('courseSelector').addEventListener('change', updateReports);
+    checkAutoSave();
+</script>
 </body>
 </html>
