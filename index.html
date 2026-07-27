@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Gestor Avanzado de Horarios y Estudiantes</title>
+    <title>Gestor de Horarios</title>
     <style>
         body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f7f6; }
         .container { display: flex; gap: 20px; }
@@ -19,32 +19,17 @@
         .slot { min-height: 50px; border: 2px dashed #ccc; border-radius: 4px; transition: background 0.2s; }
         .slot.drag-over { background-color: #e8f4fd; border-color: #3498db; }
         
-        /* Alerta visual de conflicto (rojo intermitente) */
         @keyframes pulse-red {
             0% { background-color: #e74c3c; }
             50% { background-color: #f1948a; }
             100% { background-color: #e74c3c; }
         }
         .conflict { animation: pulse-red 1s infinite; color: white; }
-
-        /* Estilos de la ventana emergente (Modal) */
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); }
-        .modal-content { background-color: white; margin: 10% auto; padding: 20px; width: 50%; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.2); position: relative; }
-        .close { color: #aaa; float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
-        .close:hover { color: black; }
-        .student-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        .student-table th, .student-table td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .student-table th { background-color: #f2f2f2; }
     </style>
 </head>
 <body>
 
-    <h1>Sistema de Gestión Docente y Horarios</h1>
-    
-    <div class="upload-section" style="margin-bottom: 20px; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <h2>Cargar Archivo XML de Estudiantes</h2>
-        <input type="file" id="xmlFileInput" accept=".xml">
-    </div>
+    <h1>Sistema de Gestión de Horarios</h1>
 
     <div class="container">
         <!-- Panel Lateral con Bloques Maestros -->
@@ -58,7 +43,7 @@
 
         <!-- Malla Horaria Principal -->
         <div class="main-content">
-            <h3>Malla Horaria Sem semanal</h3>
+            <h3>Malla Horaria Semanal</h3>
             <table class="schedule">
                 <thead>
                     <tr>
@@ -92,35 +77,7 @@
         </div>
     </div>
 
-    <!-- Ventana Emergente (Modal) para Checking -->
-    <div id="studentModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="cerrarModal()">&times;</span>
-            <h3 id="modalTitle">Lista de Estudiantes y Checking</h3>
-            <div id="modalBody">
-                <!-- Contenido dinámico de estudiantes -->
-            </div>
-        </div>
-    </div>
-
     <script>
-        let globalXmlData = null;
-
-        // Carga del archivo XML
-        document.getElementById('xmlFileInput').addEventListener('change', function(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const parser = new DOMParser();
-                globalXmlData = parser.parseFromString(e.target.result, "text/xml");
-                alert("¡Archivo XML cargado correctamente!");
-            };
-            reader.readAsText(file);
-        });
-
-        // Funciones de Drag and Drop
         function allowDrop(ev) {
             ev.preventDefault();
             ev.currentTarget.classList.add('drag-over');
@@ -143,60 +100,11 @@
             
             const data = JSON.parse(ev.dataTransfer.getData("text/plain"));
             
-            // Crear elemento visual dentro de la celda
             slot.innerHTML = `
-                <div class="block" style="margin:0; cursor:pointer;" onclick="mostrarEstudiantes('${data.curso}', '${data.materia}')">
-                    <strong>${data.curso}</strong><br>${data.materia}<br><small style="font-size:10px;">Ver Checking</small>
+                <div class="block" style="margin:0;">
+                    <strong>${data.curso}</strong><br>${data.materia}
                 </div>
             `;
-
-            validarConflictos();
-        }
-
-        // Validación de conflictos en la malla
-        function validarConflictos() {
-            const filas = document.querySelectorAll('table.schedule tr');
-            let asignacionesPorDiaYHora = {};
-
-            // Limpiar conflictos previos
-            document.querySelectorAll('.slot .block').forEach(b => b.classList.remove('conflict'));
-
-            // Lógica simple de ejemplo para marcar duplicados o superposiciones
-            // (Puedes expandir esto según las reglas de negocio anteriores)
-        }
-
-        // Mostrar ventana emergente con datos del XML
-        function mostrarEstudiantes(curso, materia) {
-            const modalTitle = document.getElementById('modalTitle');
-            const modalBody = document.getElementById('modalBody');
-            
-            modalTitle.innerText = `Checking: ${curso} - ${materia}`;
-            
-            let htmlContent = `<table class="student-table"><tr><th>Estudiante</th><th>Estado Checking</th></tr>`;
-            
-            if (globalXmlData) {
-                // Aquí se procesaría el XML real cargado
-                htmlContent += `<tr><td>Ejemplo Alumno 1 (${curso})</td><td>Realizado</td></tr>`;
-                htmlContent += `<tr><td>Ejemplo Alumno 2 (${curso})</td><td>Pendiente</td></tr>`;
-            } else {
-                htmlContent += `<tr><td colspan="2" style="color:red; text-align:center;">Por favor, cargue un archivo XML arriba para ver los datos reales.</td></tr>`;
-            }
-            
-            htmlContent += `</table>`;
-            modalBody.innerHTML = htmlContent;
-            
-            document.getElementById('studentModal').style.display = 'block';
-        }
-
-        function cerrarModal() {
-            document.getElementById('studentModal').style.display = 'none';
-        }
-
-        window.onclick = function(event) {
-            const modal = document.getElementById('studentModal');
-            if (event.target == modal) {
-                modal.style.display = 'none';
-            }
         }
     </script>
 </body>
