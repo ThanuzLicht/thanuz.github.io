@@ -1138,7 +1138,7 @@
             let info = subjectSymbolMap[subjName];
             let teachersArray = Array.from(info.teachers).join(', ');
             let tr = document.createElement('tr');
-            tr.innerHTML = `<td style="background-color: ${info.color}; color: #000; font-weight: bold;">COLOR</td><td style="text-align: left; padding-left: 10px; font-weight: bold;">${subjName}</td><td style="text-align: left; padding-left: 10px; font-weight: bold;">${teachersArray}</td>`;
+            tr.innerHTML = `<td style="background-color: ${info.color}; color: transparent; font-weight: bold;"></td><td style="text-align: left; padding-left: 10px; font-weight: bold;">${subjName}</td><td style="text-align: left; padding-left: 10px; font-weight: bold;">${teachersArray}</td>`;
             simbologiaBody.appendChild(tr);
         });
 
