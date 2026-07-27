@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horario Interactivo - Resumen Agrupado por Asignatura</title>
+    <title>Horario Interactivo - Resumen con Checking XML de Estudiantes</title>
     <style>
         :root {
             --header-gray: #a5b1c2;
@@ -52,7 +52,7 @@
         }
         #infoToast.show { opacity: 1; }
 
-        /* Modales */
+        /* Modales generales */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5);
             display: flex; justify-content: center; align-items: center; z-index: 10000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
@@ -63,6 +63,15 @@
         .modal-header h3 { margin: 0; color: #2c3e50; font-size: 18px; }
         .btn-close-modal { background: #e74c3c; color: white; border: none; padding: 6px 12px; border-radius: 4px; font-weight: bold; cursor: pointer; }
         
+        /* Modal específico de Checking de Estudiantes y Visor XML */
+        .modal-checking-content { background: white; width: 95%; max-width: 900px; border-radius: 8px; padding: 25px; box-shadow: 0 5px 25px rgba(0,0,0,0.2); max-height: 90vh; display: flex; flex-direction: column; }
+        .legend-box { background: #f1f5f9; padding: 10px; border-radius: 6px; font-size: 11px; margin-bottom: 15px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+        .student-table-container { max-height: 350px; overflow-y: auto; border: 1px solid #cbd5e1; border-radius: 6px; margin-top: 10px; }
+        .student-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .student-table th, .student-table td { border-bottom: 1px solid #e2e8f0; padding: 8px 12px; text-align: left; }
+        .student-table th { background-color: #34495e; color: white; position: sticky; top: 0; z-index: 10; }
+        .student-status-select { padding: 5px 8px; border-radius: 4px; font-weight: bold; font-size: 12px; border: 1px solid #cbd5e1; cursor: pointer; }
+
         .history-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
         .history-item { background: #f8f9fa; border: 1px solid #d1d8e0; border-radius: 6px; padding: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
         .history-item-info h4 { margin: 0 0 5px 0; color: #2c3e50; font-size: 16px; }
@@ -73,7 +82,7 @@
         .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; color: #2c3e50; }
         .form-group input, .form-group select { width: 100%; padding: 8px 12px; font-size: 14px; border: 1px solid #bdc3c7; border-radius: 4px; box-sizing: border-box; background: #fff; }
 
-        /* Estilos para pestañas del modal de gestión unificada */
+        /* Pestañas de gestión unificada */
         .tabs-header { display: flex; border-bottom: 2px solid #cbd5e1; margin-bottom: 15px; }
         .tab-btn { flex: 1; padding: 10px 5px; background: #f1f5f9; border: none; font-weight: bold; cursor: pointer; color: #64748b; font-size: 13px; text-align: center; }
         .tab-btn.active { background: white; color: #2c3e50; border-bottom: 3px solid #3498db; }
@@ -113,13 +122,14 @@
         .grid-day-col.conflict-cell { background-color: #ff4757 !important; animation: pulse 1s infinite; }
         .grid-recreo-row td { background-color: #e67e22; color: white; font-weight: bold; letter-spacing: 2px; padding: 8px; font-size: 12px; }
 
-        /* Ficha asignada en celda */
+        /* Ficha asignada en celda con botón de Checking */
         .assigned-chip {
             padding: 6px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; color: #000;
             margin-bottom: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.15); text-align: left; position: relative;
         }
         .assigned-chip .chip-footer { display: flex; justify-content: space-between; align-items: center; margin-top: 4px; font-size: 10px; border-top: 1px solid rgba(0,0,0,0.15); padding-top: 2px; }
-        .assigned-chip input[type="checkbox"] { cursor: pointer; vertical-align: middle; margin-right: 3px; }
+        .btn-checking-modal { background: #2c3e50; color: white; border: none; padding: 4px 8px; border-radius: 3px; font-size: 10px; font-weight: bold; cursor: pointer; margin-top: 4px; width: 100%; text-align: center; display: block; }
+        .btn-checking-modal:hover { background: #1a252f; }
 
         @keyframes pulse { 0% { box-shadow: inset 0 0 0 0 rgba(255, 71, 87, 0.7); } 70% { box-shadow: inset 0 0 0 8px rgba(255, 71, 87, 0); } 100% { box-shadow: inset 0 0 0 0 rgba(255, 71, 87, 0); } }
 
@@ -135,6 +145,7 @@
         .btn-new { background-color: #16a085; } .btn-new:hover { background-color: #1abc9c; }
         .btn-add-master { background-color: #8e44ad; color: white; border: none; padding: 8px 14px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .btn-manage-lists { background-color: #2980b9; color: white; border: none; padding: 8px 14px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        .btn-xml { background-color: #d63031; } .btn-xml:hover { background-color: #c0392b; }
         
         /* Sección de Impresión Final Oficial */
         .print-section { background: white; padding: 20px; border: 1px solid #ddd; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin: 0 auto; max-width: 1100px; overflow-x: auto; }
@@ -214,6 +225,104 @@
     </div>
 </div>
 
+<!-- MODAL DE CHECKING DE ESTUDIANTES -->
+<div class="modal-overlay" id="checkingModal">
+    <div class="modal-checking-content">
+        <div class="modal-header">
+            <h3 id="checkingModalTitle">📋 Checking de Estudiantes</h3>
+            <button class="btn-close-modal" onclick="closeCheckingModal()">✕ Cerrar</button>
+        </div>
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 10px; flex-wrap: wrap;">
+            <div id="checkingModalSubTitle" style="font-weight: bold; color: #2c3e50; font-size: 14px;"></div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <label for="checkingCourseSelector" style="font-size: 13px; font-weight: bold;">Curso en Checking:</label>
+                <select id="checkingCourseSelector" onchange="changeCheckingCourse(this.value)" style="padding: 5px 10px; font-size: 13px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
+            </div>
+        </div>
+        
+        <div class="legend-box">
+            <div>⚪ <b>0/5</b> No ingresado</div>
+            <div>🔴 <b>1/5</b> Ingreso no finalizado</div>
+            <div>🟠 <b>2/5</b> Inst. PC no finalizado</div>
+            <div>🟡 <b>3/5</b> Rev. preg. desarrollo</div>
+            <div>🟢 <b>4/5</b> Instrumento cerrado</div>
+            <div>🟢 <b>5/5</b> Informe generado</div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 10px;">
+            <input type="text" id="studentSearchInput" placeholder="🔍 Buscar estudiante por nombre..." oninput="filterStudentTable()">
+        </div>
+
+        <div class="student-table-container">
+            <table class="student-table">
+                <thead>
+                    <tr id="studentTableHeaderRow"></tr>
+                </thead>
+                <tbody id="studentTableBody"></tbody>
+            </table>
+        </div>
+
+        <div style="text-align: right; margin-top: 15px;">
+            <button class="btn-action btn-save" onclick="closeCheckingModal()" style="display: inline-flex; font-size: 13px; padding: 8px 15px;">💾 Guardar y Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: VISOR Y SELECCIÓN DE ATRIBUTOS XML -->
+<div class="modal-overlay" id="xmlModal">
+    <div class="modal-checking-content" style="max-width: 850px;">
+        <div class="modal-header">
+            <h3>📂 Visor y Selección de Atributos del XML (MINEDUC)</h3>
+            <button class="btn-close-modal" onclick="closeXmlModal()">✕ Cerrar</button>
+        </div>
+        <p style="font-size: 13px; color: #555;">Se han detectado los siguientes atributos en el archivo cargado. Selecciona los campos que deseas integrar:</p>
+        
+        <div class="student-table-container" style="max-height: 250px;">
+            <table class="student-table">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Incluir</th>
+                        <th style="width: 45%;">Nombre del Atributo XML</th>
+                        <th style="width: 40%;">Ejemplo Encontrado</th>
+                    </tr>
+                </thead>
+                <tbody id="xmlAttributesTableBody"></tbody>
+            </table>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+            <button class="btn-action btn-history" onclick="openViewLoadedDataModal()" style="font-size: 13px; padding: 8px 15px;">👁️ Ver Datos Cargados en Sistema</button>
+            <button class="btn-action btn-save" onclick="confirmProcessXmlAttributes()" style="font-size: 13px; padding: 8px 15px;">⚙️ Procesar Datos Seleccionados</button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: VISUALIZADOR DE DATOS YA CARGADOS -->
+<div class="modal-overlay" id="viewLoadedModal">
+    <div class="modal-checking-content" style="max-width: 850px;">
+        <div class="modal-header">
+            <h3>👁️ Vista Previa de Estudiantes Almacenados en Memoria</h3>
+            <button class="btn-close-modal" onclick="closeViewLoadedDataModal()">✕ Cerrar</button>
+        </div>
+        <div class="form-group" style="margin-bottom: 10px;">
+            <label style="font-size: 13px;">Selecciona curso para inspeccionar:</label>
+            <select id="viewLoadedCourseSelect" onchange="renderLoadedDataPreview()" style="font-size: 13px; padding: 6px;"></select>
+        </div>
+        <div class="student-table-container" style="max-height: 300px;">
+            <table class="student-table">
+                <thead>
+                    <tr id="loadedDataHeaderRow"></tr>
+                </thead>
+                <tbody id="loadedDataBody"></tbody>
+            </table>
+        </div>
+        <div style="text-align: right; margin-top: 15px;">
+            <button class="btn-action btn-save" onclick="closeViewLoadedDataModal()" style="font-size: 13px; padding: 8px 15px;">Cerrar Vista</button>
+        </div>
+    </div>
+</div>
+
 <!-- MODAL UNIFICADO PARA ADMINISTRAR ASIGNATURAS, PROFESORES Y CURSOS -->
 <div class="modal-overlay" id="manageModal">
     <div class="modal-content" style="max-width: 480px;">
@@ -228,7 +337,6 @@
             <button class="tab-btn" onclick="switchTab('courses')">🏫 Cursos</button>
         </div>
 
-        <!-- Pestaña Asignaturas -->
         <div id="tabSubjects" class="tab-pane active">
             <div class="form-group">
                 <label id="lblSubjectAction">Nueva Asignatura:</label>
@@ -242,7 +350,6 @@
             <div id="subjectsListContainer" class="manage-container"></div>
         </div>
 
-        <!-- Pestaña Profesores -->
         <div id="tabTeachers" class="tab-pane">
             <div class="form-group">
                 <label id="lblTeacherAction">Nuevo Profesor(a):</label>
@@ -256,7 +363,6 @@
             <div id="teachersListContainer" class="manage-container"></div>
         </div>
 
-        <!-- Pestaña Cursos -->
         <div id="tabCourses" class="tab-pane">
             <div class="form-group">
                 <label id="lblCourseAction">Nuevo Curso:</label>
@@ -327,7 +433,8 @@
     <div class="instructions">
         <strong>INSTRUCCIONES DE USO:</strong><br>
         • Utiliza el botón <strong>"⚙️ Gestionar Listas"</strong> para agregar, editar o eliminar asignaturas, profesores y cursos libremente.<br>
-        • El resumen final agrupa automáticamente las asignaturas con múltiples profesores mostrando a todos los docentes involucrados.
+        • Carga tus nóminas mediante el botón <strong>"📂 Cargar Nóminas XML"</strong> para que el checking de estudiantes extraiga los nombres reales automáticamente.<br>
+        • Haz clic en <strong>"📋 Checking Estudiantes"</strong> dentro de cada bloque para registrar el estado (0/5 al 5/5) de cada alumno.
     </div>
 
     <!-- Bandeja de Bloques Maestros -->
@@ -367,6 +474,9 @@
         </select>
         
         <button class="btn-action btn-new" onclick="handleNewScheduleButton()">➕ Nuevo Horario</button>
+        <button class="btn-action btn-xml" onclick="document.getElementById('xmlFileInput').click()">📂 Cargar Nóminas XML</button>
+        <input type="file" id="xmlFileInput" style="display: none;" accept=".xml" onchange="previewStudentXml(event)">
+
         <button class="btn-action btn-upload-logo" onclick="document.getElementById('logoFileInput').click()">🖼️ Subir Insignia</button>
         <input type="file" id="logoFileInput" style="display: none;" accept="image/png, image/jpeg, image/jpg" onchange="loadLogoImage(event)">
 
@@ -461,6 +571,10 @@
     let gridSelections = {}; 
     let currentSchoolLogo = null;
     let pendingDropData = null;
+    let currentCheckingCellKey = null; 
+    let loadedXmlStudentDatabases = {};
+    let tempParsedXmlData = { attributes: {}, list: [] };
+    let globalActiveXmlColumns = [];
 
     let lastSavedMeta = {
         name: "Calendario Diagnóstico Principal",
@@ -474,6 +588,210 @@
         document.getElementById('infoToastText').textContent = msg;
         toast.classList.add('show');
         setTimeout(() => { toast.classList.remove('show'); }, 5000);
+    }
+
+    function previewStudentXml(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        // Forzar lectura en windows-1252 para evitar problemas con acentos y eñes del MINEDUC
+        reader.readAsText(file, "windows-1252");
+        reader.onload = function(e) {
+            try {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(e.target.result, "text/xml");
+                
+                tempParsedXmlData = { attributes: {}, list: [] };
+
+                let todosLosNodos = xmlDoc.getElementsByTagName("*");
+                let elementosEncontrados = Array.from(todosLosNodos).filter(n => n.attributes.length > 0);
+
+                if (elementosEncontrados.length === 0) {
+                    elementosEncontrados = Array.from(todosLosNodos);
+                }
+
+                elementosEncontrados.forEach(elemento => {
+                    let cursoInfo = "5°C"; 
+                    let padre = elemento.parentElement;
+                    while (padre && padre !== xmlDoc.documentElement) {
+                        let g = padre.getAttribute("grado") || padre.getAttribute("nivel") || padre.getAttribute("curso") || "";
+                        let l = padre.getAttribute("letra") || "";
+                        if (g || l) {
+                            cursoInfo = `${g}°${l}`.trim();
+                            break;
+                        }
+                        padre = padre.parentElement;
+                    }
+
+                    let alumnoObj = { curso: cursoInfo };
+                    tempParsedXmlData.attributes["curso"] = cursoInfo;
+
+                    for (let attr of elemento.attributes) {
+                        let val = attr.value;
+                        if (val && val.trim() !== "") {
+                            if (['curso', 'letra', 'grado'].includes(attr.name.toLowerCase())) {
+                                cursoInfo = val;
+                            }
+                            alumnoObj[attr.name] = val;
+                            if (!tempParsedXmlData.attributes[attr.name]) {
+                                tempParsedXmlData.attributes[attr.name] = val;
+                            }
+                        }
+                    }
+
+                    alumnoObj.curso = cursoInfo;
+
+                    if (Object.keys(alumnoObj).length > 1) {
+                        tempParsedXmlData.list.push(alumnoObj);
+                    }
+                });
+
+                if (tempParsedXmlData.list.length === 0) {
+                    alert("⚠️ No se detectaron atributos o registros válidos en el XML.");
+                    return;
+                }
+
+                renderXmlAttributesModal();
+                document.getElementById('xmlModal').classList.add('open');
+            } catch(err) {
+                alert(`❌ Error al procesar el archivo XML: ${err.message}`);
+            }
+        };
+    }
+
+    function renderXmlAttributesModal() {
+        const tbody = document.getElementById('xmlAttributesTableBody');
+        tbody.innerHTML = '';
+
+        Object.keys(tempParsedXmlData.attributes).forEach(attr => {
+            let tr = document.createElement('tr');
+            let isChecked = ['curso', 'nombres', 'ape_paterno', 'ape_materno', 'run', 'rut', 'digito_ve'].includes(attr.toLowerCase()) ? 'checked' : '';
+            tr.innerHTML = `
+                <td style="text-align: center;"><input type="checkbox" name="xmlAttrCheck" value="${attr}" ${isChecked}></td>
+                <td><strong>${attr}</strong></td>
+                <td>${tempParsedXmlData.attributes[attr]}</td>
+            `;
+            tbody.appendChild(tr);
+        });
+    }
+
+    function closeXmlModal() {
+        document.getElementById('xmlModal').classList.remove('open');
+    }
+
+    function confirmProcessXmlAttributes() {
+        const checkedBoxes = document.querySelectorAll('input[name="xmlAttrCheck"]:checked');
+        const selectedAttrs = Array.from(checkedBoxes).map(cb => cb.value);
+
+        if (selectedAttrs.length === 0) {
+            alert("Selecciona al menos un atributo para procesar.");
+            return;
+        }
+
+        globalActiveXmlColumns = selectedAttrs;
+        let importedCount = 0;
+        let alreadyExistsCount = 0;
+
+        tempParsedXmlData.list.forEach(item => {
+            let rawCurso = item.curso || "5°C";
+            let cleanCurso = rawCurso.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+            let matchedCourse = masterCoursesList.find(c => c.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === cleanCurso) || rawCurso;
+
+            if (!loadedXmlStudentDatabases[matchedCourse]) {
+                loadedXmlStudentDatabases[matchedCourse] = [];
+            }
+
+            let studentRecord = { status: "0" };
+            selectedAttrs.forEach(attr => {
+                studentRecord[attr] = item[attr] || "";
+            });
+
+            let identifier = studentRecord.run || studentRecord.rut || studentRecord.nombres || JSON.stringify(studentRecord);
+            let exists = loadedXmlStudentDatabases[matchedCourse].some(st => {
+                let stId = st.run || st.rut || st.nombres || JSON.stringify(st);
+                return stId === identifier;
+            });
+
+            if (!exists) {
+                loadedXmlStudentDatabases[matchedCourse].push(studentRecord);
+                importedCount++;
+            } else {
+                alreadyExistsCount++;
+            }
+        });
+
+        saveListsToStorage();
+        closeXmlModal();
+
+        if (importedCount === 0 && alreadyExistsCount > 0) {
+            alert(`ℹ️ Los datos de este archivo XML ya habían sido cargados anteriormente. No se duplicaron registros.`);
+        } else {
+            alert(`✅ ¡Nómina procesada con éxito! Se importaron ${importedCount} nuevos estudiantes (${alreadyExistsCount} ya existían).`);
+        }
+    }
+
+    function openViewLoadedDataModal() {
+        const sel = document.getElementById('viewLoadedCourseSelect');
+        sel.innerHTML = '';
+        let coursesWithData = Object.keys(loadedXmlStudentDatabases);
+        
+        if (coursesWithData.length === 0) {
+            alert("⚠️ Aún no hay datos de estudiantes cargados en el sistema.");
+            return;
+        }
+
+        coursesWithData.forEach(c => {
+            let opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = `${c} (${loadedXmlStudentDatabases[c].length} estudiantes)`;
+            sel.appendChild(opt);
+        });
+
+        renderLoadedDataPreview();
+        document.getElementById('viewLoadedModal').classList.add('open');
+    }
+
+    function closeViewLoadedDataModal() {
+        document.getElementById('viewLoadedModal').classList.remove('open');
+    }
+
+    function renderLoadedDataPreview() {
+        const course = document.getElementById('viewLoadedCourseSelect').value;
+        const thead = document.getElementById('loadedDataHeaderRow');
+        const tbody = document.getElementById('loadedDataBody');
+        
+        thead.innerHTML = '';
+        tbody.innerHTML = '';
+
+        if (!course || !loadedXmlStudentDatabases[course]) return;
+        let students = loadedXmlStudentDatabases[course];
+        if (students.length === 0) return;
+
+        let cols = globalActiveXmlColumns.length > 0 ? globalActiveXmlColumns : Object.keys(students[0]).filter(k => k !== 'status');
+
+        let thNum = document.createElement('th');
+        thNum.textContent = 'N°';
+        thead.appendChild(thNum);
+
+        cols.forEach(col => {
+            let th = document.createElement('th');
+            th.textContent = col.toUpperCase();
+            thead.appendChild(th);
+        });
+
+        students.forEach((st, idx) => {
+            let tr = document.createElement('tr');
+            let tdNum = document.createElement('td');
+            tdNum.textContent = idx + 1;
+            tr.appendChild(tdNum);
+
+            cols.forEach(col => {
+                let td = document.createElement('td');
+                td.textContent = st[col] || "-";
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
     }
 
     function loadLogoImage(event) {
@@ -518,6 +836,10 @@
             if(savedTeachs) masterTeachersList = JSON.parse(savedTeachs);
             let savedCourses = localStorage.getItem('calendario_master_courses');
             if(savedCourses) masterCoursesList = JSON.parse(savedCourses);
+            let savedXmlDb = localStorage.getItem('calendario_xml_students_db');
+            if(savedXmlDb) loadedXmlStudentDatabases = JSON.parse(savedXmlDb);
+            let savedCols = localStorage.getItem('calendario_xml_active_cols');
+            if(savedCols) globalActiveXmlColumns = JSON.parse(savedCols);
         } catch(e) {}
     }
 
@@ -526,6 +848,8 @@
             localStorage.setItem('calendario_master_subjects', JSON.stringify(masterSubjectsList));
             localStorage.setItem('calendario_master_teachers', JSON.stringify(masterTeachersList));
             localStorage.setItem('calendario_master_courses', JSON.stringify(masterCoursesList));
+            localStorage.setItem('calendario_xml_students_db', JSON.stringify(loadedXmlStudentDatabases));
+            localStorage.setItem('calendario_xml_active_cols', JSON.stringify(globalActiveXmlColumns));
         } catch(e) {}
     }
 
@@ -873,13 +1197,10 @@
                     
                     let htmlContent = '';
                     itemsInCell.forEach((item, itemIdx) => {
-                        let checkedStr = item.done ? 'checked' : '';
                         htmlContent += `
                             <div class="assigned-chip" style="background-color: ${item.color};">
                                 <div><strong>${item.course}</strong> - ${item.subject}</div>
-                                <div style="margin-top: 3px;">
-                                    <label style="cursor:pointer; font-size:10px;"><input type="checkbox" ${checkedStr} onchange="toggleDoneStatus(event, '${cellKey}', ${itemIdx})"> Realizada</label>
-                                </div>
+                                <button class="btn-checking-modal" onclick="openCheckingModal(event, '${cellKey}', ${itemIdx})">📋 Checking Estudiantes</button>
                                 <div class="chip-footer">
                                     <span>${item.teacher}</span>
                                     <span style="cursor:pointer; color:#c0392b; font-weight:bold;" onclick="removeAssignment(event, '${cellKey}', ${itemIdx})">✕ Quitar</span>
@@ -907,13 +1228,162 @@
         checkConflicts();
     }
 
-    function toggleDoneStatus(event, cellKey, itemIdx) {
+    function openCheckingModal(event, cellKey, itemIdx) {
         event.stopPropagation();
-        if(gridSelections[cellKey] && gridSelections[cellKey][itemIdx]) {
-            gridSelections[cellKey][itemIdx].done = event.target.checked;
-            updateReports();
-            autoSaveState();
+        currentCheckingCellKey = { cellKey, itemIdx };
+        let item = gridSelections[cellKey][itemIdx];
+
+        document.getElementById('checkingModalTitle').textContent = `📋 Checking: ${item.course} - ${item.subject}`;
+        document.getElementById('checkingModalSubTitle').textContent = `Profesor(a): ${item.teacher}`;
+        document.getElementById('studentSearchInput').value = '';
+
+        const courseSel = document.getElementById('checkingCourseSelector');
+        courseSel.innerHTML = '';
+        masterCoursesList.forEach(c => {
+            let opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c;
+            if (c === item.course) opt.selected = true;
+            courseSel.appendChild(opt);
+        });
+
+        loadStudentsForCheckingItem(item);
+        renderStudentTable(item.studentsStatus);
+        document.getElementById('checkingModal').classList.add('open');
+    }
+
+    function loadStudentsForCheckingItem(item) {
+        let currentCourse = item.course;
+        let cleanCurrent = currentCourse.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        
+        let foundKey = Object.keys(loadedXmlStudentDatabases).find(k => k.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === cleanCurrent);
+
+        if (foundKey && loadedXmlStudentDatabases[foundKey].length > 0) {
+            item.studentsStatus = JSON.parse(JSON.stringify(loadedXmlStudentDatabases[foundKey]));
+        } else {
+            item.studentsStatus = [
+                { nombres: "Sin estudiantes cargados para este curso", ape_paterno: "Cargue un XML válido", run: "-", status: "0" }
+            ];
         }
+    }
+
+    function changeCheckingCourse(newCourse) {
+        if (!currentCheckingCellKey) return;
+        let item = gridSelections[currentCheckingCellKey.cellKey][currentCheckingCellKey.itemIdx];
+        item.course = newCourse;
+        document.getElementById('checkingModalTitle').textContent = `📋 Checking: ${item.course} - ${item.subject}`;
+        
+        loadStudentsForCheckingItem(item);
+        renderStudentTable(item.studentsStatus);
+        renderInteractiveGrid();
+        autoSaveState();
+    }
+
+    function renderStudentTable(studentsArray) {
+        const theadRow = document.getElementById('studentTableHeaderRow');
+        const tbody = document.getElementById('studentTableBody');
+        
+        theadRow.innerHTML = '';
+        tbody.innerHTML = '';
+
+        let colsToRender = globalActiveXmlColumns.length > 0 ? globalActiveXmlColumns : ['nombres', 'ape_paterno', 'run'];
+        
+        let thNum = document.createElement('th');
+        thNum.textContent = 'N°';
+        thNum.style.width = '40px';
+        theadRow.appendChild(thNum);
+
+        colsToRender.forEach(colName => {
+            let th = document.createElement('th');
+            th.textContent = colName.toUpperCase();
+            theadRow.appendChild(th);
+        });
+
+        let thStatus = document.createElement('th');
+        thStatus.textContent = 'Estado de Evaluación';
+        thStatus.style.width = '200px';
+        theadRow.appendChild(thStatus);
+
+        studentsArray.forEach((st, idx) => {
+            let tr = document.createElement('tr');
+            
+            let tdNum = document.createElement('td');
+            tdNum.textContent = (idx + 1);
+            tr.appendChild(tdNum);
+
+            colsToRender.forEach(colName => {
+                let td = document.createElement('td');
+                td.textContent = st[colName] !== undefined && st[colName] !== "" ? st[colName] : "-";
+                tr.appendChild(td);
+            });
+
+            let tdStatus = document.createElement('td');
+            tdStatus.innerHTML = `
+                <select class="student-status-select" style="background-color: ${getStatusBgColor(st.status)}; color: ${getStatusTextColor(st.status)};" onchange="updateStudentStatus(${idx}, this.value)">
+                    <option value="0" ${st.status === "0" ? "selected" : ""}>⚪ 0/5 - No ingresado</option>
+                    <option value="1" ${st.status === "1" ? "selected" : ""}>🔴 1/5 - Ingreso no finalizado</option>
+                    <option value="2" ${st.status === "2" ? "selected" : ""}>🟠 2/5 - Inst. PC no finalizado</option>
+                    <option value="3" ${st.status === "3" ? "selected" : ""}>🟡 3/5 - Rev. preg. desarrollo</option>
+                    <option value="4" ${st.status === "4" ? "selected" : ""}>🟢 4/5 - Instrumento cerrado</option>
+                    <option value="5" ${st.status === "5" ? "selected" : ""}>🟢 5/5 - Informe generado</option>
+                </select>
+            `;
+            tr.appendChild(tdStatus);
+            tbody.appendChild(tr);
+        });
+    }
+
+    function getStatusBgColor(status) {
+        switch(status) {
+            case "1": return "#fee2e2"; 
+            case "2": return "#ffedd5"; 
+            case "3": return "#fef9c3"; 
+            case "4": 
+            case "5": return "#dcfce7"; 
+            default: return "#f1f5f9";  
+        }
+    }
+
+    function getStatusTextColor(status) {
+        switch(status) {
+            case "1": return "#991b1b";
+            case "2": return "#9a3412";
+            case "3": return "#854d0e";
+            case "4":
+            case "5": return "#166534";
+            default: return "#475569";
+        }
+    }
+
+    function updateStudentStatus(studentIdx, newStatus) {
+        if (!currentCheckingCellKey) return;
+        let item = gridSelections[currentCheckingCellKey.cellKey][currentCheckingCellKey.itemIdx];
+        item.studentsStatus[studentIdx].status = newStatus;
+        
+        let selects = document.querySelectorAll('.student-status-select');
+        if (selects[studentIdx]) {
+            selects[studentIdx].style.backgroundColor = getStatusBgColor(newStatus);
+            selects[studentIdx].style.color = getStatusTextColor(newStatus);
+        }
+        autoSaveState();
+    }
+
+    function filterStudentTable() {
+        let filter = document.getElementById('studentSearchInput').value.toLowerCase();
+        if (!currentCheckingCellKey) return;
+        let item = gridSelections[currentCheckingCellKey.cellKey][currentCheckingCellKey.itemIdx];
+        let filtered = item.studentsStatus.filter(st => {
+            let combinedText = Object.values(st).join(' ').toLowerCase();
+            return combinedText.includes(filter);
+        });
+        renderStudentTable(filtered);
+    }
+
+    function closeCheckingModal() {
+        document.getElementById('checkingModal').classList.remove('open');
+        currentCheckingCellKey = null;
+        renderInteractiveGrid();
+        autoSaveState();
     }
 
     function checkConflicts() {
@@ -975,13 +1445,8 @@
             ) : null;
             
             if (foundSelection) {
-                if (foundSelection.done) {
-                    alert(`❌ BLOQUEO: El curso ${courseValue} ya realizó la evaluación de "${subject}" en el horario guardado como "${v.name}".`);
-                    return false;
-                } else {
-                    showInfoToast(`⚠️ ${courseValue} estaba asignado a "${subject}" en el horario "${v.name}" pero NO se realizó. Reasignado.`);
-                    return true;
-                }
+                showInfoToast(`⚠️ ${courseValue} ya tiene un registro previo para "${subject}" en el historial "${v.name}".`);
+                return true;
             }
         }
         return true;
@@ -1023,13 +1488,25 @@
         let cellKey = `${pendingDropData.day}-${pendingDropData.hour}`;
         if(!gridSelections[cellKey]) gridSelections[cellKey] = [];
 
+        let initialStudents = [];
+        let cleanCourse = course.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        let foundKey = Object.keys(loadedXmlStudentDatabases).find(k => k.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === cleanCourse);
+
+        if (foundKey && loadedXmlStudentDatabases[foundKey].length > 0) {
+            initialStudents = JSON.parse(JSON.stringify(loadedXmlStudentDatabases[foundKey]));
+        } else {
+            initialStudents = [
+                { nombres: "Estudiante", ape_paterno: "Ejemplo", run: "12345678", status: "0" }
+            ];
+        }
+
         let newItem = {
             masterId: master.id,
             subject: master.subject,
             teacher: master.teacher,
             color: master.color,
             course: course,
-            done: false
+            studentsStatus: initialStudents
         };
 
         gridSelections[cellKey].push(newItem);
@@ -1083,7 +1560,6 @@
         const course = document.getElementById('courseSelector').value;
         document.getElementById('print-course-title').textContent = course === 'TODOS' ? "CALENDARIO GENERAL - TODOS LOS CURSOS" : (course ? `CURSO: ${course}` : "CURSO: (SELECCIONE ARRIBA)");
         
-        // Limpiar todas las celdas de la tabla de impresión final
         for (let day = 0; day < 5; day++) {
             for (let hour = 0; hour < 11; hour++) {
                 let cell = document.getElementById(`final-${day}-${hour}`);
@@ -1106,8 +1582,7 @@
                     let htmlContent = '';
                     itemsInCell.forEach(item => {
                         let teacherLine = item.teacher ? `<br><span style="font-size: 9px; font-weight: normal; opacity: 0.95;">(${item.teacher})</span>` : '';
-                        let doneMark = item.done ? ' <span style="color:#000; font-size:12px;" title="Realizada">✅</span>' : '';
-                        htmlContent += `<div style="background-color: ${item.color}; color: #000; padding: 4px 6px; margin-bottom: 2px; border-radius: 4px; font-weight: bold; font-size: 11px; line-height: 1.2; display: block; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">${item.course}${doneMark} - ${item.subject}${teacherLine}</div>`;
+                        htmlContent += `<div style="background-color: ${item.color}; color: #000; padding: 4px 6px; margin-bottom: 2px; border-radius: 4px; font-weight: bold; font-size: 11px; line-height: 1.2; display: block; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">${item.course} - ${item.subject}${teacherLine}</div>`;
                     });
                     cell.innerHTML = htmlContent;
                 } else {
@@ -1115,14 +1590,12 @@
                     if (filtered.length > 0) {
                         let item = filtered[0];
                         let teacherLine = item.teacher ? `<br><span style="font-size: 10px; font-weight: normal; opacity: 0.95;">(${item.teacher})</span>` : '';
-                        let doneMark = item.done ? ' <span style="color:#000; font-size:14px;" title="Realizada">✅</span>' : '';
-                        cell.innerHTML = `<div style="background-color: ${item.color}; color: #000; padding: 5px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; line-height: 1.3; display: block; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">${item.course}${doneMark} - ${item.subject}${teacherLine}</div>`;
+                        cell.innerHTML = `<div style="background-color: ${item.color}; color: #000; padding: 5px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; line-height: 1.3; display: block; width: 100%; box-sizing: border-box; box-shadow: 0 1px 3px rgba(0,0,0,0.15);">${item.course} - ${item.subject}${teacherLine}</div>`;
                     }
                 }
             }
         }
 
-        // --- SIMBOLOGÍA AGRUPADA POR ASIGNATURA ---
         let simbologiaBody = document.getElementById('simbologiaBody'); 
         simbologiaBody.innerHTML = '';
         
@@ -1142,7 +1615,6 @@
             simbologiaBody.appendChild(tr);
         });
 
-        // --- CÓMPUTO FINAL DE CURSOS AGRUPADO POR ASIGNATURA ---
         let printEvalSummaryContainer = document.getElementById('printEvalSummaryContainer'); 
         printEvalSummaryContainer.innerHTML = '';
 
@@ -1185,7 +1657,9 @@
             masterBlocks: JSON.parse(JSON.stringify(masterBlocks)),
             gridSelections: JSON.parse(JSON.stringify(gridSelections)),
             selectedCourse: document.getElementById('courseSelector').value,
-            logoBase64: currentSchoolLogo
+            logoBase64: currentSchoolLogo,
+            xmlStudentsDb: loadedXmlStudentDatabases,
+            activeXmlCols: globalActiveXmlColumns
         };
     }
 
@@ -1284,6 +1758,8 @@
         if (state.masterBlocks) masterBlocks = state.masterBlocks;
         gridSelections = state.gridSelections || {};
         if (state.logoBase64) currentSchoolLogo = state.logoBase64;
+        if (state.xmlStudentsDb) loadedXmlStudentDatabases = state.xmlStudentsDb;
+        if (state.activeXmlCols) globalActiveXmlColumns = state.activeXmlCols;
         updateCourseSelectorDropdown();
         renderMasterPalette();
         renderInteractiveGrid();
