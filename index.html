@@ -420,11 +420,11 @@
 <script>
     const days = ['LUNES', 'MARTES', 'MIÉRCOLES', 'JUEVES', 'VIERNES'];
     const hours = [
-        { type: 'class', num: '1°', time: '8:00 A 8:45' },   
-        { type: 'class', num: '2°', time: '8:45 A 9:30' },   
+        { type: 'class', num: '1°', time: '8:00 A 8:45' },    
+        { type: 'class', num: '2°', time: '8:45 A 9:30' },    
         { type: 'break', label: 'Recreo (9:30 A 9:50)' },    
-        { type: 'class', num: '3°', time: '9:50 A 10:35' },  
-        { type: 'class', num: '4°', time: '10:35 A 11:20' }, 
+        { type: 'class', num: '3°', time: '9:50 A 10:35' },   
+        { type: 'class', num: '4°', time: '10:35 A 11:20' },  
         { type: 'break', label: 'Recreo (11:20 A 11:40)' },  
         { type: 'class', num: '5°', time: '11:40 A 12:25' }, 
         { type: 'class', num: '6°', time: '12:25 A 13:10' }, 
@@ -1082,13 +1082,21 @@
     function updateReports() {
         const course = document.getElementById('courseSelector').value;
         document.getElementById('print-course-title').textContent = course === 'TODOS' ? "CALENDARIO GENERAL - TODOS LOS CURSOS" : (course ? `CURSO: ${course}` : "CURSO: (SELECCIONE ARRIBA)");
-        document.querySelectorAll('.final-cell').forEach(cell => { cell.innerHTML = ''; });
+        
+        // Limpiar todas las celdas de la tabla de impresión final
+        for (let day = 0; day < 5; day++) {
+            for (let hour = 0; hour < 11; hour++) {
+                let cell = document.getElementById(`final-${day}-${hour}`);
+                if (cell) cell.innerHTML = '';
+            }
+        }
+        
         if (!course) return;
 
         for (let day = 0; day < 5; day++) {
             for (let hour = 0; hour < 11; hour++) {
                 if (hours[hour].type === 'break') continue;
-                let cellId = `final-${day}-${hour}`; let cell = document.getElementById(cellId);
+                let cell = document.getElementById(`final-${day}-${hour}`);
                 if (!cell) continue;
 
                 let cellKey = `${day}-${hour}`;
