@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Horario Interactivo - Resumen Agrupado por Asignatura</title>
+    <title>Horario Interactivo - Carga XML y Cómputo</title>
     <style>
         :root {
             --header-gray: #a5b1c2;
@@ -133,6 +133,7 @@
         .btn-history { background-color: #e67e22; } .btn-history:hover { background-color: #d35400; }
         .btn-upload-logo { background-color: #34495e; } .btn-upload-logo:hover { background-color: #2c3e50; }
         .btn-new { background-color: #16a085; } .btn-new:hover { background-color: #1abc9c; }
+        .btn-xml { background-color: #d35400; } .btn-xml:hover { background-color: #b94200; }
         .btn-add-master { background-color: #8e44ad; color: white; border: none; padding: 8px 14px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         .btn-manage-lists { background-color: #2980b9; color: white; border: none; padding: 8px 14px; font-size: 13px; border-radius: 4px; cursor: pointer; font-weight: bold; }
         
@@ -228,7 +229,6 @@
             <button class="tab-btn" onclick="switchTab('courses')">🏫 Cursos</button>
         </div>
 
-        <!-- Pestaña Asignaturas -->
         <div id="tabSubjects" class="tab-pane active">
             <div class="form-group">
                 <label id="lblSubjectAction">Nueva Asignatura:</label>
@@ -242,7 +242,6 @@
             <div id="subjectsListContainer" class="manage-container"></div>
         </div>
 
-        <!-- Pestaña Profesores -->
         <div id="tabTeachers" class="tab-pane">
             <div class="form-group">
                 <label id="lblTeacherAction">Nuevo Profesor(a):</label>
@@ -256,7 +255,6 @@
             <div id="teachersListContainer" class="manage-container"></div>
         </div>
 
-        <!-- Pestaña Cursos -->
         <div id="tabCourses" class="tab-pane">
             <div class="form-group">
                 <label id="lblCourseAction">Nuevo Curso:</label>
@@ -276,22 +274,31 @@
     </div>
 </div>
 
-<!-- MODAL PARA SELECCIONAR CURSO AL SOLTAR -->
+<!-- MODAL PARA SELECCIONAR CURSO Y ESTUDIANTES AL SOLTAR -->
 <div class="modal-overlay" id="dropModal">
-    <div class="modal-content" style="max-width: 400px;">
+    <div class="modal-content" style="max-width: 550px;">
         <div class="modal-header">
-            <h3>📌 Asignar Curso al Bloque</h3>
+            <h3>📌 Asignar Curso y Estudiantes</h3>
             <button class="btn-close-modal" onclick="closeDropModal()">✕ Cerrar</button>
         </div>
         <div class="form-group">
             <label id="dropModalInfo" style="font-size: 13px; color: #2c3e50; margin-bottom: 10px;"></label>
             <label>Selecciona el Curso:</label>
-            <select id="dropCourseSelect">
+            <select id="dropCourseSelect" onchange="renderStudentChecklist()">
                 <option value="">-- Seleccione Curso --</option>
             </select>
         </div>
+        <div class="form-group">
+            <label style="display:flex; justify-content:space-between; align-items:center;">
+                <span>Estudiantes del Curso (Marca los que rinden/rindieron):</span>
+                <span style="font-size:11px; color:#3498db; cursor:pointer;" onclick="toggleAllStudents(true)">Marcar Todos</span>
+            </label>
+            <div id="studentChecklistContainer" style="max-height: 180px; overflow-y: auto; border: 1px solid #cbd5e1; padding: 8px; border-radius: 4px; background: #f8fafc; font-size: 13px;">
+                <p style="color:#718093; text-align:center; margin:10px 0;">Selecciona un curso primero.</p>
+            </div>
+        </div>
         <div style="text-align: right; margin-top: 20px;">
-            <button class="btn-action btn-save" onclick="confirmDropAssignment()" style="display: inline-flex;">💾 Asignar Curso</button>
+            <button class="btn-action btn-save" onclick="confirmDropAssignment()" style="display: inline-flex;">💾 Guardar Asignación</button>
         </div>
     </div>
 </div>
@@ -326,8 +333,8 @@
     
     <div class="instructions">
         <strong>INSTRUCCIONES DE USO:</strong><br>
-        • Utiliza el botón <strong>"⚙️ Gestionar Listas"</strong> para agregar, editar o eliminar asignaturas, profesores y cursos libremente.<br>
-        • El resumen final agrupa automáticamente las asignaturas con múltiples profesores mostrando a todos los docentes involucrados.
+        • Carga tu archivo XML institucional con <strong>"📂 Cargar XML Estudiantes"</strong> para incorporar la nómina real de alumnos de cada curso.<br>
+        • Al arrastrar un bloque podrás seleccionar el curso y marcar individualmente a los estudiantes que rinden la prueba.
     </div>
 
     <!-- Bandeja de Bloques Maestros -->
@@ -367,6 +374,9 @@
         </select>
         
         <button class="btn-action btn-new" onclick="handleNewScheduleButton()">➕ Nuevo Horario</button>
+        <button class="btn-action btn-xml" onclick="document.getElementById('xmlFileInput').click()">📂 Cargar XML Estudiantes</button>
+        <input type="file" id="xmlFileInput" style="display: none;" accept=".xml" onchange="loadStudentXML(event)">
+
         <button class="btn-action btn-upload-logo" onclick="document.getElementById('logoFileInput').click()">🖼️ Subir Insignia</button>
         <input type="file" id="logoFileInput" style="display: none;" accept="image/png, image/jpeg, image/jpg" onchange="loadLogoImage(event)">
 
@@ -444,6 +454,9 @@
     let masterCoursesList = ['1°A', '1°B', '2°A', '2°B', '3°A', '3°B', '4°A', '4°B', '5°A', '5°B', '5°C', '6°A', '6°B', '6°C', '7°A', '7°B', '7°C', '8°A', '8°B', '8°C'];
     let masterSubjectsList = ['Matemática', 'Historia', 'Ciencias Naturales', 'LECTURA', 'Actividad Socioemocional Evaluativa'];
     let masterTeachersList = ['Prof. María Gómez', 'Yocelin Fernandez', 'Prof. Nuevo', 'Prof. Lenguaje', 'Orientación'];
+    
+    // Almacenamiento de estudiantes por curso: { "5°A": [ {name: "Juan Pérez", id: "1"}, ... ] }
+    let studentsDatabase = {};
 
     let editingState = {
         subjects: { index: null, value: '' },
@@ -500,6 +513,55 @@
         }
     }
 
+    function loadStudentXML(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(e.target.result, "text/xml");
+                
+                // Intento genérico de lectura de XML escolar (etiquetas comunes: estudiante, alumno, curso, nombre)
+                let parsedStudents = {};
+                let parsedCourses = new Set();
+
+                // Buscamos nodos de estudiantes (ej. <estudiante>, <alumno>, <student>)
+                let nodes = xmlDoc.querySelectorAll("estudiante, alumno, student, row, item");
+                if(nodes.length === 0) {
+                    nodes = xmlDoc.getElementsByTagName("*");
+                }
+
+                nodes.forEach(node => {
+                    let name = node.getAttribute("nombre") || node.getAttribute("name") || node.querySelector("nombre, name")?.textContent;
+                    let course = node.getAttribute("curso") || node.getAttribute("course") || node.querySelector("curso, course, nivel")?.textContent;
+                    
+                    if(name && course) {
+                        course = course.trim().toUpperCase();
+                        name = name.trim();
+                        parsedCourses.add(course);
+                        if(!parsedStudents[course]) parsedStudents[course] = [];
+                        parsedStudents[course].push({ name: name });
+                    }
+                });
+
+                if(Object.keys(parsedStudents).length > 0) {
+                    studentsDatabase = parsedStudents;
+                    masterCoursesList = Array.from(parsedCourses).sort();
+                    saveListsToStorage();
+                    updateCourseSelectorDropdown();
+                    renderMasterPalette();
+                    alert(`✅ ¡XML cargado exitosamente!\nSe importaron estudiantes para ${masterCoursesList.length} cursos.`);
+                } else {
+                    alert("⚠️ No se pudo reconocer automáticamente la estructura de cursos y alumnos en el XML. Asegúrate de que contenga etiquetas con nombre y curso.");
+                }
+            } catch(err) {
+                alert("❌ Error al procesar el archivo XML: " + err.message);
+            }
+        };
+        reader.readAsText(file);
+    }
+
     function initApp() {
         loadListsFromStorage();
         updateCourseSelectorDropdown();
@@ -518,6 +580,8 @@
             if(savedTeachs) masterTeachersList = JSON.parse(savedTeachs);
             let savedCourses = localStorage.getItem('calendario_master_courses');
             if(savedCourses) masterCoursesList = JSON.parse(savedCourses);
+            let savedStudents = localStorage.getItem('calendario_students_db');
+            if(savedStudents) studentsDatabase = JSON.parse(savedStudents);
         } catch(e) {}
     }
 
@@ -526,6 +590,7 @@
             localStorage.setItem('calendario_master_subjects', JSON.stringify(masterSubjectsList));
             localStorage.setItem('calendario_master_teachers', JSON.stringify(masterTeachersList));
             localStorage.setItem('calendario_master_courses', JSON.stringify(masterCoursesList));
+            localStorage.setItem('calendario_students_db', JSON.stringify(studentsDatabase));
         } catch(e) {}
     }
 
@@ -874,9 +939,13 @@
                     let htmlContent = '';
                     itemsInCell.forEach((item, itemIdx) => {
                         let checkedStr = item.done ? 'checked' : '';
+                        let studentsCount = item.students ? item.students.filter(s => s.present).length : 0;
+                        let totalStudents = item.students ? item.students.length : 0;
+                        let studentsBadge = totalStudents > 0 ? `<br><span style="font-size:9px; background:rgba(0,0,0,0.1); padding:1px 4px; border-radius:3px;">Alumnos: ${studentsCount}/${totalStudents}</span>` : '';
+
                         htmlContent += `
                             <div class="assigned-chip" style="background-color: ${item.color};">
-                                <div><strong>${item.course}</strong> - ${item.subject}</div>
+                                <div><strong>${item.course}</strong> - ${item.subject} ${studentsBadge}</div>
                                 <div style="margin-top: 3px;">
                                     <label style="cursor:pointer; font-size:10px;"><input type="checkbox" ${checkedStr} onchange="toggleDoneStatus(event, '${cellKey}', ${itemIdx})"> Realizada</label>
                                 </div>
@@ -958,7 +1027,33 @@
         pendingDropData = { master: master, day: dayIndex, hour: hourIndex };
         document.getElementById('dropModalInfo').textContent = `Bloque: ${days[dayIndex]} (${hours[hourIndex].time}) -> Asignatura: ${master.subject}`;
         document.getElementById('dropCourseSelect').value = '';
+        document.getElementById('studentChecklistContainer').innerHTML = `<p style="color:#718093; text-align:center; margin:10px 0;">Selecciona un curso primero.</p>`;
         document.getElementById('dropModal').classList.add('open');
+    }
+
+    function renderStudentChecklist() {
+        let course = document.getElementById('dropCourseSelect').value;
+        let container = document.getElementById('studentChecklistContainer');
+        if(!course) {
+            container.innerHTML = `<p style="color:#718093; text-align:center; margin:10px 0;">Selecciona un curso primero.</p>`;
+            return;
+        }
+
+        let students = studentsDatabase[course] || [];
+        if(students.length === 0) {
+            container.innerHTML = `<p style="color:#e67e22; text-align:center; margin:10px 0;">No hay estudiantes cargados para ${course}. (Puedes cargar un XML con la nómina).</p>`;
+            return;
+        }
+
+        let html = '';
+        students.forEach((st, idx) => {
+            html += `<label style="display:block; margin-bottom:4px; cursor:pointer;"><input type="checkbox" class="student-checkbox" value="${idx}" checked> ${st.name}</label>`;
+        });
+        container.innerHTML = html;
+    }
+
+    function toggleAllStudents(status) {
+        document.querySelectorAll('.student-checkbox').forEach(cb => cb.checked = status);
     }
 
     function closeDropModal() {
@@ -990,12 +1085,21 @@
     function confirmDropAssignment() {
         if(!pendingDropData) return;
         let course = document.getElementById('dropCourseSelect').value;
-
         if(!course) { alert("Selecciona un curso."); return; }
 
         let master = pendingDropData.master;
         let isValid = validateAgainstHistory(master.subject, course);
         if(!isValid) return;
+
+        // Recolectar estudiantes seleccionados
+        let registeredStudents = [];
+        let rawStudents = studentsDatabase[course] || [];
+        document.querySelectorAll('.student-checkbox').forEach(cb => {
+            let idx = parseInt(cb.value);
+            if(rawStudents[idx]) {
+                registeredStudents.push({ name: rawStudents[idx].name, present: cb.checked });
+            }
+        });
 
         let targetDay = pendingDropData.day;
         let targetOfficialBlock = getOfficialBlockIndex(pendingDropData.hour);
@@ -1029,7 +1133,8 @@
             teacher: master.teacher,
             color: master.color,
             course: course,
-            done: false
+            done: false,
+            students: registeredStudents
         };
 
         gridSelections[cellKey].push(newItem);
@@ -1114,7 +1219,6 @@
             }
         }
 
-        // --- SIMBOLOGÍA AGRUPADA POR ASIGNATURA ---
         let simbologiaBody = document.getElementById('simbologiaBody'); 
         simbologiaBody.innerHTML = '';
         
@@ -1134,7 +1238,6 @@
             simbologiaBody.appendChild(tr);
         });
 
-        // --- CÓMPUTO FINAL DE CURSOS AGRUPADO POR ASIGNATURA ---
         let printEvalSummaryContainer = document.getElementById('printEvalSummaryContainer'); 
         printEvalSummaryContainer.innerHTML = '';
 
@@ -1261,7 +1364,7 @@
     }
     function deleteVersion(id) { if(confirm("¿Eliminar del historial?")) { let history = getHistory(); history = history.filter(v => v.id !== id); localStorage.setItem('calendario_historial_versiones', JSON.stringify(history)); renderHistoryList(); } }
 
-    function autoSaveState() { try { localStorage.setItem('calendario_evaluaciones_autosave_grouped', JSON.stringify(getStateObject())); } catch(e) {} }
+    function autoSaveState() { try { localStorage.setItem('calendario_evaluaciones_autosave_xml', JSON.stringify(getStateObject())); } catch(e) {} }
     setInterval(() => { autoSaveState(); const toast = document.getElementById('autoSaveToast'); toast.classList.add('show'); setTimeout(() => { toast.classList.remove('show'); }, 3000); }, 120000);
 
     function loadBackup(event) {
@@ -1284,7 +1387,7 @@
     }
 
     function checkAutoSave() {
-        try { let saved = localStorage.getItem('calendario_evaluaciones_autosave_grouped'); if (saved) { let state = JSON.parse(saved); if (confirm("Se encontró un avance guardado. ¿Deseas recuperarlo?")) { restoreState(state); return; } } } catch(e) {}
+        try { let saved = localStorage.getItem('calendario_evaluaciones_autosave_xml'); if (saved) { let state = JSON.parse(saved); if (confirm("Se encontró un avance guardado. ¿Deseas recuperarlo?")) { restoreState(state); return; } } } catch(e) {}
         initApp();
     }
 
