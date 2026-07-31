@@ -240,7 +240,6 @@
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 8px; flex-wrap: wrap;">
             <div id="checkingModalSubTitle" style="font-weight: bold; color: #2c3e50; font-size: 14px;"></div>
             <div style="display: flex; align-items: center; gap: 8px;">
-                <!-- NUEVO BOTÓN DE SINCRONIZACIÓN MANUAL XML -->
                 <button class="btn-action" style="background: #3498db; font-size: 12px; padding: 5px 10px;" onclick="forceSyncWithXml()">🔄 Sincronizar con XML</button>
                 <label for="checkingCourseSelector" style="font-size: 13px; font-weight: bold; margin-left: 10px;">Curso en Checking:</label>
                 <select id="checkingCourseSelector" onchange="changeCheckingCourse(this.value)" style="padding: 5px 10px; font-size: 13px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
@@ -475,7 +474,7 @@
 </div>
 
 <div class="container">
-    <div class="version-badge" id="versionBadgeContainer">v2.9 | Modificado: --</div>
+    <div class="version-badge" id="versionBadgeContainer">v3.0 | Modificado: --</div>
 
     <h1>🗓️ Creador de Calendario Escolar</h1>
     
@@ -636,7 +635,7 @@
         const now = new Date();
         const timeStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         const badge = document.getElementById('versionBadgeContainer');
-        if(badge) badge.textContent = `v2.9 | Modificado: ${timeStr}`;
+        if(badge) badge.textContent = `v3.0 | Modificado: ${timeStr}`;
     }
 
     function showInfoToast(msg) {
@@ -657,7 +656,16 @@
         setTimeout(() => { window.print(); }, 150);
     }
 
+    /* AQUI ESTÁ EL BARRIDO AUTOMÁTICO DE LA v3.0 */
     function triggerOpenCheckingConfig() {
+        // Barrido invisible para reemplazar los "Estudiantes Ejemplo" en TODOS los bloques si ya existe un XML
+        Object.keys(gridSelections).forEach(cellKey => {
+            gridSelections[cellKey].forEach(item => {
+                loadStudentsForCheckingItem(item);
+            });
+        });
+        autoSaveState(); // Guardar el progreso para que los fantasmas desaparezcan para siempre.
+
         const modal = document.getElementById('printCheckingConfigModal');
         if (!modal) return;
         
@@ -1122,13 +1130,11 @@
         loadStudentsForCheckingItem(item); renderStudentTable(item.studentsStatus); document.getElementById('checkingModal').classList.add('open');
     }
 
-    // LÓGICA MEJORADA DE CARGA AUTOMÁTICA
     function loadStudentsForCheckingItem(item) {
         let cleanCurrent = item.course.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
         let foundKey = Object.keys(loadedXmlStudentDatabases).find(k => k.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === cleanCurrent);
         
         if (foundKey && loadedXmlStudentDatabases[foundKey].length > 0) {
-            // DETECTA SI ES EL ESTUDIANTE DE RELLENO (12345678) O SI ESTÁ VACÍO Y LO SOBRESCRIBE SOLITO
             let isDummy = (!item.studentsStatus || item.studentsStatus.length === 0 || item.studentsStatus[0].run === "-" || item.studentsStatus[0].run === "12345678");
             if (isDummy) {
                 item.studentsStatus = JSON.parse(JSON.stringify(loadedXmlStudentDatabases[foundKey]));
@@ -1140,7 +1146,6 @@
         }
     }
 
-    // BOTÓN MANUAL DE SINCRONIZACIÓN XML (EN CASO DE NECESITAR FORZARLO)
     function forceSyncWithXml() {
         if (!currentCheckingCellKey) return;
         let item = gridSelections[currentCheckingCellKey.cellKey][currentCheckingCellKey.itemIdx];
@@ -1279,7 +1284,6 @@
         if (foundKey && loadedXmlStudentDatabases[foundKey].length > 0) {
             initialStudents = JSON.parse(JSON.stringify(loadedXmlStudentDatabases[foundKey]));
         } else {
-            // AQUÍ SE CREABA EL ESTUDIANTE DE RELLENO "12345678" ANTES
             initialStudents = [{ nombres: "Estudiante", ape_paterno: "Ejemplo", run: "12345678", status: "0" }];
         }
 
