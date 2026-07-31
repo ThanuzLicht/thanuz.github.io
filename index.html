@@ -191,7 +191,8 @@
         @media print {
             body { background: white; padding: 0; }
             .container { box-shadow: none; max-width: 100%; padding: 0; }
-            .grid-container, .master-palette, h1, .instructions, .generator-controls, .modal-overlay, .print-section { display: none !important; }
+            .grid-container, .master-palette, h1, .instructions, .generator-controls, .modal-overlay { display: none !important; }
+            .print-section { display: block !important; border: none; box-shadow: none; padding: 0; margin: 0; width: 100%; }
             #checkingPrintReportContainer { display: block !important; width: 100%; }
             @page { size: portrait; margin: 10mm; }
         }
@@ -472,14 +473,14 @@
 </div>
 
 <div class="container">
-    <div class="version-badge" id="versionBadgeContainer">v2.7 | Modificado: --</div>
+    <div class="version-badge" id="versionBadgeContainer">v2.8 | Modificado: --</div>
 
     <h1>🗓️ Creador de Calendario Escolar</h1>
     
     <div class="instructions">
         <strong>INSTRUCCIONES DE USO:</strong><br>
-        • Utiliza el selector <strong>"Ver Curso en Reporte"</strong> para elegir qué curso se imprimirá o visualiza "-- TODOS --".<br>
-        • El botón <strong>"🖨️ Imprimir Checking General"</strong> ahora abrirá instantáneamente su panel flotante de vista previa y filtrado.
+        • Utiliza el selector <strong>"Ver Curso en Reporte"</strong> (puedes elegir un curso específico o <strong>"-- TODOS --"</strong> para el calendario general).<br>
+        • El botón <strong>"🖨️ Imprimir PDF"</strong> renderizará y enviará de forma automática el reporte en pantalla directo a la impresora.
     </div>
 
     <!-- Bandeja de Bloques Maestros -->
@@ -530,7 +531,7 @@
         <button class="btn-action btn-load" onclick="document.getElementById('backupFileInput').click()">📂 Cargar .json</button>
         <input type="file" id="backupFileInput" style="display: none;" accept=".json" onchange="loadBackup(event)">
         
-        <!-- Botones con eventos directos garantizados -->
+        <!-- Botones con triggers seguros directos -->
         <button class="btn-action btn-print" onclick="triggerMainPrintPdf()">🖨️ Imprimir PDF</button>
         <button class="btn-action btn-print-checking" onclick="triggerOpenCheckingConfig()">🖨️ Imprimir Checking General</button>
         <button class="btn-action btn-word" onclick="exportToWord()">📄 Exportar a Word</button>
@@ -637,7 +638,7 @@
         const now = new Date();
         const timeStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         const badge = document.getElementById('versionBadgeContainer');
-        if(badge) badge.textContent = `v2.7 | Modificado: ${timeStr}`;
+        if(badge) badge.textContent = `v2.8 | Modificado: ${timeStr}`;
     }
 
     function showInfoToast(msg) {
@@ -647,23 +648,23 @@
         setTimeout(() => { toast.classList.remove('show'); }, 5000);
     }
 
-    /* Funciones principales de botones con control directo */
+    /* Disparador blindado para Imprimir PDF */
     function triggerMainPrintPdf() {
         const course = document.getElementById('courseSelector').value;
         if (!course) {
-            alert("⚠️ Selecciona un curso o '-- TODOS --' en el selector 'Ver Curso en Reporte' antes de imprimir el PDF.");
+            alert("⚠️ Por favor, selecciona un curso o '-- TODOS --' en el selector 'Ver Curso en Reporte' antes de presionar Imprimir PDF.");
             document.getElementById('courseSelector').focus();
             return;
         }
-        window.print();
+        updateReports(); // Forzar renderizado previo del reporte oficial
+        setTimeout(() => {
+            window.print();
+        }, 150);
     }
 
     function triggerOpenCheckingConfig() {
         const modal = document.getElementById('printCheckingConfigModal');
-        if (!modal) {
-            alert("⚠️ Error: El modal de checking general no se encuentra cargado.");
-            return;
-        }
+        if (!modal) return;
         
         const courseSel = document.getElementById('printCheckingCourseSelect');
         courseSel.innerHTML = '';
@@ -847,7 +848,6 @@
         setTimeout(() => { window.print(); }, 200);
     }
 
-    /* Demás funciones estándar del sistema */
     function previewStudentXml(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -1657,7 +1657,7 @@
         if(version) { restoreState(version); toggleHistoryModal(false); alert("Cargado con éxito."); }
     }
 
-    function autoSaveState() { try { localStorage.setItem('calendario_autosave_v27', JSON.stringify(getStateObject())); } catch(e) {} }
+    function autoSaveState() { try { localStorage.setItem('calendario_autosave_v28', JSON.stringify(getStateObject())); } catch(e) {} }
 
     function loadBackup(event) {
         const file = event.target.files[0]; if (!file) return;
@@ -1682,7 +1682,7 @@
     }
 
     function checkAutoSave() {
-        try { let saved = localStorage.getItem('calendario_autosave_v27'); if (saved) { let state = JSON.parse(saved); if (confirm("¿Recuperar avance guardado?")) { restoreState(state); return; } } } catch(e) {}
+        try { let saved = localStorage.getItem('calendario_autosave_v28'); if (saved) { let state = JSON.parse(saved); if (confirm("¿Recuperar avance guardado?")) { restoreState(state); return; } } } catch(e) {}
         initApp();
     }
 
