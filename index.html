@@ -240,7 +240,9 @@
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 15px; margin-bottom: 8px; flex-wrap: wrap;">
             <div id="checkingModalSubTitle" style="font-weight: bold; color: #2c3e50; font-size: 14px;"></div>
             <div style="display: flex; align-items: center; gap: 8px;">
-                <label for="checkingCourseSelector" style="font-size: 13px; font-weight: bold;">Curso en Checking:</label>
+                <!-- NUEVO BOTÓN DE SINCRONIZACIÓN MANUAL XML -->
+                <button class="btn-action" style="background: #3498db; font-size: 12px; padding: 5px 10px;" onclick="forceSyncWithXml()">🔄 Sincronizar con XML</button>
+                <label for="checkingCourseSelector" style="font-size: 13px; font-weight: bold; margin-left: 10px;">Curso en Checking:</label>
                 <select id="checkingCourseSelector" onchange="changeCheckingCourse(this.value)" style="padding: 5px 10px; font-size: 13px; border-radius: 4px; border: 1px solid #cbd5e1;"></select>
             </div>
         </div>
@@ -473,7 +475,7 @@
 </div>
 
 <div class="container">
-    <div class="version-badge" id="versionBadgeContainer">v2.8 | Modificado: --</div>
+    <div class="version-badge" id="versionBadgeContainer">v2.9 | Modificado: --</div>
 
     <h1>🗓️ Creador de Calendario Escolar</h1>
     
@@ -606,11 +608,7 @@
     let masterSubjectsList = ['Matemática', 'Historia', 'Ciencias Naturales', 'LECTURA', 'Actividad Socioemocional Evaluativa'];
     let masterTeachersList = ['Prof. María Gómez', 'Yocelin Fernandez', 'Prof. Nuevo', 'Prof. Lenguaje', 'Orientación'];
 
-    let editingState = {
-        subjects: { index: null, value: '' },
-        teachers: { index: null, value: '' },
-        courses: { index: null, value: '' }
-    };
+    let editingState = { subjects: { index: null, value: '' }, teachers: { index: null, value: '' }, courses: { index: null, value: '' } };
 
     let masterBlocks = [
         { id: 'm1', subject: 'Matemática', teacher: 'Prof. María Gómez', color: '#fce762' },
@@ -638,7 +636,7 @@
         const now = new Date();
         const timeStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         const badge = document.getElementById('versionBadgeContainer');
-        if(badge) badge.textContent = `v2.8 | Modificado: ${timeStr}`;
+        if(badge) badge.textContent = `v2.9 | Modificado: ${timeStr}`;
     }
 
     function showInfoToast(msg) {
@@ -653,34 +651,21 @@
         const course = document.getElementById('courseSelector').value;
         if (!course) {
             alert("⚠️ Por favor, selecciona un curso o '-- TODOS --' en el selector 'Ver Curso en Reporte' antes de presionar Imprimir PDF.");
-            document.getElementById('courseSelector').focus();
-            return;
+            document.getElementById('courseSelector').focus(); return;
         }
-        updateReports(); // Forzar renderizado previo del reporte oficial
-        setTimeout(() => {
-            window.print();
-        }, 150);
+        updateReports();
+        setTimeout(() => { window.print(); }, 150);
     }
 
     function triggerOpenCheckingConfig() {
         const modal = document.getElementById('printCheckingConfigModal');
         if (!modal) return;
         
-        const courseSel = document.getElementById('printCheckingCourseSelect');
-        courseSel.innerHTML = '';
-        masterCoursesList.forEach(c => {
-            let opt = document.createElement('option');
-            opt.value = c; opt.textContent = c;
-            courseSel.appendChild(opt);
-        });
+        const courseSel = document.getElementById('printCheckingCourseSelect'); courseSel.innerHTML = '';
+        masterCoursesList.forEach(c => { let opt = document.createElement('option'); opt.value = c; opt.textContent = c; courseSel.appendChild(opt); });
 
-        const subjectSel = document.getElementById('printCheckingSubjectSelect');
-        subjectSel.innerHTML = '';
-        masterSubjectsList.forEach(s => {
-            let opt = document.createElement('option');
-            opt.value = s; opt.textContent = s;
-            subjectSel.appendChild(opt);
-        });
+        const subjectSel = document.getElementById('printCheckingSubjectSelect'); subjectSel.innerHTML = '';
+        masterSubjectsList.forEach(s => { let opt = document.createElement('option'); opt.value = s; opt.textContent = s; subjectSel.appendChild(opt); });
 
         document.getElementById('printCheckingFilterType').value = 'TODOS';
         togglePrintCheckingFilters('TODOS');
@@ -688,9 +673,7 @@
         modal.classList.add('open');
     }
 
-    function closePrintCheckingConfigModal() {
-        document.getElementById('printCheckingConfigModal').classList.remove('open');
-    }
+    function closePrintCheckingConfigModal() { document.getElementById('printCheckingConfigModal').classList.remove('open'); }
 
     function togglePrintCheckingFilters(val) {
         document.getElementById('printCheckingCourseGroup').style.display = val === 'CURSO' ? 'block' : 'none';
@@ -722,10 +705,7 @@
         const previewContainer = document.getElementById('printCheckingPreviewBody');
         let assignments = getFilteredCheckingAssignments();
 
-        if (assignments.length === 0) {
-            previewContainer.innerHTML = `<p style="text-align: center; color: #718093; padding: 20px;">No hay evaluaciones agendadas que coincidan con este filtro.</p>`;
-            return;
-        }
+        if (assignments.length === 0) { previewContainer.innerHTML = `<p style="text-align: center; color: #718093; padding: 20px;">No hay evaluaciones agendadas que coincidan con este filtro.</p>`; return; }
 
         let previewHTML = '';
         assignments.forEach(item => {
@@ -734,22 +714,10 @@
 
             let tableRows = '';
             item.studentsStatus.forEach((st, idx) => {
-                let statusText = "0/5 - No ingresado";
-                let stVal = st.status !== undefined ? st.status : "0";
-                if(stVal === "1") statusText = "1/5 - Ingreso no finalizado";
-                if(stVal === "2") statusText = "2/5 - Inst. PC no finalizado";
-                if(stVal === "3") statusText = "3/5 - Rev. preg. desarrollo";
-                if(stVal === "4") statusText = "4/5 - Instrumento cerrado";
-                if(stVal === "5") statusText = "5/5 - Informe generado";
-
-                tableRows += `
-                    <tr>
-                        <td style="border: 1px solid #ccc; padding: 4px; text-align: center;">${idx + 1}</td>
-                        <td style="border: 1px solid #ccc; padding: 4px;">${st.nombres || '-'} ${st.ape_paterno || ''}</td>
-                        <td style="border: 1px solid #ccc; padding: 4px; text-align: center;">${st.run || st.rut || '-'}</td>
-                        <td style="border: 1px solid #ccc; padding: 4px; text-align: center; font-weight: bold;">${statusText}</td>
-                    </tr>
-                `;
+                let statusText = "0/5 - No ingresado"; let stVal = st.status !== undefined ? st.status : "0";
+                if(stVal === "1") statusText = "1/5 - Ingreso no finalizado"; if(stVal === "2") statusText = "2/5 - Inst. PC no finalizado";
+                if(stVal === "3") statusText = "3/5 - Rev. preg. desarrollo"; if(stVal === "4") statusText = "4/5 - Instrumento cerrado"; if(stVal === "5") statusText = "5/5 - Informe generado";
+                tableRows += `<tr><td style="border: 1px solid #ccc; padding: 4px; text-align: center;">${idx + 1}</td><td style="border: 1px solid #ccc; padding: 4px;">${st.nombres || '-'} ${st.ape_paterno || ''}</td><td style="border: 1px solid #ccc; padding: 4px; text-align: center;">${st.run || st.rut || '-'}</td><td style="border: 1px solid #ccc; padding: 4px; text-align: center; font-weight: bold;">${statusText}</td></tr>`;
             });
 
             previewHTML += `
@@ -757,29 +725,17 @@
                     <h4 style="margin: 0 0 3px 0; color: #2c3e50; font-size: 14px;">Curso: ${item.course} | Asignatura: ${item.subject}</h4>
                     <p style="margin: 0 0 8px 0; font-size: 11px; color: #555;">Profesor(a): <b>${item.teacher}</b> | Total Estudiantes: <b>${totalStudents}</b> | Evaluados: <b>${evaluatedCount}</b></p>
                     <table style="width: 100%; border-collapse: collapse; font-size: 11px; background: white;">
-                        <thead>
-                            <tr style="background: #f1f5f9;">
-                                <th style="border: 1px solid #ccc; padding: 5px; width: 30px;">N°</th>
-                                <th style="border: 1px solid #ccc; padding: 5px; text-align: left;">Estudiante</th>
-                                <th style="border: 1px solid #ccc; padding: 5px; width: 90px;">RUN</th>
-                                <th style="border: 1px solid #ccc; padding: 5px; width: 140px;">Estado</th>
-                            </tr>
-                        </thead>
+                        <thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ccc; padding: 5px; width: 30px;">N°</th><th style="border: 1px solid #ccc; padding: 5px; text-align: left;">Estudiante</th><th style="border: 1px solid #ccc; padding: 5px; width: 90px;">RUN</th><th style="border: 1px solid #ccc; padding: 5px; width: 140px;">Estado</th></tr></thead>
                         <tbody>${tableRows}</tbody>
                     </table>
-                </div>
-            `;
+                </div>`;
         });
-
         previewContainer.innerHTML = previewHTML;
     }
 
     function executePrintCheckingReport() {
         let assignments = getFilteredCheckingAssignments();
-        if (assignments.length === 0) {
-            alert("⚠️ No hay evaluaciones agendadas para imprimir.");
-            return;
-        }
+        if (assignments.length === 0) { alert("⚠️ No hay evaluaciones agendadas para imprimir."); return; }
 
         let filterType = document.getElementById('printCheckingFilterType').value;
         let targetCourse = document.getElementById('printCheckingCourseSelect').value;
@@ -801,22 +757,10 @@
 
             let tableRows = '';
             item.studentsStatus.forEach((st, idx) => {
-                let statusText = "0/5 - No ingresado";
-                let stVal = st.status !== undefined ? st.status : "0";
-                if(stVal === "1") statusText = "1/5 - Ingreso no finalizado";
-                if(stVal === "2") statusText = "2/5 - Inst. PC no finalizado";
-                if(stVal === "3") statusText = "3/5 - Rev. preg. desarrollo";
-                if(stVal === "4") statusText = "4/5 - Instrumento cerrado";
-                if(stVal === "5") statusText = "5/5 - Informe generado";
-
-                tableRows += `
-                    <tr>
-                        <td style="border: 1px solid #ccc; padding: 5px; text-align: center;">${idx + 1}</td>
-                        <td style="border: 1px solid #ccc; padding: 5px;">${st.nombres || '-'} ${st.ape_paterno || ''}</td>
-                        <td style="border: 1px solid #ccc; padding: 5px; text-align: center;">${st.run || st.rut || '-'}</td>
-                        <td style="border: 1px solid #ccc; padding: 5px; text-align: center; font-weight: bold;">${statusText}</td>
-                    </tr>
-                `;
+                let statusText = "0/5 - No ingresado"; let stVal = st.status !== undefined ? st.status : "0";
+                if(stVal === "1") statusText = "1/5 - Ingreso no finalizado"; if(stVal === "2") statusText = "2/5 - Inst. PC no finalizado";
+                if(stVal === "3") statusText = "3/5 - Rev. preg. desarrollo"; if(stVal === "4") statusText = "4/5 - Instrumento cerrado"; if(stVal === "5") statusText = "5/5 - Informe generado";
+                tableRows += `<tr><td style="border: 1px solid #ccc; padding: 5px; text-align: center;">${idx + 1}</td><td style="border: 1px solid #ccc; padding: 5px;">${st.nombres || '-'} ${st.ape_paterno || ''}</td><td style="border: 1px solid #ccc; padding: 5px; text-align: center;">${st.run || st.rut || '-'}</td><td style="border: 1px solid #ccc; padding: 5px; text-align: center; font-weight: bold;">${statusText}</td></tr>`;
             });
 
             container.innerHTML += `
@@ -829,18 +773,10 @@
                         <span style="background: #fee2e2; color: #991b1b; padding: 4px 8px; border-radius: 4px;">Pendientes (0/5): <b>${pendingCount}</b></span>
                     </div>
                     <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
-                        <thead>
-                            <tr style="background: #f1f5f9;">
-                                <th style="border: 1px solid #ccc; padding: 6px; width: 40px;">N°</th>
-                                <th style="border: 1px solid #ccc; padding: 6px; text-align: left;">Estudiante</th>
-                                <th style="border: 1px solid #ccc; padding: 6px; width: 100px;">RUN / RUT</th>
-                                <th style="border: 1px solid #ccc; padding: 6px; width: 150px;">Estado Actual</th>
-                            </tr>
-                        </thead>
+                        <thead><tr style="background: #f1f5f9;"><th style="border: 1px solid #ccc; padding: 6px; width: 40px;">N°</th><th style="border: 1px solid #ccc; padding: 6px; text-align: left;">Estudiante</th><th style="border: 1px solid #ccc; padding: 6px; width: 100px;">RUN / RUT</th><th style="border: 1px solid #ccc; padding: 6px; width: 150px;">Estado Actual</th></tr></thead>
                         <tbody>${tableRows}</tbody>
                     </table>
-                </div>
-            `;
+                </div>`;
         });
 
         container.innerHTML += `</div>`;
@@ -849,30 +785,25 @@
     }
 
     function previewStudentXml(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-        const reader = new FileReader();
-        reader.readAsText(file, "windows-1252");
+        const file = event.target.files[0]; if (!file) return;
+        const reader = new FileReader(); reader.readAsText(file, "windows-1252");
         reader.onload = function(e) {
             try {
-                const parser = new DOMParser();
-                const xmlDoc = parser.parseFromString(e.target.result, "text/xml");
+                const parser = new DOMParser(); const xmlDoc = parser.parseFromString(e.target.result, "text/xml");
                 tempParsedXmlData = { attributes: {}, list: [] };
                 let todosLosNodos = xmlDoc.getElementsByTagName("*");
                 let elementosEncontrados = Array.from(todosLosNodos).filter(n => n.attributes.length > 0);
                 if (elementosEncontrados.length === 0) elementosEncontrados = Array.from(todosLosNodos);
 
                 elementosEncontrados.forEach(elemento => {
-                    let cursoInfo = "5°C"; 
-                    let padre = elemento.parentElement;
+                    let cursoInfo = "5°C"; let padre = elemento.parentElement;
                     while (padre && padre !== xmlDoc.documentElement) {
                         let g = padre.getAttribute("grado") || padre.getAttribute("nivel") || padre.getAttribute("curso") || "";
                         let l = padre.getAttribute("letra") || "";
                         if (g || l) { cursoInfo = `${g}°${l}`.trim(); break; }
                         padre = padre.parentElement;
                     }
-                    let alumnoObj = { curso: cursoInfo };
-                    tempParsedXmlData.attributes["curso"] = cursoInfo;
+                    let alumnoObj = { curso: cursoInfo }; tempParsedXmlData.attributes["curso"] = cursoInfo;
                     for (let attr of elemento.attributes) {
                         let val = attr.value;
                         if (val && val.trim() !== "") {
@@ -886,15 +817,13 @@
                 });
 
                 if (tempParsedXmlData.list.length === 0) { alert("⚠️ No se detectaron atributos o registros válidos en el XML."); return; }
-                renderXmlAttributesModal();
-                document.getElementById('xmlModal').classList.add('open');
+                renderXmlAttributesModal(); document.getElementById('xmlModal').classList.add('open');
             } catch(err) { alert(`❌ Error al procesar el archivo XML: ${err.message}`); }
         };
     }
 
     function renderXmlAttributesModal() {
-        const tbody = document.getElementById('xmlAttributesTableBody');
-        tbody.innerHTML = '';
+        const tbody = document.getElementById('xmlAttributesTableBody'); tbody.innerHTML = '';
         Object.keys(tempParsedXmlData.attributes).forEach(attr => {
             let tr = document.createElement('tr');
             let isChecked = ['curso', 'nombres', 'ape_paterno', 'ape_materno', 'run', 'rut', 'digito_ve'].includes(attr.toLowerCase()) ? 'checked' : '';
@@ -911,8 +840,7 @@
         if (selectedAttrs.length === 0) { alert("Selecciona al menos un atributo para procesar."); return; }
 
         globalActiveXmlColumns = selectedAttrs;
-        let importedCount = 0;
-        let alreadyExistsCount = 0;
+        let importedCount = 0; let alreadyExistsCount = 0;
 
         tempParsedXmlData.list.forEach(item => {
             let rawCurso = item.curso || "5°C";
@@ -931,78 +859,56 @@
             else { alreadyExistsCount++; }
         });
 
-        saveListsToStorage();
-        closeXmlModal();
-        updateVersionTimestamp();
+        saveListsToStorage(); closeXmlModal(); updateVersionTimestamp();
         alert(`✅ ¡Nómina procesada con éxito! Se importaron ${importedCount} estudiantes.`);
     }
 
     function openViewLoadedDataModal() {
-        const sel = document.getElementById('viewLoadedCourseSelect');
-        sel.innerHTML = '';
+        const sel = document.getElementById('viewLoadedCourseSelect'); sel.innerHTML = '';
         let coursesWithData = Object.keys(loadedXmlStudentDatabases);
         if (coursesWithData.length === 0) { alert("⚠️ Aún no hay datos de estudiantes cargados en el sistema."); return; }
         coursesWithData.forEach(c => {
-            let opt = document.createElement('option');
-            opt.value = c; opt.textContent = `${c} (${loadedXmlStudentDatabases[c].length} estudiantes)`;
+            let opt = document.createElement('option'); opt.value = c; opt.textContent = `${c} (${loadedXmlStudentDatabases[c].length} estudiantes)`;
             sel.appendChild(opt);
         });
-        renderLoadedDataPreview();
-        document.getElementById('viewLoadedModal').classList.add('open');
+        renderLoadedDataPreview(); document.getElementById('viewLoadedModal').classList.add('open');
     }
 
     function closeViewLoadedDataModal() { document.getElementById('viewLoadedModal').classList.remove('open'); }
 
     function renderLoadedDataPreview() {
         const course = document.getElementById('viewLoadedCourseSelect').value;
-        const thead = document.getElementById('loadedDataHeaderRow');
-        const tbody = document.getElementById('loadedDataBody');
+        const thead = document.getElementById('loadedDataHeaderRow'); const tbody = document.getElementById('loadedDataBody');
         thead.innerHTML = ''; tbody.innerHTML = '';
         if (!course || !loadedXmlStudentDatabases[course]) return;
-        let students = loadedXmlStudentDatabases[course];
-        if (students.length === 0) return;
+        let students = loadedXmlStudentDatabases[course]; if (students.length === 0) return;
 
         let cols = globalActiveXmlColumns.length > 0 ? globalActiveXmlColumns : Object.keys(students[0]).filter(k => k !== 'status');
         let thNum = document.createElement('th'); thNum.textContent = 'N°'; thead.appendChild(thNum);
         cols.forEach(col => { let th = document.createElement('th'); th.textContent = col.toUpperCase(); thead.appendChild(th); });
 
         students.forEach((st, idx) => {
-            let tr = document.createElement('tr');
-            let tdNum = document.createElement('td'); tdNum.textContent = idx + 1; tr.appendChild(tdNum);
+            let tr = document.createElement('tr'); let tdNum = document.createElement('td'); tdNum.textContent = idx + 1; tr.appendChild(tdNum);
             cols.forEach(col => { let td = document.createElement('td'); td.textContent = st[col] || "-"; tr.appendChild(td); });
             tbody.appendChild(tr);
         });
     }
 
     function loadLogoImage(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+        const file = event.target.files[0]; if (!file) return;
         const reader = new FileReader();
-        reader.onload = function(e) {
-            currentSchoolLogo = e.target.result;
-            displayLogo();
-            updateVersionTimestamp();
-            autoSaveState();
-        };
+        reader.onload = function(e) { currentSchoolLogo = e.target.result; displayLogo(); updateVersionTimestamp(); autoSaveState(); };
         reader.readAsDataURL(file);
     }
 
     function displayLogo() {
-        const placeholder = document.getElementById('logoPlaceholder');
-        const img = document.getElementById('logoImage');
+        const placeholder = document.getElementById('logoPlaceholder'); const img = document.getElementById('logoImage');
         if (currentSchoolLogo) { placeholder.style.display = 'none'; img.src = currentSchoolLogo; img.style.display = 'block'; }
         else { placeholder.style.display = 'flex'; img.style.display = 'none'; img.src = ''; }
     }
 
     function initApp() {
-        loadListsFromStorage();
-        updateCourseSelectorDropdown();
-        renderMasterPalette();
-        renderInteractiveGrid();
-        buildFinalTableRows();
-        updateReports();
-        displayLogo();
-        updateVersionTimestamp();
+        loadListsFromStorage(); updateCourseSelectorDropdown(); renderMasterPalette(); renderInteractiveGrid(); buildFinalTableRows(); updateReports(); displayLogo(); updateVersionTimestamp();
     }
 
     function loadListsFromStorage() {
@@ -1017,49 +923,32 @@
 
     function saveListsToStorage() {
         try {
-            localStorage.setItem('calendario_master_subjects', JSON.stringify(masterSubjectsList));
-            localStorage.setItem('calendario_master_teachers', JSON.stringify(masterTeachersList));
-            localStorage.setItem('calendario_master_courses', JSON.stringify(masterCoursesList));
-            localStorage.setItem('calendario_xml_students_db', JSON.stringify(loadedXmlStudentDatabases));
+            localStorage.setItem('calendario_master_subjects', JSON.stringify(masterSubjectsList)); localStorage.setItem('calendario_master_teachers', JSON.stringify(masterTeachersList));
+            localStorage.setItem('calendario_master_courses', JSON.stringify(masterCoursesList)); localStorage.setItem('calendario_xml_students_db', JSON.stringify(loadedXmlStudentDatabases));
             localStorage.setItem('calendario_xml_active_cols', JSON.stringify(globalActiveXmlColumns));
         } catch(e) {}
     }
 
     function updateCourseSelectorDropdown() {
-        const sel = document.getElementById('courseSelector');
-        let currentVal = sel.value;
+        const sel = document.getElementById('courseSelector'); let currentVal = sel.value;
         sel.innerHTML = `<option value="">-- Selecciona --</option><option value="TODOS">-- TODOS --</option>`;
-        masterCoursesList.forEach(c => {
-            let opt = document.createElement('option'); opt.value = c; opt.textContent = c;
-            sel.appendChild(opt);
-        });
+        masterCoursesList.forEach(c => { let opt = document.createElement('option'); opt.value = c; opt.textContent = c; sel.appendChild(opt); });
         sel.value = currentVal;
     }
 
     function populateDropdowns(selectedSubj = "", selectedTeacher = "") {
-        const subjSelect = document.getElementById('masterSubjectSelect');
-        subjSelect.innerHTML = `<option value="">-- Seleccione Asignatura --</option>`;
-        masterSubjectsList.forEach(s => {
-            let opt = document.createElement('option'); opt.value = s; opt.textContent = s;
-            if(s === selectedSubj) opt.selected = true;
-            subjSelect.appendChild(opt);
-        });
+        const subjSelect = document.getElementById('masterSubjectSelect'); subjSelect.innerHTML = `<option value="">-- Seleccione Asignatura --</option>`;
+        masterSubjectsList.forEach(s => { let opt = document.createElement('option'); opt.value = s; opt.textContent = s; if(s === selectedSubj) opt.selected = true; subjSelect.appendChild(opt); });
 
-        const teacherSelect = document.getElementById('masterTeacherSelect');
-        teacherSelect.innerHTML = `<option value="">-- Seleccione Profesor(a) --</option>`;
-        masterTeachersList.forEach(t => {
-            let opt = document.createElement('option'); opt.value = t; opt.textContent = t;
-            if(t === selectedTeacher) opt.selected = true;
-            teacherSelect.appendChild(opt);
-        });
+        const teacherSelect = document.getElementById('masterTeacherSelect'); teacherSelect.innerHTML = `<option value="">-- Seleccione Profesor(a) --</option>`;
+        masterTeachersList.forEach(t => { let opt = document.createElement('option'); opt.value = t; opt.textContent = t; if(t === selectedTeacher) opt.selected = true; teacherSelect.appendChild(opt); });
     }
 
     function openManageModal() { switchTab('subjects'); renderManageLists(); document.getElementById('manageModal').classList.add('open'); }
     function closeManageModal() { document.getElementById('manageModal').classList.remove('open'); updateCourseSelectorDropdown(); renderMasterPalette(); updateReports(); updateVersionTimestamp(); }
 
     function switchTab(tabName) {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
         if(tabName === 'subjects') { document.querySelector('.tab-btn:nth-child(1)').classList.add('active'); document.getElementById('tabSubjects').classList.add('active'); }
         else if(tabName === 'teachers') { document.querySelector('.tab-btn:nth-child(2)').classList.add('active'); document.getElementById('tabTeachers').classList.add('active'); }
         else { document.querySelector('.tab-btn:nth-child(3)').classList.add('active'); document.getElementById('tabCourses').classList.add('active'); }
@@ -1092,74 +981,52 @@
         let list = type === 'subjects' ? masterSubjectsList : (type === 'teachers' ? masterTeachersList : masterCoursesList);
         editingState[type].index = index; editingState[type].value = list[index];
         if(type === 'subjects') {
-            document.getElementById('subjectInput').value = list[index];
-            document.getElementById('lblSubjectAction').textContent = "Editar Asignatura:";
-            document.getElementById('btnSaveSubject').textContent = "💾 Actualizar";
-            document.getElementById('btnCancelSubject').style.display = 'inline-block';
+            document.getElementById('subjectInput').value = list[index]; document.getElementById('lblSubjectAction').textContent = "Editar Asignatura:";
+            document.getElementById('btnSaveSubject').textContent = "💾 Actualizar"; document.getElementById('btnCancelSubject').style.display = 'inline-block';
         } else if(type === 'teachers') {
-            document.getElementById('teacherInput').value = list[index];
-            document.getElementById('lblTeacherAction').textContent = "Editar Profesor(a):";
-            document.getElementById('btnSaveTeacher').textContent = "💾 Actualizar";
-            document.getElementById('btnCancelTeacher').style.display = 'inline-block';
+            document.getElementById('teacherInput').value = list[index]; document.getElementById('lblTeacherAction').textContent = "Editar Profesor(a):";
+            document.getElementById('btnSaveTeacher').textContent = "💾 Actualizar"; document.getElementById('btnCancelTeacher').style.display = 'inline-block';
         } else {
-            document.getElementById('courseInput').value = list[index];
-            document.getElementById('lblCourseAction').textContent = "Editar Curso:";
-            document.getElementById('btnSaveCourse').textContent = "💾 Actualizar";
-            document.getElementById('btnCancelCourse').style.display = 'inline-block';
+            document.getElementById('courseInput').value = list[index]; document.getElementById('lblCourseAction').textContent = "Editar Curso:";
+            document.getElementById('btnSaveCourse').textContent = "💾 Actualizar"; document.getElementById('btnCancelCourse').style.display = 'inline-block';
         }
     }
 
     function cancelEditItem(type) {
         editingState[type].index = null; editingState[type].value = '';
         if(type === 'subjects') {
-            document.getElementById('subjectInput').value = '';
-            document.getElementById('lblSubjectAction').textContent = "Nueva Asignatura:";
-            document.getElementById('btnSaveSubject').textContent = "➕ Agregar";
-            document.getElementById('btnCancelSubject').style.display = 'none';
+            document.getElementById('subjectInput').value = ''; document.getElementById('lblSubjectAction').textContent = "Nueva Asignatura:";
+            document.getElementById('btnSaveSubject').textContent = "➕ Agregar"; document.getElementById('btnCancelSubject').style.display = 'none';
         } else if(type === 'teachers') {
-            document.getElementById('teacherInput').value = '';
-            document.getElementById('lblTeacherAction').textContent = "Nuevo Profesor(a):";
-            document.getElementById('btnSaveTeacher').textContent = "➕ Agregar";
-            document.getElementById('btnCancelTeacher').style.display = 'none';
+            document.getElementById('teacherInput').value = ''; document.getElementById('lblTeacherAction').textContent = "Nuevo Profesor(a):";
+            document.getElementById('btnSaveTeacher').textContent = "➕ Agregar"; document.getElementById('btnCancelTeacher').style.display = 'none';
         } else {
-            document.getElementById('courseInput').value = '';
-            document.getElementById('lblCourseAction').textContent = "Nuevo Curso:";
-            document.getElementById('btnSaveCourse').textContent = "➕ Agregar";
-            document.getElementById('btnCancelCourse').style.display = 'none';
+            document.getElementById('courseInput').value = ''; document.getElementById('lblCourseAction').textContent = "Nuevo Curso:";
+            document.getElementById('btnSaveCourse').textContent = "➕ Agregar"; document.getElementById('btnCancelCourse').style.display = 'none';
         }
     }
 
     function saveItem(type) {
         let inputId = type === 'subjects' ? 'subjectInput' : (type === 'teachers' ? 'teacherInput' : 'courseInput');
-        let val = document.getElementById(inputId).value.trim();
-        if(!val) { alert("Ingresa un valor válido."); return; }
+        let val = document.getElementById(inputId).value.trim(); if(!val) { alert("Ingresa un valor válido."); return; }
         let list = type === 'subjects' ? masterSubjectsList : (type === 'teachers' ? masterTeachersList : masterCoursesList);
         let edIndex = editingState[type].index;
 
         if(edIndex !== null) {
             if(list.includes(val) && list[edIndex] !== val) { alert("Este elemento ya existe."); return; }
-            list[edIndex] = val;
-            cancelEditItem(type);
+            list[edIndex] = val; cancelEditItem(type);
         } else {
             if(list.includes(val)) { alert("Este elemento ya existe."); return; }
-            list.push(val);
-            document.getElementById(inputId).value = '';
+            list.push(val); document.getElementById(inputId).value = '';
         }
-        saveListsToStorage();
-        renderManageLists();
-        updateCourseSelectorDropdown();
-        updateVersionTimestamp();
+        saveListsToStorage(); renderManageLists(); updateCourseSelectorDropdown(); updateVersionTimestamp();
     }
 
     function deleteItemFromList(type, index) {
         let list = type === 'subjects' ? masterSubjectsList : (type === 'teachers' ? masterTeachersList : masterCoursesList);
         if(list.length <= 1) { alert("Debes mantener al menos un elemento."); return; }
         list.splice(index, 1);
-        saveListsToStorage();
-        renderManageLists();
-        cancelEditItem(type);
-        updateCourseSelectorDropdown();
-        updateVersionTimestamp();
+        saveListsToStorage(); renderManageLists(); cancelEditItem(type); updateCourseSelectorDropdown(); updateVersionTimestamp();
     }
 
     function renderMasterPalette() {
@@ -1168,61 +1035,34 @@
             let card = document.createElement('div'); card.className = 'master-card';
             card.style.backgroundColor = master.color; card.draggable = true;
             card.innerHTML = `<div>📚 ${master.subject}</div><div style="font-weight:normal; font-size:10px;">👤 ${master.teacher}</div><div class="master-card-actions"><span onclick="openEditMasterModal(event, '${master.id}')" style="color:#2c3e50;">✏️ Editar</span><span onclick="deleteMasterBlock(event, '${master.id}')" style="color:#c0392b;">🗑️ Eliminar</span></div>`;
-            card.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', master.id); });
-            container.appendChild(card);
+            card.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/plain', master.id); }); container.appendChild(card);
         });
 
-        const selectCourse = document.getElementById('dropCourseSelect');
-        selectCourse.innerHTML = `<option value="">-- Seleccione Curso --</option>`;
-        masterCoursesList.forEach(c => {
-            let opt = document.createElement('option'); opt.value = c; opt.textContent = c;
-            selectCourse.appendChild(opt);
-        });
+        const selectCourse = document.getElementById('dropCourseSelect'); selectCourse.innerHTML = `<option value="">-- Seleccione Curso --</option>`;
+        masterCoursesList.forEach(c => { let opt = document.createElement('option'); opt.value = c; opt.textContent = c; selectCourse.appendChild(opt); });
     }
 
     function openCreateMasterModal() {
         document.getElementById('masterModalTitle').textContent = "➕ Crear Bloque Maestro de Evaluación";
-        populateDropdowns();
-        document.getElementById('newMasterColor').value = '#3498db';
-        document.getElementById('editingMasterId').value = '';
-        document.getElementById('masterModal').classList.add('open');
+        populateDropdowns(); document.getElementById('newMasterColor').value = '#3498db'; document.getElementById('editingMasterId').value = ''; document.getElementById('masterModal').classList.add('open');
     }
 
     function openEditMasterModal(event, id) {
-        event.stopPropagation();
-        let master = masterBlocks.find(m => m.id === id);
-        if(!master) return;
+        event.stopPropagation(); let master = masterBlocks.find(m => m.id === id); if(!master) return;
         document.getElementById('masterModalTitle').textContent = "✏️ Editar Bloque Maestro";
-        populateDropdowns(master.subject, master.teacher);
-        document.getElementById('newMasterColor').value = master.color;
-        document.getElementById('editingMasterId').value = master.id;
-        document.getElementById('masterModal').classList.add('open');
+        populateDropdowns(master.subject, master.teacher); document.getElementById('newMasterColor').value = master.color; document.getElementById('editingMasterId').value = master.id; document.getElementById('masterModal').classList.add('open');
     }
 
-    function toggleMasterModal(open) {
-        if(open) document.getElementById('masterModal').classList.add('open');
-        else document.getElementById('masterModal').classList.remove('open');
-    }
+    function toggleMasterModal(open) { if(open) document.getElementById('masterModal').classList.add('open'); else document.getElementById('masterModal').classList.remove('open'); }
 
     function confirmSaveMaster() {
-        let subj = document.getElementById('masterSubjectSelect').value;
-        let teacher = document.getElementById('masterTeacherSelect').value;
-        let color = document.getElementById('newMasterColor').value;
-        let editingId = document.getElementById('editingMasterId').value;
+        let subj = document.getElementById('masterSubjectSelect').value; let teacher = document.getElementById('masterTeacherSelect').value;
+        let color = document.getElementById('newMasterColor').value; let editingId = document.getElementById('editingMasterId').value;
         if(!subj || !teacher) { alert("Selecciona asignatura y profesor."); return; }
 
-        if(editingId) {
-            let master = masterBlocks.find(m => m.id === editingId);
-            if(master) { master.subject = subj; master.teacher = teacher; master.color = color; }
-        } else {
-            masterBlocks.push({ id: 'm_' + Date.now(), subject: subj, teacher: teacher, color: color });
-        }
-        toggleMasterModal(false);
-        renderMasterPalette();
-        renderInteractiveGrid();
-        updateReports();
-        updateVersionTimestamp();
-        autoSaveState();
+        if(editingId) { let master = masterBlocks.find(m => m.id === editingId); if(master) { master.subject = subj; master.teacher = teacher; master.color = color; }
+        } else { masterBlocks.push({ id: 'm_' + Date.now(), subject: subj, teacher: teacher, color: color }); }
+        toggleMasterModal(false); renderMasterPalette(); renderInteractiveGrid(); updateReports(); updateVersionTimestamp(); autoSaveState();
     }
 
     function deleteMasterBlock(event, id) {
@@ -1233,11 +1073,7 @@
                 gridSelections[key] = gridSelections[key].filter(item => item.masterId !== id);
                 if(gridSelections[key].length === 0) delete gridSelections[key];
             });
-            renderMasterPalette();
-            renderInteractiveGrid();
-            updateReports();
-            updateVersionTimestamp();
-            autoSaveState();
+            renderMasterPalette(); renderInteractiveGrid(); updateReports(); updateVersionTimestamp(); autoSaveState();
         }
     }
 
@@ -1246,8 +1082,7 @@
         hours.forEach((hour, hourIndex) => {
             let tr = document.createElement('tr');
             if (hour.type === 'break') {
-                tr.className = 'grid-recreo-row';
-                tr.innerHTML = `<td colspan="7">${hour.label}</td>`;
+                tr.className = 'grid-recreo-row'; tr.innerHTML = `<td colspan="7">${hour.label}</td>`;
             } else {
                 let isBlockStart = [0, 3, 6, 9].includes(hourIndex);
                 let blockNum = hourIndex < 2 ? '1°' : (hourIndex < 5 ? '2°' : (hourIndex < 8 ? '3°' : '4°'));
@@ -1255,28 +1090,17 @@
                 tr.innerHTML = `${firstColHTML}<td class="grid-time-col">${hour.num}<br><span style="font-size:10px;">${hour.time}</span></td>`;
 
                 days.forEach((day, dayIndex) => {
-                    let td = document.createElement('td');
-                    td.className = 'grid-day-col';
-                    let cellKey = `${dayIndex}-${hourIndex}`;
-                    let itemsInCell = gridSelections[cellKey] || [];
-                    let htmlContent = '';
+                    let td = document.createElement('td'); td.className = 'grid-day-col';
+                    let cellKey = `${dayIndex}-${hourIndex}`; let itemsInCell = gridSelections[cellKey] || []; let htmlContent = '';
 
                     itemsInCell.forEach((item, itemIdx) => {
-                        htmlContent += `
-                            <div class="assigned-chip" style="background-color: ${item.color};">
-                                <div><strong>${item.course}</strong> - ${item.subject}</div>
-                                <button class="btn-checking-modal" onclick="openCheckingModal(event, '${cellKey}', ${itemIdx})">📋 Checking Estudiantes</button>
-                                <div class="chip-footer"><span>${item.teacher}</span><span style="cursor:pointer; color:#c0392b; font-weight:bold;" onclick="removeAssignment(event, '${cellKey}', ${itemIdx})">✕ Quitar</span></div>
-                            </div>`;
+                        htmlContent += `<div class="assigned-chip" style="background-color: ${item.color};"><div><strong>${item.course}</strong> - ${item.subject}</div><button class="btn-checking-modal" onclick="openCheckingModal(event, '${cellKey}', ${itemIdx})">📋 Checking Estudiantes</button><div class="chip-footer"><span>${item.teacher}</span><span style="cursor:pointer; color:#c0392b; font-weight:bold;" onclick="removeAssignment(event, '${cellKey}', ${itemIdx})">✕ Quitar</span></div></div>`;
                     });
 
                     td.innerHTML = htmlContent || `<span style="color:#cbd5e1; font-size:11px;">+ Arrastrar bloque</span>`;
                     td.addEventListener('dragover', (e) => { e.preventDefault(); td.classList.add('drag-over'); });
                     td.addEventListener('dragleave', () => { td.classList.remove('drag-over'); });
-                    td.addEventListener('drop', (e) => {
-                        e.preventDefault(); td.classList.remove('drag-over');
-                        initiateDropAssignment(e.dataTransfer.getData('text/plain'), dayIndex, hourIndex);
-                    });
+                    td.addEventListener('drop', (e) => { e.preventDefault(); td.classList.remove('drag-over'); initiateDropAssignment(e.dataTransfer.getData('text/plain'), dayIndex, hourIndex); });
                     tr.appendChild(td);
                 });
             }
@@ -1286,30 +1110,27 @@
     }
 
     function openCheckingModal(event, cellKey, itemIdx) {
-        event.stopPropagation();
-        currentCheckingCellKey = { cellKey, itemIdx };
+        event.stopPropagation(); currentCheckingCellKey = { cellKey, itemIdx };
         let item = gridSelections[cellKey][itemIdx];
         document.getElementById('checkingModalTitle').textContent = `📋 Checking: ${item.course} - ${item.subject}`;
         document.getElementById('checkingModalSubTitle').textContent = `Profesor(a): ${item.teacher}`;
         document.getElementById('studentSearchInput').value = '';
 
         const courseSel = document.getElementById('checkingCourseSelector'); courseSel.innerHTML = '';
-        masterCoursesList.forEach(c => {
-            let opt = document.createElement('option'); opt.value = c; opt.textContent = c;
-            if (c === item.course) opt.selected = true;
-            courseSel.appendChild(opt);
-        });
+        masterCoursesList.forEach(c => { let opt = document.createElement('option'); opt.value = c; opt.textContent = c; if (c === item.course) opt.selected = true; courseSel.appendChild(opt); });
 
-        loadStudentsForCheckingItem(item);
-        renderStudentTable(item.studentsStatus);
-        document.getElementById('checkingModal').classList.add('open');
+        loadStudentsForCheckingItem(item); renderStudentTable(item.studentsStatus); document.getElementById('checkingModal').classList.add('open');
     }
 
+    // LÓGICA MEJORADA DE CARGA AUTOMÁTICA
     function loadStudentsForCheckingItem(item) {
         let cleanCurrent = item.course.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
         let foundKey = Object.keys(loadedXmlStudentDatabases).find(k => k.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === cleanCurrent);
+        
         if (foundKey && loadedXmlStudentDatabases[foundKey].length > 0) {
-            if (!item.studentsStatus || item.studentsStatus.length === 0 || item.studentsStatus[0].run === "-") {
+            // DETECTA SI ES EL ESTUDIANTE DE RELLENO (12345678) O SI ESTÁ VACÍO Y LO SOBRESCRIBE SOLITO
+            let isDummy = (!item.studentsStatus || item.studentsStatus.length === 0 || item.studentsStatus[0].run === "-" || item.studentsStatus[0].run === "12345678");
+            if (isDummy) {
                 item.studentsStatus = JSON.parse(JSON.stringify(loadedXmlStudentDatabases[foundKey]));
             }
         } else {
@@ -1319,21 +1140,48 @@
         }
     }
 
+    // BOTÓN MANUAL DE SINCRONIZACIÓN XML (EN CASO DE NECESITAR FORZARLO)
+    function forceSyncWithXml() {
+        if (!currentCheckingCellKey) return;
+        let item = gridSelections[currentCheckingCellKey.cellKey][currentCheckingCellKey.itemIdx];
+        let cleanCurrent = item.course.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+        let foundKey = Object.keys(loadedXmlStudentDatabases).find(k => k.replace(/[^a-zA-Z0-9]/g, '').toUpperCase() === cleanCurrent);
+        
+        if (foundKey && loadedXmlStudentDatabases[foundKey].length > 0) {
+            if(confirm(`¿Estás seguro de sincronizar con el XML?\nEsto actualizará la lista de estudiantes para ${item.course}.\n¡No te preocupes! Se mantendrán los estados (0/5, 1/5...) de los estudiantes que ya habías evaluado.`)) {
+                
+                let oldStatusMap = {};
+                item.studentsStatus.forEach(st => {
+                    let id = st.run || st.rut || st.nombres;
+                    if (id && id !== "12345678" && id !== "-") { oldStatusMap[id] = st.status; }
+                });
+
+                let newStudents = JSON.parse(JSON.stringify(loadedXmlStudentDatabases[foundKey]));
+                newStudents.forEach(st => {
+                    let id = st.run || st.rut || st.nombres;
+                    if (oldStatusMap[id]) { st.status = oldStatusMap[id]; }
+                });
+
+                item.studentsStatus = newStudents;
+                renderStudentTable(item.studentsStatus);
+                updateVersionTimestamp();
+                autoSaveState();
+                alert("✅ Lista sincronizada con éxito.");
+            }
+        } else {
+            alert(`⚠️ No se encontraron datos en la memoria XML para el curso: ${item.course}. Por favor, carga el archivo XML correspondiente primero usando el botón rojo "Cargar Nóminas XML".`);
+        }
+    }
+
     function changeCheckingCourse(newCourse) {
         if (!currentCheckingCellKey) return;
         let item = gridSelections[currentCheckingCellKey.cellKey][currentCheckingCellKey.itemIdx];
-        item.course = newCourse;
-        document.getElementById('checkingModalTitle').textContent = `📋 Checking: ${item.course} - ${item.subject}`;
-        loadStudentsForCheckingItem(item);
-        renderStudentTable(item.studentsStatus);
-        renderInteractiveGrid();
-        updateVersionTimestamp();
-        autoSaveState();
+        item.course = newCourse; document.getElementById('checkingModalTitle').textContent = `📋 Checking: ${item.course} - ${item.subject}`;
+        loadStudentsForCheckingItem(item); renderStudentTable(item.studentsStatus); renderInteractiveGrid(); updateVersionTimestamp(); autoSaveState();
     }
 
     function renderStudentTable(studentsArray) {
-        const theadRow = document.getElementById('studentTableHeaderRow');
-        const tbody = document.getElementById('studentTableBody');
+        const theadRow = document.getElementById('studentTableHeaderRow'); const tbody = document.getElementById('studentTableBody');
         theadRow.innerHTML = ''; tbody.innerHTML = '';
 
         let colsToRender = globalActiveXmlColumns.length > 0 ? globalActiveXmlColumns : ['nombres', 'ape_paterno', 'run'];
@@ -1342,11 +1190,8 @@
         let thStatus = document.createElement('th'); thStatus.textContent = 'Estado de Evaluación'; theadRow.appendChild(thStatus);
 
         studentsArray.forEach((st, idx) => {
-            let tr = document.createElement('tr');
-            let tdNum = document.createElement('td'); tdNum.textContent = (idx + 1); tr.appendChild(tdNum);
-            colsToRender.forEach(col => {
-                let td = document.createElement('td'); td.textContent = st[col] || "-"; tr.appendChild(td);
-            });
+            let tr = document.createElement('tr'); let tdNum = document.createElement('td'); tdNum.textContent = (idx + 1); tr.appendChild(tdNum);
+            colsToRender.forEach(col => { let td = document.createElement('td'); td.textContent = st[col] || "-"; tr.appendChild(td); });
             let currentStVal = st.status !== undefined ? st.status : "0";
             let tdStatus = document.createElement('td');
             tdStatus.innerHTML = `
@@ -1357,10 +1202,8 @@
                     <option value="3" ${currentStVal === "3" ? "selected" : ""}>🟡 3/5 - Rev. preg. desarrollo</option>
                     <option value="4" ${currentStVal === "4" ? "selected" : ""}>🟢 4/5 - Instrumento cerrado</option>
                     <option value="5" ${currentStVal === "5" ? "selected" : ""}>🟢 5/5 - Informe generado</option>
-                </select>
-            `;
-            tr.appendChild(tdStatus);
-            tbody.appendChild(tr);
+                </select>`;
+            tr.appendChild(tdStatus); tbody.appendChild(tr);
         });
     }
 
@@ -1368,20 +1211,13 @@
         if (!currentCheckingCellKey) return;
         let item = gridSelections[currentCheckingCellKey.cellKey][currentCheckingCellKey.itemIdx];
         let filter = document.getElementById('studentSearchInput').value.toLowerCase();
-        item.studentsStatus.forEach(st => {
-            if (!filter || Object.values(st).join(' ').toLowerCase().includes(filter)) st.status = targetStatus;
-        });
+        item.studentsStatus.forEach(st => { if (!filter || Object.values(st).join(' ').toLowerCase().includes(filter)) st.status = targetStatus; });
         renderStudentTable(item.studentsStatus.filter(st => !filter || Object.values(st).join(' ').toLowerCase().includes(filter)));
-        updateVersionTimestamp();
-        autoSaveState();
+        updateVersionTimestamp(); autoSaveState();
     }
 
-    function getStatusBgColor(status) {
-        switch(status) { case "1": return "#fee2e2"; case "2": return "#ffedd5"; case "3": return "#fef9c3"; case "4": case "5": return "#dcfce7"; default: return "#f1f5f9"; }
-    }
-    function getStatusTextColor(status) {
-        switch(status) { case "1": return "#991b1b"; case "2": return "#9a3412"; case "3": return "#854d0e"; case "4": case "5": return "#166534"; default: return "#475569"; }
-    }
+    function getStatusBgColor(status) { switch(status) { case "1": return "#fee2e2"; case "2": return "#ffedd5"; case "3": return "#fef9c3"; case "4": case "5": return "#dcfce7"; default: return "#f1f5f9"; } }
+    function getStatusTextColor(status) { switch(status) { case "1": return "#991b1b"; case "2": return "#9a3412"; case "3": return "#854d0e"; case "4": case "5": return "#166534"; default: return "#475569"; } }
 
     function updateStudentStatus(studentIdx, newStatus) {
         if (!currentCheckingCellKey) return;
@@ -1391,11 +1227,8 @@
             let visibleRows = item.studentsStatus.filter(st => Object.values(st).join(' ').toLowerCase().includes(filter));
             let realIndex = item.studentsStatus.indexOf(visibleRows[studentIdx]);
             if (realIndex !== -1) item.studentsStatus[realIndex].status = newStatus;
-        } else {
-            item.studentsStatus[studentIdx].status = newStatus;
-        }
-        updateVersionTimestamp();
-        autoSaveState();
+        } else { item.studentsStatus[studentIdx].status = newStatus; }
+        updateVersionTimestamp(); autoSaveState();
     }
 
     function filterStudentTable() {
@@ -1405,60 +1238,39 @@
         renderStudentTable(item.studentsStatus.filter(st => Object.values(st).join(' ').toLowerCase().includes(filter)));
     }
 
-    function closeCheckingModal() {
-        document.getElementById('checkingModal').classList.remove('open');
-        currentCheckingCellKey = null;
-        renderInteractiveGrid();
-        updateVersionTimestamp();
-        autoSaveState();
-    }
+    function closeCheckingModal() { document.getElementById('checkingModal').classList.remove('open'); currentCheckingCellKey = null; renderInteractiveGrid(); updateVersionTimestamp(); autoSaveState(); }
 
     function checkConflicts() {
         document.querySelectorAll('.grid-day-col').forEach(td => td.classList.remove('conflict-cell'));
         let courseAssignmentLocations = {};
         Object.keys(gridSelections).forEach(cellKey => {
-            let [dayStr, hourStr] = cellKey.split('-');
-            let day = parseInt(dayStr); let hour = parseInt(hourStr);
-            let officialBlock = getOfficialBlockIndex(hour);
-            gridSelections[cellKey].forEach(item => {
-                let key = `${item.course}___${item.subject}`;
-                if(!courseAssignmentLocations[key]) courseAssignmentLocations[key] = [];
-                courseAssignmentLocations[key].push({ day, officialBlock, cellKey });
-            });
+            let [dayStr, hourStr] = cellKey.split('-'); let day = parseInt(dayStr); let hour = parseInt(hourStr); let officialBlock = getOfficialBlockIndex(hour);
+            gridSelections[cellKey].forEach(item => { let key = `${item.course}___${item.subject}`; if(!courseAssignmentLocations[key]) courseAssignmentLocations[key] = []; courseAssignmentLocations[key].push({ day, officialBlock, cellKey }); });
         });
         Object.keys(courseAssignmentLocations).forEach(key => {
             let locs = courseAssignmentLocations[key];
             if(locs.length > 1) {
                 let first = locs[0];
                 if(!locs.every(l => l.day === first.day && l.officialBlock === first.officialBlock)) {
-                    locs.forEach(l => {
-                        let [d, h] = l.cellKey.split('-');
-                        let td = document.querySelector(`.grid-day-col[data-day="${d}"][data-hour="${h}"]`);
-                        if(td) td.classList.add('conflict-cell');
-                    });
+                    locs.forEach(l => { let [d, h] = l.cellKey.split('-'); let td = document.querySelector(`.grid-day-col[data-day="${d}"][data-hour="${h}"]`); if(td) td.classList.add('conflict-cell'); });
                 }
             }
         });
     }
 
     function initiateDropAssignment(masterId, dayIndex, hourIndex) {
-        let master = masterBlocks.find(m => m.id === masterId);
-        if(!master) return;
+        let master = masterBlocks.find(m => m.id === masterId); if(!master) return;
         pendingDropData = { master: master, day: dayIndex, hour: hourIndex };
         document.getElementById('dropModalInfo').textContent = `Bloque: ${days[dayIndex]} (${hours[hourIndex].time}) -> Asignatura: ${master.subject}`;
-        document.getElementById('dropCourseSelect').value = '';
-        document.getElementById('dropModal').classList.add('open');
+        document.getElementById('dropCourseSelect').value = ''; document.getElementById('dropModal').classList.add('open');
     }
 
     function closeDropModal() { document.getElementById('dropModal').classList.remove('open'); pendingDropData = null; }
 
     function confirmDropAssignment() {
         if(!pendingDropData) return;
-        let course = document.getElementById('dropCourseSelect').value;
-        if(!course) { alert("Selecciona un curso."); return; }
-
-        let master = pendingDropData.master;
-        let cellKey = `${pendingDropData.day}-${pendingDropData.hour}`;
+        let course = document.getElementById('dropCourseSelect').value; if(!course) { alert("Selecciona un curso."); return; }
+        let master = pendingDropData.master; let cellKey = `${pendingDropData.day}-${pendingDropData.hour}`;
         if(!gridSelections[cellKey]) gridSelections[cellKey] = [];
 
         let initialStudents = [];
@@ -1467,38 +1279,25 @@
         if (foundKey && loadedXmlStudentDatabases[foundKey].length > 0) {
             initialStudents = JSON.parse(JSON.stringify(loadedXmlStudentDatabases[foundKey]));
         } else {
+            // AQUÍ SE CREABA EL ESTUDIANTE DE RELLENO "12345678" ANTES
             initialStudents = [{ nombres: "Estudiante", ape_paterno: "Ejemplo", run: "12345678", status: "0" }];
         }
 
-        gridSelections[cellKey].push({
-            masterId: master.id, subject: master.subject, teacher: master.teacher, color: master.color, course: course, studentsStatus: initialStudents
-        });
-
-        closeDropModal();
-        renderInteractiveGrid();
-        updateReports();
-        updateVersionTimestamp();
-        autoSaveState();
+        gridSelections[cellKey].push({ masterId: master.id, subject: master.subject, teacher: master.teacher, color: master.color, course: course, studentsStatus: initialStudents });
+        closeDropModal(); renderInteractiveGrid(); updateReports(); updateVersionTimestamp(); autoSaveState();
     }
 
     function removeAssignment(event, cellKey, itemIdx) {
         event.stopPropagation();
-        if(gridSelections[cellKey]) {
-            gridSelections[cellKey].splice(itemIdx, 1);
-            if(gridSelections[cellKey].length === 0) delete gridSelections[cellKey];
-        }
-        renderInteractiveGrid();
-        updateReports();
-        updateVersionTimestamp();
-        autoSaveState();
+        if(gridSelections[cellKey]) { gridSelections[cellKey].splice(itemIdx, 1); if(gridSelections[cellKey].length === 0) delete gridSelections[cellKey]; }
+        renderInteractiveGrid(); updateReports(); updateVersionTimestamp(); autoSaveState();
     }
 
     function buildFinalTableRows() {
         const tbody = document.getElementById('finalTableBody'); tbody.innerHTML = '';
         hours.forEach((hour, hourIndex) => {
             let tr = document.createElement('tr');
-            if(hour.type === 'break') {
-                tr.innerHTML = `<td colspan="4" class="recreo-final"></td><td colspan="5" class="recreo-final">${hour.label.toUpperCase()}</td>`;
+            if(hour.type === 'break') { tr.innerHTML = `<td colspan="4" class="recreo-final"></td><td colspan="5" class="recreo-final">${hour.label.toUpperCase()}</td>`;
             } else {
                 let isBlockStart = [0, 3, 6, 9].includes(hourIndex);
                 let blockNum = hourIndex < 2 ? '1°' : (hourIndex < 5 ? '2°' : (hourIndex < 8 ? '3°' : '4°'));
@@ -1513,33 +1312,23 @@
         const course = document.getElementById('courseSelector').value;
         document.getElementById('print-course-title').textContent = course === 'TODOS' ? "CALENDARIO GENERAL - TODOS LOS CURSOS" : (course ? `CURSO: ${course}` : "CURSO: (SELECCIONE UN CURSO ARRIBA)");
         
-        for (let day = 0; day < 5; day++) {
-            for (let hour = 0; hour < 11; hour++) {
-                let cell = document.getElementById(`final-${day}-${hour}`);
-                if (cell) cell.innerHTML = '';
-            }
-        }
+        for (let day = 0; day < 5; day++) { for (let hour = 0; hour < 11; hour++) { let cell = document.getElementById(`final-${day}-${hour}`); if (cell) cell.innerHTML = ''; } }
         if (!course) return;
 
         for (let day = 0; day < 5; day++) {
             for (let hour = 0; hour < 11; hour++) {
                 if (hours[hour].type === 'break') continue;
-                let cell = document.getElementById(`final-${day}-${hour}`);
-                if (!cell) continue;
+                let cell = document.getElementById(`final-${day}-${hour}`); if (!cell) continue;
                 let itemsInCell = gridSelections[`${day}-${hour}`] || [];
 
                 if (course === 'TODOS') {
                     let htmlContent = '';
-                    itemsInCell.forEach(item => {
-                        let teacherLine = item.teacher ? `<br><span style="font-size: 9px; font-weight: normal;">(${item.teacher})</span>` : '';
-                        htmlContent += `<div style="background-color: ${item.color}; color: #000; padding: 4px 6px; margin-bottom: 2px; border-radius: 4px; font-weight: bold; font-size: 11px; display: block;">${item.course} - ${item.subject}${teacherLine}</div>`;
-                    });
+                    itemsInCell.forEach(item => { let teacherLine = item.teacher ? `<br><span style="font-size: 9px; font-weight: normal;">(${item.teacher})</span>` : ''; htmlContent += `<div style="background-color: ${item.color}; color: #000; padding: 4px 6px; margin-bottom: 2px; border-radius: 4px; font-weight: bold; font-size: 11px; display: block;">${item.course} - ${item.subject}${teacherLine}</div>`; });
                     cell.innerHTML = htmlContent;
                 } else {
                     let filtered = itemsInCell.filter(i => i.course === course);
                     if (filtered.length > 0) {
-                        let item = filtered[0];
-                        let teacherLine = item.teacher ? `<br><span style="font-size: 10px; font-weight: normal;">(${item.teacher})</span>` : '';
+                        let item = filtered[0]; let teacherLine = item.teacher ? `<br><span style="font-size: 10px; font-weight: normal;">(${item.teacher})</span>` : '';
                         cell.innerHTML = `<div style="background-color: ${item.color}; color: #000; padding: 5px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; display: block;">${item.course} - ${item.subject}${teacherLine}</div>`;
                     }
                 }
@@ -1548,13 +1337,9 @@
 
         let simbologiaBody = document.getElementById('simbologiaBody'); simbologiaBody.innerHTML = '';
         let subjectSymbolMap = {};
-        masterBlocks.forEach(master => {
-            if(!subjectSymbolMap[master.subject]) subjectSymbolMap[master.subject] = { color: master.color, teachers: new Set() };
-            subjectSymbolMap[master.subject].teachers.add(master.teacher);
-        });
+        masterBlocks.forEach(master => { if(!subjectSymbolMap[master.subject]) subjectSymbolMap[master.subject] = { color: master.color, teachers: new Set() }; subjectSymbolMap[master.subject].teachers.add(master.teacher); });
         Object.keys(subjectSymbolMap).forEach(subjName => {
-            let info = subjectSymbolMap[subjName];
-            let tr = document.createElement('tr');
+            let info = subjectSymbolMap[subjName]; let tr = document.createElement('tr');
             tr.innerHTML = `<td style="background-color: ${info.color};"></td><td style="text-align: left; padding-left: 10px; font-weight: bold;">${subjName}</td><td style="text-align: left; padding-left: 10px; font-weight: bold;">${Array.from(info.teachers).join(', ')}</td>`;
             simbologiaBody.appendChild(tr);
         });
@@ -1562,10 +1347,8 @@
         let printEvalSummaryContainer = document.getElementById('printEvalSummaryContainer'); printEvalSummaryContainer.innerHTML = '';
         Object.keys(subjectSymbolMap).forEach(subjName => {
             let info = subjectSymbolMap[subjName];
-            let assignedSet = new Set();
-            Object.values(gridSelections).flat().forEach(item => { if(item.subject === subjName) assignedSet.add(item.course); });
-            let assignedList = Array.from(assignedSet).sort();
-            let missingList = masterCoursesList.filter(c => !assignedSet.has(c)).sort();
+            let assignedSet = new Set(); Object.values(gridSelections).flat().forEach(item => { if(item.subject === subjName) assignedSet.add(item.course); });
+            let assignedList = Array.from(assignedSet).sort(); let missingList = masterCoursesList.filter(c => !assignedSet.has(c)).sort();
 
             let summaryBox = document.createElement('div'); summaryBox.className = 'print-eval-summary-card';
             summaryBox.innerHTML = `
@@ -1583,30 +1366,22 @@
             id: 'version_' + Date.now(), name: customName || lastSavedMeta.name,
             createdDate: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}),
             dateRange: customDateRange || `${formatDate(lastSavedMeta.startDate)} al ${formatDate(lastSavedMeta.endDate)}`,
-            masterBlocks: JSON.parse(JSON.stringify(masterBlocks)),
-            gridSelections: JSON.parse(JSON.stringify(gridSelections)),
-            selectedCourse: document.getElementById('courseSelector').value,
-            logoBase64: currentSchoolLogo,
-            xmlStudentsDb: loadedXmlStudentDatabases,
-            activeXmlCols: globalActiveXmlColumns
+            masterBlocks: JSON.parse(JSON.stringify(masterBlocks)), gridSelections: JSON.parse(JSON.stringify(gridSelections)),
+            selectedCourse: document.getElementById('courseSelector').value, logoBase64: currentSchoolLogo, xmlStudentsDb: loadedXmlStudentDatabases, activeXmlCols: globalActiveXmlColumns
         };
     }
 
     function openSaveModal() {
-        document.getElementById('inputScheduleName').value = lastSavedMeta.name;
-        document.getElementById('inputStartDate').value = lastSavedMeta.startDate;
-        document.getElementById('inputEndDate').value = lastSavedMeta.endDate;
-        document.getElementById('saveModal').classList.add('open');
+        document.getElementById('inputScheduleName').value = lastSavedMeta.name; document.getElementById('inputStartDate').value = lastSavedMeta.startDate;
+        document.getElementById('inputEndDate').value = lastSavedMeta.endDate; document.getElementById('saveModal').classList.add('open');
     }
     function toggleSaveModal(open) { const modal = document.getElementById('saveModal'); if(open) modal.classList.add('open'); else modal.classList.remove('open'); }
 
     function confirmSaveVersion() {
-        let name = document.getElementById('inputScheduleName').value.trim() || "Calendario";
-        let start = document.getElementById('inputStartDate').value; let end = document.getElementById('inputEndDate').value;
+        let name = document.getElementById('inputScheduleName').value.trim() || "Calendario"; let start = document.getElementById('inputStartDate').value; let end = document.getElementById('inputEndDate').value;
         lastSavedMeta.name = name; if(start) lastSavedMeta.startDate = start; if(end) lastSavedMeta.endDate = end; lastSavedMeta.isConfigured = true;
         let newVersion = getStateObject(name, `${formatDate(start)} al ${formatDate(end)}`);
-        let history = getHistory(); history.unshift(newVersion);
-        localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
+        let history = getHistory(); history.unshift(newVersion); localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
         downloadJsonFile(newVersion); toggleSaveModal(false); alert(`¡Guardado exitoso!`);
     }
 
@@ -1614,27 +1389,19 @@
         if (Object.keys(gridSelections).length > 0) {
             if (confirm("¿Guardar horario actual antes de crear uno nuevo?")) {
                 if (lastSavedMeta.isConfigured) {
-                    let savedVersion = getStateObject();
-                    let history = getHistory(); history.unshift(savedVersion);
-                    localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
-                    downloadJsonFile(savedVersion);
-                    resetScreenToNew();
+                    let savedVersion = getStateObject(); let history = getHistory(); history.unshift(savedVersion); localStorage.setItem('calendario_historial_versiones', JSON.stringify(history));
+                    downloadJsonFile(savedVersion); resetScreenToNew();
                 } else { openSaveModal(); return; }
             } else { resetScreenToNew(); }
         } else { resetScreenToNew(); }
     }
 
-    function resetScreenToNew() {
-        gridSelections = {}; document.getElementById('courseSelector').value = '';
-        renderInteractiveGrid(); updateReports(); updateVersionTimestamp();
-        alert("Pantalla limpia.");
-    }
+    function resetScreenToNew() { gridSelections = {}; document.getElementById('courseSelector').value = ''; renderInteractiveGrid(); updateReports(); updateVersionTimestamp(); alert("Pantalla limpia."); }
 
     function formatDate(dateStr) { if(!dateStr) return ''; let p = dateStr.split('-'); return p.length === 3 ? `${p[2]}/${p[1]}/${p[0]}` : dateStr; }
     function downloadJsonFile(stateObj) {
         const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stateObj, null, 2));
-        const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", `${stateObj.name}.json`);
-        document.body.appendChild(a); a.click(); a.remove();
+        const a = document.createElement('a'); a.setAttribute("href", dataStr); a.setAttribute("download", `${stateObj.name}.json`); document.body.appendChild(a); a.click(); a.remove();
     }
 
     function getHistory() { try { let h = localStorage.getItem('calendario_historial_versiones'); return h ? JSON.parse(h) : []; } catch(e) { return []; } }
@@ -1652,43 +1419,27 @@
         });
     }
 
-    function loadVersion(id) {
-        let history = getHistory(); let version = history.find(v => v.id === id);
-        if(version) { restoreState(version); toggleHistoryModal(false); alert("Cargado con éxito."); }
-    }
-
+    function loadVersion(id) { let history = getHistory(); let version = history.find(v => v.id === id); if(version) { restoreState(version); toggleHistoryModal(false); alert("Cargado con éxito."); } }
     function autoSaveState() { try { localStorage.setItem('calendario_autosave_v28', JSON.stringify(getStateObject())); } catch(e) {} }
 
     function loadBackup(event) {
-        const file = event.target.files[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(e) { try { restoreState(JSON.parse(e.target.result)); alert("Cargado desde JSON."); } catch(err) { alert("Error."); } };
-        reader.readAsText(file);
+        const file = event.target.files[0]; if (!file) return; const reader = new FileReader();
+        reader.onload = function(e) { try { restoreState(JSON.parse(e.target.result)); alert("Cargado desde JSON."); } catch(err) { alert("Error."); } }; reader.readAsText(file);
     }
 
     function restoreState(state) {
         if (!state) return;
-        if (state.masterBlocks) masterBlocks = state.masterBlocks;
-        gridSelections = state.gridSelections || {};
-        if (state.logoBase64) currentSchoolLogo = state.logoBase64;
-        if (state.xmlStudentsDb) loadedXmlStudentDatabases = state.xmlStudentsDb;
-        if (state.activeXmlCols) globalActiveXmlColumns = state.activeXmlCols;
-        updateCourseSelectorDropdown();
-        renderMasterPalette();
-        renderInteractiveGrid();
+        if (state.masterBlocks) masterBlocks = state.masterBlocks; gridSelections = state.gridSelections || {};
+        if (state.logoBase64) currentSchoolLogo = state.logoBase64; if (state.xmlStudentsDb) loadedXmlStudentDatabases = state.xmlStudentsDb; if (state.activeXmlCols) globalActiveXmlColumns = state.activeXmlCols;
+        updateCourseSelectorDropdown(); renderMasterPalette(); renderInteractiveGrid();
         if (state.selectedCourse) document.getElementById('courseSelector').value = state.selectedCourse;
-        updateReports();
-        updateVersionTimestamp();
+        updateReports(); updateVersionTimestamp();
     }
 
-    function checkAutoSave() {
-        try { let saved = localStorage.getItem('calendario_autosave_v28'); if (saved) { let state = JSON.parse(saved); if (confirm("¿Recuperar avance guardado?")) { restoreState(state); return; } } } catch(e) {}
-        initApp();
-    }
+    function checkAutoSave() { try { let saved = localStorage.getItem('calendario_autosave_v28'); if (saved) { let state = JSON.parse(saved); if (confirm("¿Recuperar avance guardado?")) { restoreState(state); return; } } } catch(e) {} initApp(); }
 
     function exportToWord() {
-        const course = document.getElementById('courseSelector').value;
-        if (!course) { alert("Selecciona un curso antes de exportar."); return; }
+        const course = document.getElementById('courseSelector').value; if (!course) { alert("Selecciona un curso antes de exportar."); return; }
         const header = "<html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'><head><meta charset='utf-8'><style>table{border-collapse:collapse;width:100%;} th, td{border:1px solid black;padding:6px;text-align:center;font-family:Arial,sans-serif;font-size:12px;}</style></head><body>";
         const blob = new Blob(['\uFEFF' + (header + document.querySelector('.print-section').innerHTML + "</body></html>")], { type: 'application/msword' });
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Calendario_${course}.doc`; document.body.appendChild(a); a.click(); a.remove();
